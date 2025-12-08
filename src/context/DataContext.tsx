@@ -15,6 +15,7 @@ import {
   demoChatMessages,
   shopItems as initialShopItems,
 } from '../data/demoData';
+import { isDemoMode } from '../lib/supabase';
 
 interface DataContextType {
   // Resources
@@ -57,11 +58,13 @@ interface DataContextType {
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [resources, setResources] = useState<Resource[]>(demoResources);
-  const [assessments, setAssessments] = useState<Assessment[]>(demoAssessments);
-  const [schedule, setSchedule] = useState<ScheduleEvent[]>(demoSchedule);
-  const [messages, setMessages] = useState<ChatMessage[]>(demoChatMessages);
-  const [shopItems, setShopItems] = useState<ShopItem[]>(initialShopItems);
+  // In live mode, start with empty arrays - data comes from Supabase
+  // In demo mode, use demo data for demonstration purposes
+  const [resources, setResources] = useState<Resource[]>(isDemoMode ? demoResources : []);
+  const [assessments, setAssessments] = useState<Assessment[]>(isDemoMode ? demoAssessments : []);
+  const [schedule, setSchedule] = useState<ScheduleEvent[]>(isDemoMode ? demoSchedule : []);
+  const [messages, setMessages] = useState<ChatMessage[]>(isDemoMode ? demoChatMessages : []);
+  const [shopItems, setShopItems] = useState<ShopItem[]>(isDemoMode ? initialShopItems : []);
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   // Resources

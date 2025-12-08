@@ -38,8 +38,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [supabaseUser, setSupabaseUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [students, setStudents] = useState<StudentProfile[]>(demoStudents);
-  const [parents, setParents] = useState<ParentProfile[]>(demoParents);
+  // In live mode, start with empty arrays - data comes from Supabase
+  // In demo mode, use demo data
+  const [students, setStudents] = useState<StudentProfile[]>(isDemoMode ? demoStudents : []);
+  const [parents, setParents] = useState<ParentProfile[]>(isDemoMode ? demoParents : []);
   const [profile, setProfile] = useState<Profile | null>(null);
 
   // Convert Supabase profile to app user format
@@ -305,8 +307,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (isDemoMode) {
       return getAllUsers().find(u => u.id === id);
     }
-    // In real mode, this would fetch from Supabase
-    return getAllUsers().find(u => u.id === id);
+    // In live mode, check current user, students, and parents
+    if (user?.id === id) return user;
+    const student = students.find(s => s.id === id);
+    if (student) return student;
+    const parent = parents.find(p => p.id === id);
+    if (parent) return parent;
+    return undefined;
   };
 
   const getStudentById = (id: string): StudentProfile | undefined => {
@@ -346,7 +353,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (user?.role === 'tutor') {
       return user as TutorProfile;
     }
-    return demoTutor;
+    // Only return demo tutor in demo mode
+    if (isDemoMode) {
+      return demoTutor;
+    }
+    // In live mode, return a placeholder (should be logged in as tutor)
+    return {
+      id: '',
+      email: '',
+      name: 'Not logged in',
+      role: 'tutor',
+      password: '',
+      subjects: [],
+      qualifications: [],
+    } as TutorProfile;
   };
 
   const getAllStudents = (): StudentProfile[] => {
