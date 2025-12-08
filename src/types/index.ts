@@ -29,6 +29,7 @@ export interface StudentProfile extends User {
   avatar: AvatarConfig;
   stats: StudentStats;
   schedule: ScheduleEvent[];
+  username?: string; // Public display name for leaderboard (not login)
 }
 
 export interface ParentProfile extends User {
@@ -66,9 +67,32 @@ export interface StudentStats {
   currentStreak?: number;
   longestStreak?: number;
   lastActiveDate?: string;
+  lastActivityDate?: string; // For streak detection
   missedSessionsCount?: number;
   lateHomeworkCount?: number;
   lowEngagementWeeks?: number;
+  // Bonus tracking
+  bonusHistory?: BonusRecord[];
+  homeworkStreak?: number; // Consecutive on-time homework submissions
+}
+
+// Bonus System Types
+export type BonusType =
+  | 'streak-milestone'
+  | 'clean-week'
+  | 'clean-month'
+  | 'perfect-session'
+  | 'homework-streak'
+  | 'improvement-bonus'
+  | 'attendance-bonus';
+
+export interface BonusRecord {
+  id: string;
+  type: BonusType;
+  pointsAwarded: number;
+  reason: string;
+  awardedAt: string;
+  awardedBy: 'system' | 'tutor';
 }
 
 // Penalty System Types

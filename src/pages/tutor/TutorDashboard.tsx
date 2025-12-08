@@ -15,6 +15,8 @@ import { Button } from '../../components/ui/Button';
 import { Chat, ChatList } from '../../components/shared/Chat';
 import { FeatureSettingsPanel } from '../../components/tutor/FeatureSettingsPanel';
 import { PenaltyManagement } from '../../components/tutor/PenaltyManagement';
+import { BonusManagement } from '../../components/tutor/BonusManagement';
+import { Leaderboard } from '../../components/shared/Leaderboard';
 import {
   Users,
   BookOpen,
@@ -42,6 +44,8 @@ import {
   ListChecks,
   ClipboardCheck,
   AlertTriangle,
+  Gift,
+  Trophy,
 } from 'lucide-react';
 import { StudentProfile, ParentProfile, Resource, ScheduleEvent, Subject, YearGroup, ResourceLevel, ResourceSubtype, Notification } from '../../types';
 import { adminService, UserRecord, CreateUserData } from '../../services/adminService';
@@ -82,6 +86,8 @@ export const TutorDashboard: React.FC = () => {
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [showPenaltyModal, setShowPenaltyModal] = useState(false);
+  const [showBonusModal, setShowBonusModal] = useState(false);
+  const [showLeaderboardModal, setShowLeaderboardModal] = useState(false);
   const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
   const notificationDropdownRef = useRef<HTMLDivElement>(null);
   const [selectedStudent, setSelectedStudent] = useState<StudentProfile | null>(null);
@@ -131,6 +137,10 @@ export const TutorDashboard: React.FC = () => {
       setShowAdminModal(true);
     } else if (path.includes('/penalties')) {
       setShowPenaltyModal(true);
+    } else if (path.includes('/bonuses') || path.includes('/rewards')) {
+      setShowBonusModal(true);
+    } else if (path.includes('/leaderboard')) {
+      setShowLeaderboardModal(true);
     }
   }, [location.pathname]);
 
@@ -599,6 +609,22 @@ export const TutorDashboard: React.FC = () => {
                 </div>
               )}
             </div>
+            <Button
+              variant="secondary"
+              onClick={() => setShowLeaderboardModal(true)}
+              icon={<Trophy className="w-4 h-4" />}
+              className="text-yellow-400 border-yellow-500/30 hover:bg-yellow-500/10"
+            >
+              Leaderboard
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => setShowBonusModal(true)}
+              icon={<Gift className="w-4 h-4" />}
+              className="text-green-400 border-green-500/30 hover:bg-green-500/10"
+            >
+              Bonuses
+            </Button>
             <Button
               variant="secondary"
               onClick={() => setShowPenaltyModal(true)}
@@ -2110,8 +2136,36 @@ export const TutorDashboard: React.FC = () => {
         <PenaltyManagement
           students={students}
           onUpdateStudent={(updatedStudent) => {
-            updateStudent(updatedStudent.id, updatedStudent);
+            updateStudent(updatedStudent);
           }}
+        />
+      </Modal>
+
+      {/* Bonus Management Modal */}
+      <Modal
+        isOpen={showBonusModal}
+        onClose={() => setShowBonusModal(false)}
+        title="Bonus & Rewards Management"
+        size="xl"
+      >
+        <BonusManagement
+          students={students}
+          onUpdateStudent={(updatedStudent) => {
+            updateStudent(updatedStudent);
+          }}
+        />
+      </Modal>
+
+      {/* Leaderboard Modal */}
+      <Modal
+        isOpen={showLeaderboardModal}
+        onClose={() => setShowLeaderboardModal(false)}
+        title="Student Leaderboard"
+        size="lg"
+      >
+        <Leaderboard
+          students={students}
+          showAllLevels={true}
         />
       </Modal>
     </DashboardLayout>

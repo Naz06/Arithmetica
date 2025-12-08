@@ -16,6 +16,7 @@ import { Tabs } from '../../components/ui/Tabs';
 import { ConstellationSkillTree } from '../../components/shared/ConstellationSkillTree';
 import { LessonPlans } from '../../components/shared/LessonPlans';
 import { StellarJourney } from '../../components/shared/StellarJourney';
+import { LeaderboardPreview, Leaderboard } from '../../components/shared/Leaderboard';
 import {
   Star,
   Zap,
@@ -41,7 +42,7 @@ import { getPenaltyDisplayInfo, getTotalPenaltiesInPeriod, isStudentAtRisk } fro
 
 export const StudentDashboard: React.FC = () => {
   const location = useLocation();
-  const { user, getStudentById, updateStudent, getTutor } = useAuth();
+  const { user, getStudentById, updateStudent, getTutor, getAllStudents } = useAuth();
   const { getResourcesByStudentId, getAssessmentsByStudentId, getScheduleByStudentId, shopItems: items, purchaseItem, addNotification } = useData();
 
   const student = user?.role === 'student' ? getStudentById(user.id) : null;
@@ -78,6 +79,7 @@ export const StudentDashboard: React.FC = () => {
   const [showStatsModal, setShowStatsModal] = useState(false);
   const [showQuickMessageModal, setShowQuickMessageModal] = useState(false);
   const [showPenaltyHistoryModal, setShowPenaltyHistoryModal] = useState(false);
+  const [showLeaderboardModal, setShowLeaderboardModal] = useState(false);
 
   // Calculate penalty stats
   const penaltyHistory = student?.stats.penaltyHistory || [];
@@ -113,6 +115,8 @@ export const StudentDashboard: React.FC = () => {
       setShowStatsModal(true);
     } else if (path.includes('/quick-message')) {
       setShowQuickMessageModal(true);
+    } else if (path.includes('/leaderboard')) {
+      setShowLeaderboardModal(true);
     }
   }, [location.pathname]);
 
@@ -148,6 +152,17 @@ export const StudentDashboard: React.FC = () => {
       case 'update': return 'Update';
       case 'homework-help': return 'Question';
       default: return 'Message';
+    }
+  };
+
+  // Handle username update for leaderboard
+  const handleUpdateUsername = (studentId: string, username: string) => {
+    const studentToUpdate = getStudentById(studentId);
+    if (studentToUpdate) {
+      updateStudent({
+        ...studentToUpdate,
+        username,
+      });
     }
   };
 
@@ -548,6 +563,13 @@ export const StudentDashboard: React.FC = () => {
                 )}
               </CardContent>
             </Card>
+
+            {/* Leaderboard */}
+            <LeaderboardPreview
+              students={getAllStudents()}
+              currentStudent={student}
+              currentYearGroup={student.yearGroup}
+            />
           </div>
         </div>
       </div>
@@ -999,6 +1021,22 @@ export const StudentDashboard: React.FC = () => {
             </div>
           </div>
         )}
+      </Modal>
+
+      {/* Leaderboard Modal */}
+      <Modal
+        isOpen={showLeaderboardModal}
+        onClose={() => setShowLeaderboardModal(false)}
+        title="Leaderboard"
+        size="lg"
+      >
+        <Leaderboard
+          students={getAllStudents()}
+          currentStudent={student}
+          currentYearGroup={student.yearGroup}
+          onUpdateUsername={handleUpdateUsername}
+          showAllLevels={false}
+        />
       </Modal>
     </DashboardLayout>
   );

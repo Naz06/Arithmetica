@@ -156,6 +156,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         completed_assignments,
         average_score,
         attendance_rate,
+        bonus_history,
+        homework_streak,
+        last_activity_date,
+        username,
         created_at,
         updated_at,
         profiles:user_id (
@@ -187,6 +191,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           points: s.total_points || 0,
           level: Math.floor((s.total_points || 0) / 100) + 1,
           avatar: s.avatar_items || { baseCharacter: 'astronaut', unlockedItems: [] },
+          username: s.username || undefined,
           stats: {
             overallProgress: s.overall_progress || 0,
             subjectStats: [],
@@ -203,6 +208,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             penaltyHistory: s.penalty_history || [],
             lowEngagementWeeks: s.low_engagement_weeks || 0,
             missedSessionsCount: s.missed_sessions_count || 0,
+            // Bonus system fields
+            bonusHistory: s.bonus_history || [],
+            homeworkStreak: s.homework_streak || 0,
+            lastActivityDate: s.last_activity_date || undefined,
           },
           achievements: s.achievements || [],
         };
@@ -725,6 +734,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           penalty_history: updatedStudent.stats.penaltyHistory || [],
           low_engagement_weeks: updatedStudent.stats.lowEngagementWeeks || 0,
           missed_sessions_count: updatedStudent.stats.missedSessionsCount || 0,
+          // Bonus system fields
+          bonus_history: updatedStudent.stats.bonusHistory || [],
+          homework_streak: updatedStudent.stats.homeworkStreak || 0,
+          // Leaderboard username
+          username: updatedStudent.username || null,
+          last_activity_date: updatedStudent.stats.lastActivityDate || null,
           // Additional stats
           total_sessions: updatedStudent.stats.totalSessions || 0,
           completed_assignments: updatedStudent.stats.completedAssignments || 0,
