@@ -27,7 +27,7 @@ interface AuthContextType {
   getTutor: () => TutorProfile;
   getAllStudents: () => StudentProfile[];
   getStudentsByParentId: (parentId: string) => StudentProfile[];
-  updateStudent: (student: StudentProfile) => void;
+  updateStudent: (student: StudentProfile) => void | Promise<void>;
   refreshProfile: () => Promise<void>;
   addStudent: (student: StudentProfile) => Promise<{ success: boolean; password?: string; error?: string }>;
   addParent: (parent: ParentProfile) => Promise<{ success: boolean; password?: string; error?: string }>;
@@ -132,10 +132,32 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (isDemoMode) return;
 
     // Join students with profiles to get name and email
+    // Include all columns including penalty system fields
     const { data, error } = await supabase
       .from('students')
       .select(`
-        *,
+        id,
+        user_id,
+        tutor_id,
+        year_group,
+        subjects,
+        overall_progress,
+        total_points,
+        current_streak,
+        avatar_items,
+        achievements,
+        strengths,
+        weaknesses,
+        penalty_history,
+        low_engagement_weeks,
+        missed_sessions_count,
+        weekly_progress,
+        total_sessions,
+        completed_assignments,
+        average_score,
+        attendance_rate,
+        created_at,
+        updated_at,
         profiles:user_id (
           name,
           email
@@ -171,11 +193,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             strengths: s.strengths || [],
             weaknesses: s.weaknesses || [],
             improvements: [],
-            weeklyProgress: [],
-            totalSessions: s.current_streak || 0,
-            completedAssignments: 0,
-            averageScore: s.overall_progress || 0,
-            attendanceRate: 100,
+            weeklyProgress: s.weekly_progress || [],
+            totalSessions: s.total_sessions || 0,
+            completedAssignments: s.completed_assignments || 0,
+            averageScore: s.average_score || 0,
+            attendanceRate: s.attendance_rate || 100,
+            // Penalty system fields
+            streakDays: s.current_streak || 0,
+            penaltyHistory: s.penalty_history || [],
+            lowEngagementWeeks: s.low_engagement_weeks || 0,
+            missedSessionsCount: s.missed_sessions_count || 0,
           },
           achievements: s.achievements || [],
         };
@@ -679,8 +706,45 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return students.filter(s => s.parentId === parentId);
   };
 
-  const updateStudent = (updatedStudent: StudentProfile) => {
+  const updateStudent = async (updatedStudent: StudentProfile) => {
+    // Update local state
     setStudents(prev => prev.map(s => s.id === updatedStudent.id ? updatedStudent : s));
+
+    // If in live mode, persist to Supabase
+    if (!isDemoMode) {
+      try {
+        const updateData: Record<string, unknown> = {
+          total_points: updatedStudent.points,
+          current_streak: updatedStudent.stats.streakDays || 0,
+          overall_progress: updatedStudent.stats.overallProgress,
+          strengths: updatedStudent.stats.strengths,
+          weaknesses: updatedStudent.stats.weaknesses,
+          avatar_items: updatedStudent.avatar,
+          achievements: updatedStudent.achievements || [],
+          // Penalty system fields
+          penalty_history: updatedStudent.stats.penaltyHistory || [],
+          low_engagement_weeks: updatedStudent.stats.lowEngagementWeeks || 0,
+          missed_sessions_count: updatedStudent.stats.missedSessionsCount || 0,
+          // Additional stats
+          total_sessions: updatedStudent.stats.totalSessions || 0,
+          completed_assignments: updatedStudent.stats.completedAssignments || 0,
+          average_score: updatedStudent.stats.averageScore || 0,
+          attendance_rate: updatedStudent.stats.attendanceRate || 100,
+          weekly_progress: updatedStudent.stats.weeklyProgress || [],
+        };
+
+        const { error } = await supabase
+          .from('students')
+          .update(updateData)
+          .eq('id', updatedStudent.id);
+
+        if (error) {
+          console.error('Error updating student in Supabase:', error);
+        }
+      } catch (error) {
+        console.error('Error syncing student to Supabase:', error);
+      }
+    }
   };
 
   return (
