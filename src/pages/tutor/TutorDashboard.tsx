@@ -36,6 +36,10 @@ import {
   Key,
   CheckCircle,
   AlertCircle,
+  MapPin,
+  Sparkles,
+  ListChecks,
+  ClipboardCheck,
 } from 'lucide-react';
 import { StudentProfile, ParentProfile, Resource, ScheduleEvent, Subject, YearGroup, ResourceLevel, ResourceSubtype, Notification } from '../../types';
 import { adminService, UserRecord, CreateUserData } from '../../services/adminService';
@@ -49,6 +53,7 @@ export const TutorDashboard: React.FC = () => {
     resources,
     addResource,
     addScheduleEvent,
+    updateScheduleEvent,
     notifications,
     getNotificationsByUserId,
     getUnreadNotificationCount,
@@ -174,7 +179,23 @@ export const TutorDashboard: React.FC = () => {
     location: "Student's Home",
     studentId: '',
     notes: '',
+    // Lesson plan fields
+    objectives: [''],
+    topics: [''],
+    resources: '',
+    homework: '',
   });
+
+  // Session notes state for completing sessions
+  const [sessionNotes, setSessionNotes] = useState({
+    summary: '',
+    topicsCovered: [''],
+    studentPerformance: 'good' as 'excellent' | 'good' | 'needs-improvement',
+    tutorNotes: '',
+    nextSteps: '',
+    homeworkAssigned: '',
+  });
+  const [showCompleteSessionForm, setShowCompleteSessionForm] = useState(false);
 
   const handleAddResource = () => {
     const resource: Resource = {
@@ -335,14 +356,36 @@ export const TutorDashboard: React.FC = () => {
   };
 
   const handleAddEvent = () => {
+    // Filter out empty objectives and topics
+    const filteredObjectives = newEvent.objectives.filter(o => o.trim() !== '');
+    const filteredTopics = newEvent.topics.filter(t => t.trim() !== '');
+    const filteredResources = newEvent.resources.split(',').map(r => r.trim()).filter(r => r !== '');
+
     const event: ScheduleEvent = {
       id: `event-${Date.now()}`,
-      ...newEvent,
+      title: newEvent.title,
+      subject: newEvent.subject,
+      date: newEvent.date,
+      startTime: newEvent.startTime,
+      endTime: newEvent.endTime,
+      location: newEvent.location,
+      studentId: newEvent.studentId,
+      notes: newEvent.notes,
       tutorId: 'tutor-001',
       status: 'scheduled',
+      lessonPlan: (filteredObjectives.length > 0 || filteredTopics.length > 0) ? {
+        objectives: filteredObjectives,
+        topics: filteredTopics,
+        resources: filteredResources.length > 0 ? filteredResources : undefined,
+        homework: newEvent.homework.trim() || undefined,
+      } : undefined,
     };
     addScheduleEvent(event);
     setShowEventModal(false);
+    resetEventForm();
+  };
+
+  const resetEventForm = () => {
     setNewEvent({
       title: '',
       subject: 'mathematics',
@@ -352,7 +395,109 @@ export const TutorDashboard: React.FC = () => {
       location: "Student's Home",
       studentId: '',
       notes: '',
+      objectives: [''],
+      topics: [''],
+      resources: '',
+      homework: '',
     });
+  };
+
+  const resetSessionNotes = () => {
+    setSessionNotes({
+      summary: '',
+      topicsCovered: [''],
+      studentPerformance: 'good',
+      tutorNotes: '',
+      nextSteps: '',
+      homeworkAssigned: '',
+    });
+    setShowCompleteSessionForm(false);
+  };
+
+  // Helper functions for dynamic objective/topic inputs
+  const addObjective = () => {
+    setNewEvent(prev => ({ ...prev, objectives: [...prev.objectives, ''] }));
+  };
+
+  const updateObjective = (index: number, value: string) => {
+    setNewEvent(prev => ({
+      ...prev,
+      objectives: prev.objectives.map((o, i) => i === index ? value : o),
+    }));
+  };
+
+  const removeObjective = (index: number) => {
+    if (newEvent.objectives.length > 1) {
+      setNewEvent(prev => ({
+        ...prev,
+        objectives: prev.objectives.filter((_, i) => i !== index),
+      }));
+    }
+  };
+
+  const addTopic = () => {
+    setNewEvent(prev => ({ ...prev, topics: [...prev.topics, ''] }));
+  };
+
+  const updateTopic = (index: number, value: string) => {
+    setNewEvent(prev => ({
+      ...prev,
+      topics: prev.topics.map((t, i) => i === index ? value : t),
+    }));
+  };
+
+  const removeTopic = (index: number) => {
+    if (newEvent.topics.length > 1) {
+      setNewEvent(prev => ({
+        ...prev,
+        topics: prev.topics.filter((_, i) => i !== index),
+      }));
+    }
+  };
+
+  // Helper functions for session notes topics
+  const addTopicCovered = () => {
+    setSessionNotes(prev => ({ ...prev, topicsCovered: [...prev.topicsCovered, ''] }));
+  };
+
+  const updateTopicCovered = (index: number, value: string) => {
+    setSessionNotes(prev => ({
+      ...prev,
+      topicsCovered: prev.topicsCovered.map((t, i) => i === index ? value : t),
+    }));
+  };
+
+  const removeTopicCovered = (index: number) => {
+    if (sessionNotes.topicsCovered.length > 1) {
+      setSessionNotes(prev => ({
+        ...prev,
+        topicsCovered: prev.topicsCovered.filter((_, i) => i !== index),
+      }));
+    }
+  };
+
+  // Handle completing a session with notes
+  const handleCompleteSession = async () => {
+    if (!selectedEvent) return;
+
+    const filteredTopics = sessionNotes.topicsCovered.filter(t => t.trim() !== '');
+
+    const updatedEvent: ScheduleEvent = {
+      ...selectedEvent,
+      status: 'completed',
+      sessionNotes: {
+        summary: sessionNotes.summary,
+        topicsCovered: filteredTopics,
+        studentPerformance: sessionNotes.studentPerformance,
+        tutorNotes: sessionNotes.tutorNotes || undefined,
+        nextSteps: sessionNotes.nextSteps || undefined,
+        homeworkAssigned: sessionNotes.homeworkAssigned || undefined,
+      },
+    };
+
+    await updateScheduleEvent(updatedEvent);
+    setSelectedEvent(updatedEvent);
+    resetSessionNotes();
   };
 
   const chatContacts = [
@@ -891,12 +1036,12 @@ export const TutorDashboard: React.FC = () => {
           </div>
 
           {/* Side Panel - Add Event Form or Event Details */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 max-h-[600px] overflow-y-auto">
             {showAddEventForm ? (
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Add Session</CardTitle>
-                  <CardDescription>Schedule a new lesson</CardDescription>
+                  <CardDescription>Schedule a new lesson with a plan</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <Input
@@ -950,19 +1095,117 @@ export const TutorDashboard: React.FC = () => {
                     onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
                     placeholder="Student's Home"
                   />
+
+                  {/* Lesson Plan Section */}
+                  <div className="border-t border-neutral-800 pt-4 mt-4">
+                    <h4 className="text-sm font-medium text-primary-400 mb-3 flex items-center gap-2">
+                      <Sparkles className="w-4 h-4" />
+                      Lesson Plan
+                    </h4>
+
+                    {/* Objectives */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-neutral-400 mb-2">
+                        Learning Objectives
+                      </label>
+                      <div className="space-y-2">
+                        {newEvent.objectives.map((obj, index) => (
+                          <div key={index} className="flex gap-2">
+                            <Input
+                              value={obj}
+                              onChange={(e) => updateObjective(index, e.target.value)}
+                              placeholder={`Objective ${index + 1}`}
+                            />
+                            {newEvent.objectives.length > 1 && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeObjective(index)}
+                                className="px-2"
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={addObjective}
+                          className="w-full text-primary-400 hover:text-primary-300"
+                        >
+                          <Plus className="w-4 h-4 mr-1" /> Add Objective
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Topics */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-neutral-400 mb-2">
+                        Topics to Cover
+                      </label>
+                      <div className="space-y-2">
+                        {newEvent.topics.map((topic, index) => (
+                          <div key={index} className="flex gap-2">
+                            <Input
+                              value={topic}
+                              onChange={(e) => updateTopic(index, e.target.value)}
+                              placeholder={`Topic ${index + 1}`}
+                            />
+                            {newEvent.topics.length > 1 && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeTopic(index)}
+                                className="px-2"
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={addTopic}
+                          className="w-full text-primary-400 hover:text-primary-300"
+                        >
+                          <Plus className="w-4 h-4 mr-1" /> Add Topic
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Resources */}
+                    <Input
+                      label="Resources (comma-separated)"
+                      value={newEvent.resources}
+                      onChange={(e) => setNewEvent({ ...newEvent, resources: e.target.value })}
+                      placeholder="e.g., Textbook Ch.5, Worksheet 3"
+                    />
+
+                    {/* Pre-session Homework */}
+                    <Textarea
+                      label="Pre-session Homework (optional)"
+                      value={newEvent.homework}
+                      onChange={(e) => setNewEvent({ ...newEvent, homework: e.target.value })}
+                      placeholder="What should the student prepare?"
+                      rows={2}
+                    />
+                  </div>
+
                   <Textarea
-                    label="Notes"
+                    label="Additional Notes"
                     value={newEvent.notes}
                     onChange={(e) => setNewEvent({ ...newEvent, notes: e.target.value })}
-                    placeholder="Session notes..."
+                    placeholder="Private session notes..."
                     rows={2}
                   />
                   <div className="flex gap-2 pt-2">
-                    <Button variant="secondary" onClick={() => setShowAddEventForm(false)} className="flex-1" size="sm">
+                    <Button variant="secondary" onClick={() => { setShowAddEventForm(false); resetEventForm(); }} className="flex-1" size="sm">
                       Cancel
                     </Button>
                     <Button variant="primary" onClick={() => { handleAddEvent(); setShowAddEventForm(false); }} className="flex-1" size="sm">
-                      Add
+                      Add Session
                     </Button>
                   </div>
                 </CardContent>
@@ -997,15 +1240,134 @@ export const TutorDashboard: React.FC = () => {
                   <Badge variant={selectedEvent.status === 'completed' ? 'success' : selectedEvent.status === 'cancelled' ? 'error' : 'info'}>
                     {selectedEvent.status}
                   </Badge>
+
+                  {/* Lesson Plan Display */}
+                  {selectedEvent.lessonPlan && selectedEvent.status === 'scheduled' && (
+                    <div className="border-t border-neutral-800 pt-4">
+                      <h4 className="text-sm font-medium text-primary-400 mb-3 flex items-center gap-2">
+                        <Sparkles className="w-4 h-4" />
+                        Lesson Plan
+                      </h4>
+                      {selectedEvent.lessonPlan.objectives.length > 0 && (
+                        <div className="mb-3">
+                          <p className="text-xs text-neutral-500 mb-2">Objectives</p>
+                          <div className="space-y-1">
+                            {selectedEvent.lessonPlan.objectives.map((obj, i) => (
+                              <div key={i} className="flex items-start gap-2 text-sm text-neutral-300">
+                                <Target className="w-3 h-3 text-primary-400 mt-1 flex-shrink-0" />
+                                <span>{obj}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {selectedEvent.lessonPlan.topics.length > 0 && (
+                        <div className="mb-3">
+                          <p className="text-xs text-neutral-500 mb-2">Topics</p>
+                          <div className="flex flex-wrap gap-1">
+                            {selectedEvent.lessonPlan.topics.map((topic, i) => (
+                              <Badge key={i} variant="default" size="sm">{topic}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {selectedEvent.lessonPlan.resources && selectedEvent.lessonPlan.resources.length > 0 && (
+                        <div className="mb-3">
+                          <p className="text-xs text-neutral-500 mb-2">Resources</p>
+                          <div className="space-y-1">
+                            {selectedEvent.lessonPlan.resources.map((res, i) => (
+                              <div key={i} className="flex items-center gap-2 text-sm text-neutral-400">
+                                <FileText className="w-3 h-3" />
+                                <span>{res}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {selectedEvent.lessonPlan.homework && (
+                        <div className="p-2 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                          <p className="text-xs text-amber-400 mb-1">Pre-session Homework</p>
+                          <p className="text-sm text-neutral-300">{selectedEvent.lessonPlan.homework}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Session Notes Display (for completed sessions) */}
+                  {selectedEvent.sessionNotes && selectedEvent.status === 'completed' && (
+                    <div className="border-t border-neutral-800 pt-4">
+                      <h4 className="text-sm font-medium text-green-400 mb-3 flex items-center gap-2">
+                        <ClipboardCheck className="w-4 h-4" />
+                        Session Review
+                      </h4>
+                      {selectedEvent.sessionNotes.studentPerformance && (
+                        <div className="mb-3">
+                          <Badge
+                            variant={
+                              selectedEvent.sessionNotes.studentPerformance === 'excellent' ? 'success' :
+                              selectedEvent.sessionNotes.studentPerformance === 'good' ? 'info' : 'warning'
+                            }
+                            size="sm"
+                          >
+                            {selectedEvent.sessionNotes.studentPerformance === 'excellent' ? 'Excellent' :
+                             selectedEvent.sessionNotes.studentPerformance === 'good' ? 'Good Progress' : 'Needs Improvement'}
+                          </Badge>
+                        </div>
+                      )}
+                      {selectedEvent.sessionNotes.summary && (
+                        <div className="mb-3">
+                          <p className="text-xs text-neutral-500 mb-1">Summary</p>
+                          <p className="text-sm text-neutral-300">{selectedEvent.sessionNotes.summary}</p>
+                        </div>
+                      )}
+                      {selectedEvent.sessionNotes.topicsCovered.length > 0 && (
+                        <div className="mb-3">
+                          <p className="text-xs text-neutral-500 mb-2">Topics Covered</p>
+                          <div className="flex flex-wrap gap-1">
+                            {selectedEvent.sessionNotes.topicsCovered.map((topic, i) => (
+                              <Badge key={i} variant="success" size="sm">{topic}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {selectedEvent.sessionNotes.nextSteps && (
+                        <div className="mb-3">
+                          <p className="text-xs text-neutral-500 mb-1">Next Steps</p>
+                          <p className="text-sm text-neutral-300">{selectedEvent.sessionNotes.nextSteps}</p>
+                        </div>
+                      )}
+                      {selectedEvent.sessionNotes.homeworkAssigned && (
+                        <div className="p-2 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                          <p className="text-xs text-amber-400 mb-1">Homework Assigned</p>
+                          <p className="text-sm text-neutral-300">{selectedEvent.sessionNotes.homeworkAssigned}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   {selectedEvent.notes && (
                     <div className="pt-2 border-t border-neutral-800">
-                      <p className="text-xs text-neutral-500 mb-1">Notes</p>
+                      <p className="text-xs text-neutral-500 mb-1">Private Notes</p>
                       <p className="text-sm text-neutral-300">{selectedEvent.notes}</p>
                     </div>
                   )}
-                  <Button variant="secondary" onClick={() => setSelectedEvent(null)} className="w-full" size="sm">
-                    Close
-                  </Button>
+
+                  <div className="flex gap-2 pt-2">
+                    <Button variant="secondary" onClick={() => setSelectedEvent(null)} className="flex-1" size="sm">
+                      Close
+                    </Button>
+                    {selectedEvent.status === 'scheduled' && (
+                      <Button
+                        variant="primary"
+                        onClick={() => setShowCompleteSessionForm(true)}
+                        className="flex-1"
+                        size="sm"
+                        icon={<CheckCircle className="w-4 h-4" />}
+                      >
+                        Complete
+                      </Button>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             ) : (
@@ -1582,6 +1944,147 @@ export const TutorDashboard: React.FC = () => {
             </div>
           </div>
         )}
+      </Modal>
+
+      {/* Complete Session Modal */}
+      <Modal
+        isOpen={showCompleteSessionForm}
+        onClose={() => {
+          setShowCompleteSessionForm(false);
+          resetSessionNotes();
+        }}
+        title="Complete Session"
+        size="md"
+      >
+        <div className="space-y-4">
+          <div className="p-3 bg-neutral-800/50 rounded-xl">
+            <p className="text-sm text-neutral-400">Completing session:</p>
+            <p className="font-medium text-neutral-100">{selectedEvent?.title}</p>
+            <p className="text-sm text-neutral-500">
+              {selectedEvent?.date} • {students.find(s => s.id === selectedEvent?.studentId)?.name}
+            </p>
+          </div>
+
+          {/* Student Performance */}
+          <div>
+            <label className="block text-sm font-medium text-neutral-400 mb-2">
+              Student Performance
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {(['excellent', 'good', 'needs-improvement'] as const).map((performance) => (
+                <button
+                  key={performance}
+                  onClick={() => setSessionNotes({ ...sessionNotes, studentPerformance: performance })}
+                  className={`p-3 rounded-xl border text-center transition-all ${
+                    sessionNotes.studentPerformance === performance
+                      ? performance === 'excellent' ? 'bg-green-500/20 border-green-500/50 text-green-400' :
+                        performance === 'good' ? 'bg-blue-500/20 border-blue-500/50 text-blue-400' :
+                        'bg-orange-500/20 border-orange-500/50 text-orange-400'
+                      : 'bg-neutral-800/50 border-neutral-700 text-neutral-400 hover:bg-neutral-800'
+                  }`}
+                >
+                  <p className="text-sm font-medium capitalize">
+                    {performance === 'needs-improvement' ? 'Needs Work' : performance}
+                  </p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Session Summary */}
+          <Textarea
+            label="Session Summary"
+            value={sessionNotes.summary}
+            onChange={(e) => setSessionNotes({ ...sessionNotes, summary: e.target.value })}
+            placeholder="What was covered in this session?"
+            rows={3}
+          />
+
+          {/* Topics Covered */}
+          <div>
+            <label className="block text-sm font-medium text-neutral-400 mb-2">
+              Topics Covered
+            </label>
+            <div className="space-y-2">
+              {sessionNotes.topicsCovered.map((topic, index) => (
+                <div key={index} className="flex gap-2">
+                  <Input
+                    value={topic}
+                    onChange={(e) => updateTopicCovered(index, e.target.value)}
+                    placeholder={`Topic ${index + 1}`}
+                  />
+                  {sessionNotes.topicsCovered.length > 1 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeTopicCovered(index)}
+                      className="px-2"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={addTopicCovered}
+                className="w-full text-primary-400 hover:text-primary-300"
+              >
+                <Plus className="w-4 h-4 mr-1" /> Add Topic
+              </Button>
+            </div>
+          </div>
+
+          {/* Next Steps */}
+          <Textarea
+            label="Next Steps (optional)"
+            value={sessionNotes.nextSteps}
+            onChange={(e) => setSessionNotes({ ...sessionNotes, nextSteps: e.target.value })}
+            placeholder="Recommendations for the next session"
+            rows={2}
+          />
+
+          {/* Homework Assigned */}
+          <Textarea
+            label="Homework Assigned (optional)"
+            value={sessionNotes.homeworkAssigned}
+            onChange={(e) => setSessionNotes({ ...sessionNotes, homeworkAssigned: e.target.value })}
+            placeholder="Any homework or practice for the student"
+            rows={2}
+          />
+
+          {/* Private Tutor Notes */}
+          <Textarea
+            label="Private Notes (optional)"
+            value={sessionNotes.tutorNotes}
+            onChange={(e) => setSessionNotes({ ...sessionNotes, tutorNotes: e.target.value })}
+            placeholder="Personal observations (not visible to students/parents)"
+            rows={2}
+          />
+
+          <div className="flex gap-2 pt-4">
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setShowCompleteSessionForm(false);
+                resetSessionNotes();
+              }}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleCompleteSession}
+              className="flex-1"
+              disabled={!sessionNotes.summary.trim()}
+              icon={<CheckCircle className="w-4 h-4" />}
+            >
+              Mark Complete
+            </Button>
+          </div>
+        </div>
       </Modal>
     </DashboardLayout>
   );
