@@ -144,9 +144,7 @@ export const StudentDashboard: React.FC = () => {
   const getQuickMessageTypeLabel = (type: QuickNotificationType): string => {
     switch (type) {
       case 'update': return 'Update';
-      case 'todo': return 'To-Do';
-      case 'specifics': return 'Specifics';
-      case 'homework-help': return 'Homework Help';
+      case 'homework-help': return 'Question';
       default: return 'Message';
     }
   };
@@ -166,14 +164,27 @@ export const StudentDashboard: React.FC = () => {
   const currentXP = student.points % 500;
   const xpProgress = (currentXP / 500) * 100;
 
-  // Prepare radar chart data
-  const skillsData = student.stats.subjectStats.map(stat => ({
+  // Filter subject stats to only enrolled subjects
+  const enrolledSubjectStats = student.stats.subjectStats.filter(
+    stat => student.subjects.includes(stat.subject)
+  );
+
+  // Prepare radar chart data - only enrolled subjects
+  const skillsData = enrolledSubjectStats.map(stat => ({
     subject: stat.subject.charAt(0).toUpperCase() + stat.subject.slice(1),
     value: stat.progress,
   }));
 
-  // Weekly progress data
-  const weeklyData = student.stats.weeklyProgress;
+  // Weekly progress data - filter for enrolled subjects
+  const weeklyData = student.stats.weeklyProgress.map(week => {
+    const filteredWeek: Record<string, unknown> = { week: week.week, points: week.points };
+    student.subjects.forEach(subject => {
+      if (subject in week) {
+        filteredWeek[subject] = week[subject as keyof typeof week];
+      }
+    });
+    return filteredWeek;
+  });
 
   const handlePurchase = (item: ShopItem) => {
     if (student.points >= item.cost && !student.avatar.unlockedItems.includes(item.id)) {
@@ -198,6 +209,31 @@ export const StudentDashboard: React.FC = () => {
       case 'legendary': return 'shadow-yellow-500/30 shadow-lg animate-pulse';
       default: return '';
     }
+  };
+
+  // Filter shop items by student level - unlock more items as level increases
+  const getAvailableShopItems = (allItems: ShopItem[], type: string): ShopItem[] => {
+    const filtered = allItems.filter(i => i.type === type);
+    const level = student.level;
+
+    // Calculate how many items to show based on level
+    // Level 1-5: ~40% of items (mostly common)
+    // Level 6-10: ~60% of items (common + rare)
+    // Level 11-15: ~80% of items (common + rare + epic)
+    // Level 16+: 100% of items (all including legendary)
+
+    const sortedByRarity = filtered.sort((a, b) => {
+      const rarityOrder = { 'common': 0, 'rare': 1, 'epic': 2, 'legendary': 3 };
+      return (rarityOrder[a.rarity || 'common'] || 0) - (rarityOrder[b.rarity || 'common'] || 0);
+    });
+
+    let percentToShow = 0.4;
+    if (level >= 16) percentToShow = 1;
+    else if (level >= 11) percentToShow = 0.8;
+    else if (level >= 6) percentToShow = 0.6;
+
+    const itemCount = Math.max(2, Math.ceil(sortedByRarity.length * percentToShow));
+    return sortedByRarity.slice(0, itemCount);
   };
 
   // Render shop item card
@@ -249,20 +285,29 @@ export const StudentDashboard: React.FC = () => {
   const physicsProgress = student.stats.subjectStats.find(s => s.subject === 'physics')?.progress || 0;
   const economicsProgress = student.stats.subjectStats.find(s => s.subject === 'economics')?.progress || 0;
 
-  const achievements = [
+  // Build achievements - only include subject achievements for enrolled subjects
+  const baseAchievements = [
     { id: 1, name: 'First Steps', description: 'Complete your first session', earned: student.stats.totalSessions >= 1, icon: '🚀', points: 25 },
     { id: 2, name: 'Getting Started', description: 'Reach Level 5', earned: student.level >= 5, icon: '🌱', points: 50 },
     { id: 3, name: 'Quick Learner', description: 'Score 80%+ on 5 assessments', earned: highScoreCount >= 5, icon: '⚡', points: 75 },
     { id: 4, name: 'Consistent', description: 'Complete 10 sessions', earned: student.stats.totalSessions >= 10, icon: '🔥', points: 100 },
-    { id: 5, name: 'Math Wizard', description: 'Reach 90% progress in Mathematics', earned: mathProgress >= 90, icon: '🧮', points: 150 },
-    { id: 6, name: 'Physics Pro', description: 'Reach 90% progress in Physics', earned: physicsProgress >= 90, icon: '⚛️', points: 150 },
-    { id: 7, name: 'Economics Expert', description: 'Reach 90% progress in Economics', earned: economicsProgress >= 90, icon: '📊', points: 150 },
+  ];
+
+  const subjectAchievements = [
+    ...(student.subjects.includes('mathematics') ? [{ id: 5, name: 'Math Wizard', description: 'Reach 90% progress in Mathematics', earned: mathProgress >= 90, icon: '🧮', points: 150 }] : []),
+    ...(student.subjects.includes('physics') ? [{ id: 6, name: 'Physics Pro', description: 'Reach 90% progress in Physics', earned: physicsProgress >= 90, icon: '⚛️', points: 150 }] : []),
+    ...(student.subjects.includes('economics') ? [{ id: 7, name: 'Economics Expert', description: 'Reach 90% progress in Economics', earned: economicsProgress >= 90, icon: '📊', points: 150 }] : []),
+  ];
+
+  const additionalAchievements = [
     { id: 8, name: 'Perfect Score', description: 'Get 100% on any assessment', earned: hasPerfectScore, icon: '💯', points: 100 },
     { id: 9, name: 'Knowledge Seeker', description: 'Complete 50 assignments', earned: student.stats.completedAssignments >= 50, icon: '📚', points: 200 },
     { id: 10, name: 'Star Student', description: 'Reach Level 20', earned: student.level >= 20, icon: '⭐', points: 250 },
     { id: 11, name: 'Point Collector', description: 'Earn 1000 constellation points', earned: student.points >= 1000, icon: '💫', points: 100 },
     { id: 12, name: 'Cosmic Champion', description: 'Earn 5000 constellation points', earned: student.points >= 5000, icon: '🏆', points: 500 },
   ];
+
+  const achievements = [...baseAchievements, ...subjectAchievements, ...additionalAchievements];
 
   const earnedAchievements = achievements.filter(a => a.earned).length;
   const totalAchievements = achievements.length;
@@ -381,7 +426,7 @@ export const StudentDashboard: React.FC = () => {
 
                   {/* Subject Bars */}
                   <div className="space-y-4">
-                    {student.stats.subjectStats.map(stat => (
+                    {enrolledSubjectStats.map(stat => (
                       <div key={stat.subject} className="space-y-2">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
@@ -429,25 +474,37 @@ export const StudentDashboard: React.FC = () => {
                           borderRadius: '8px',
                         }}
                       />
-                      <Line type="monotone" dataKey="mathematics" stroke="#3B82F6" strokeWidth={2} dot={{ fill: '#3B82F6' }} />
-                      <Line type="monotone" dataKey="physics" stroke="#A855F7" strokeWidth={2} dot={{ fill: '#A855F7' }} />
-                      <Line type="monotone" dataKey="economics" stroke="#22C55E" strokeWidth={2} dot={{ fill: '#22C55E' }} />
+                      {student.subjects.includes('mathematics') && (
+                        <Line type="monotone" dataKey="mathematics" stroke="#3B82F6" strokeWidth={2} dot={{ fill: '#3B82F6' }} />
+                      )}
+                      {student.subjects.includes('physics') && (
+                        <Line type="monotone" dataKey="physics" stroke="#A855F7" strokeWidth={2} dot={{ fill: '#A855F7' }} />
+                      )}
+                      {student.subjects.includes('economics') && (
+                        <Line type="monotone" dataKey="economics" stroke="#22C55E" strokeWidth={2} dot={{ fill: '#22C55E' }} />
+                      )}
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
                 <div className="flex justify-center gap-6 mt-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-blue-500" />
-                    <span className="text-sm text-neutral-400">Maths</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-purple-500" />
-                    <span className="text-sm text-neutral-400">Physics</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-green-500" />
-                    <span className="text-sm text-neutral-400">Economics</span>
-                  </div>
+                  {student.subjects.includes('mathematics') && (
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-blue-500" />
+                      <span className="text-sm text-neutral-400">Maths</span>
+                    </div>
+                  )}
+                  {student.subjects.includes('physics') && (
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-purple-500" />
+                      <span className="text-sm text-neutral-400">Physics</span>
+                    </div>
+                  )}
+                  {student.subjects.includes('economics') && (
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-green-500" />
+                      <span className="text-sm text-neutral-400">Economics</span>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -596,6 +653,11 @@ export const StudentDashboard: React.FC = () => {
           </div>
         </div>
 
+        <div className="mb-4 p-3 bg-neutral-800/30 rounded-lg">
+          <p className="text-xs text-neutral-400 text-center">
+            Level {student.level} — {student.level < 6 ? 'Unlock more items at Level 6!' : student.level < 11 ? 'Unlock more items at Level 11!' : student.level < 16 ? 'Unlock legendary items at Level 16!' : 'All items unlocked!'}
+          </p>
+        </div>
         <Tabs
           tabs={[
             {
@@ -603,7 +665,7 @@ export const StudentDashboard: React.FC = () => {
               label: 'Outfits',
               content: (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {items.filter(i => i.type === 'outfit').map(renderShopItem)}
+                  {getAvailableShopItems(items, 'outfit').map(renderShopItem)}
                 </div>
               ),
             },
@@ -612,7 +674,7 @@ export const StudentDashboard: React.FC = () => {
               label: 'Accessories',
               content: (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {items.filter(i => i.type === 'accessory').map(renderShopItem)}
+                  {getAvailableShopItems(items, 'accessory').map(renderShopItem)}
                 </div>
               ),
             },
@@ -621,7 +683,7 @@ export const StudentDashboard: React.FC = () => {
               label: 'Backgrounds',
               content: (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {items.filter(i => i.type === 'background').map(renderShopItem)}
+                  {getAvailableShopItems(items, 'background').map(renderShopItem)}
                 </div>
               ),
             },
@@ -630,16 +692,16 @@ export const StudentDashboard: React.FC = () => {
               label: 'Badges',
               content: (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {items.filter(i => i.type === 'badge').map(renderShopItem)}
+                  {getAvailableShopItems(items, 'badge').map(renderShopItem)}
                 </div>
               ),
             },
             {
               id: 'pets',
-              label: 'Pets 🐾',
+              label: 'Pets',
               content: (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {items.filter(i => i.type === 'pet').map(renderShopItem)}
+                  {getAvailableShopItems(items, 'pet').map(renderShopItem)}
                 </div>
               ),
             },
@@ -753,7 +815,7 @@ export const StudentDashboard: React.FC = () => {
           <div>
             <h4 className="text-sm font-medium text-neutral-400 mb-3">Subject Progress</h4>
             <div className="space-y-3">
-              {student.stats.subjectStats.map(stat => (
+              {enrolledSubjectStats.map(stat => (
                 <div key={stat.subject}>
                   <div className="flex justify-between text-sm mb-1">
                     <span className="text-neutral-100 capitalize">{stat.subject}</span>
@@ -875,7 +937,7 @@ export const StudentDashboard: React.FC = () => {
                 Message Type
               </label>
               <div className="grid grid-cols-2 gap-2">
-                {(['update', 'todo', 'specifics', 'homework-help'] as QuickNotificationType[]).map((type) => (
+                {(['update', 'homework-help'] as QuickNotificationType[]).map((type) => (
                   <button
                     key={type}
                     onClick={() => setQuickMessageType(type)}
@@ -887,10 +949,8 @@ export const StudentDashboard: React.FC = () => {
                   >
                     <p className="font-medium text-sm">{getQuickMessageTypeLabel(type)}</p>
                     <p className="text-xs opacity-70 mt-0.5">
-                      {type === 'update' && 'Share progress updates'}
-                      {type === 'todo' && 'Request a task or reminder'}
-                      {type === 'specifics' && 'Ask about specific topics'}
-                      {type === 'homework-help' && 'Need help with schoolwork'}
+                      {type === 'update' && 'Share progress or updates'}
+                      {type === 'homework-help' && 'Ask a question or get help'}
                     </p>
                   </button>
                 ))}

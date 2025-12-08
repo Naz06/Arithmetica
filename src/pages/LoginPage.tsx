@@ -22,11 +22,15 @@ import {
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const { login, isDemoMode, hasLiveMode, enterDemoMode, exitDemoMode } = useAuth();
+  const { login, isDemoMode, hasLiveMode, enterDemoMode, exitDemoMode, resetPassword } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetSent, setResetSent] = useState(false);
+  const [resetError, setResetError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,6 +71,28 @@ export const LoginPage: React.FC = () => {
     const creds = demoCredentials[type];
     setEmail(creds.email);
     setPassword(creds.password);
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetError('');
+    setIsLoading(true);
+
+    if (isDemoMode) {
+      setResetError('Password reset is not available in demo mode');
+      setIsLoading(false);
+      return;
+    }
+
+    const result = await resetPassword(resetEmail);
+
+    if (result.success) {
+      setResetSent(true);
+    } else {
+      setResetError(result.error || 'Failed to send reset email');
+    }
+
+    setIsLoading(false);
   };
 
   return (
@@ -174,9 +200,95 @@ export const LoginPage: React.FC = () => {
               </Button>
             </form>
 
-            <p className="mt-6 text-center text-sm text-neutral-500">
+            <div className="mt-6 text-center">
+              <button
+                type="button"
+                onClick={() => setShowResetPassword(true)}
+                className="text-sm text-primary-400 hover:text-primary-300 transition-colors"
+              >
+                Forgot your password?
+              </button>
+            </div>
+
+            <p className="mt-3 text-center text-sm text-neutral-500">
               Need an account? Contact your administrator.
             </p>
+
+            {/* Password Reset Modal */}
+            {showResetPassword && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowResetPassword(false)}>
+                <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 w-full max-w-sm mx-4" onClick={e => e.stopPropagation()}>
+                  {resetSent ? (
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Mail className="w-8 h-8 text-green-400" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-neutral-100 mb-2">Check Your Email</h3>
+                      <p className="text-neutral-400 text-sm mb-4">
+                        We've sent a password reset link to <strong>{resetEmail}</strong>
+                      </p>
+                      <Button
+                        variant="secondary"
+                        className="w-full"
+                        onClick={() => {
+                          setShowResetPassword(false);
+                          setResetSent(false);
+                          setResetEmail('');
+                        }}
+                      >
+                        Back to Login
+                      </Button>
+                    </div>
+                  ) : (
+                    <>
+                      <h3 className="text-lg font-semibold text-neutral-100 mb-2">Reset Password</h3>
+                      <p className="text-neutral-400 text-sm mb-4">
+                        Enter your email and we'll send you a reset link.
+                      </p>
+
+                      {resetError && (
+                        <div className="flex items-center gap-2 p-3 mb-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400">
+                          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                          <p className="text-sm">{resetError}</p>
+                        </div>
+                      )}
+
+                      <form onSubmit={handleResetPassword}>
+                        <Input
+                          type="email"
+                          placeholder="Enter your email"
+                          value={resetEmail}
+                          onChange={(e) => setResetEmail(e.target.value)}
+                          icon={<Mail className="w-5 h-5" />}
+                          required
+                        />
+                        <div className="flex gap-3 mt-4">
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            className="flex-1"
+                            onClick={() => {
+                              setShowResetPassword(false);
+                              setResetError('');
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            type="submit"
+                            variant="primary"
+                            className="flex-1"
+                            isLoading={isLoading}
+                          >
+                            Send Link
+                          </Button>
+                        </div>
+                      </form>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Demo Accounts - Only show in demo mode */}
             {isDemoMode ? (

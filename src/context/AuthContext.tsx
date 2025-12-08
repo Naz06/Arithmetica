@@ -20,6 +20,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   enterDemoMode: () => void; // Switch to demo mode
   exitDemoMode: () => void;  // Switch to live mode
+  resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
   getUserById: (id: string) => AnyUser | undefined;
   getStudentById: (id: string) => StudentProfile | undefined;
   getParentById: (id: string) => ParentProfile | undefined;
@@ -427,6 +428,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // The auth state change listener will handle any existing live session
   };
 
+  // Reset password via email
+  const resetPassword = async (email: string): Promise<{ success: boolean; error?: string }> => {
+    if (isDemoMode) {
+      return { success: false, error: 'Password reset is not available in demo mode.' };
+    }
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: 'An unexpected error occurred.' };
+    }
+  };
+
   const refreshProfile = async () => {
     if (isDemoMode || !supabaseUser) return;
 
@@ -676,6 +698,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         logout,
         enterDemoMode,
         exitDemoMode,
+        resetPassword,
         getUserById,
         getStudentById,
         getParentById,
