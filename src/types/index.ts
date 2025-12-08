@@ -61,7 +61,88 @@ export interface StudentStats {
   averageScore: number;
   attendanceRate?: number;
   streakDays?: number;
+  // Penalty tracking
+  penaltyHistory?: PenaltyRecord[];
+  currentStreak?: number;
+  longestStreak?: number;
+  lastActiveDate?: string;
+  missedSessionsCount?: number;
+  lateHomeworkCount?: number;
+  lowEngagementWeeks?: number;
 }
+
+// Penalty System Types
+export type PenaltyType =
+  | 'streak-break'
+  | 'missed-session'
+  | 'late-homework'
+  | 'no-homework'
+  | 'low-engagement'
+  | 'constellation-decay';
+
+export interface PenaltyRecord {
+  id: string;
+  type: PenaltyType;
+  pointsDeducted: number;
+  reason: string;
+  appliedAt: string;
+  appliedBy: 'system' | 'tutor';
+  waived?: boolean;
+  waivedBy?: string;
+  waivedAt?: string;
+  waivedReason?: string;
+}
+
+export interface PenaltyConfig {
+  streakBreak: {
+    minPoints: number;
+    percentage: number;
+  };
+  missedSession: {
+    firstOffense: { percentage: number; minPoints: number; maxPoints: number };
+    repeat: { percentage: number; minPoints: number; maxPoints: number };
+  };
+  lateHomework: {
+    firstOffense: { percentage: number; minPoints: number; maxPoints: number };
+    secondOffense: { percentage: number; minPoints: number; maxPoints: number };
+    repeat: { percentage: number; minPoints: number; maxPoints: number };
+  };
+  noHomework: {
+    firstOffense: { percentage: number; minPoints: number; maxPoints: number };
+    repeat: { percentage: number; minPoints: number; maxPoints: number };
+  };
+  lowEngagement: {
+    warningWeeks: number; // Number of warning weeks before penalty
+    firstOffense: { percentage: number; minPoints: number; maxPoints: number };
+    repeat: { percentage: number; minPoints: number; maxPoints: number };
+  };
+}
+
+// Default penalty configuration
+export const DEFAULT_PENALTY_CONFIG: PenaltyConfig = {
+  streakBreak: {
+    minPoints: 10,
+    percentage: 3, // 3-5% of current points
+  },
+  missedSession: {
+    firstOffense: { percentage: 5, minPoints: 15, maxPoints: 50 },
+    repeat: { percentage: 10, minPoints: 25, maxPoints: 75 },
+  },
+  lateHomework: {
+    firstOffense: { percentage: 5, minPoints: 25, maxPoints: 50 },
+    secondOffense: { percentage: 8, minPoints: 35, maxPoints: 75 },
+    repeat: { percentage: 10, minPoints: 50, maxPoints: 100 },
+  },
+  noHomework: {
+    firstOffense: { percentage: 8, minPoints: 35, maxPoints: 75 },
+    repeat: { percentage: 10, minPoints: 50, maxPoints: 100 },
+  },
+  lowEngagement: {
+    warningWeeks: 1,
+    firstOffense: { percentage: 5, minPoints: 20, maxPoints: 50 },
+    repeat: { percentage: 10, minPoints: 40, maxPoints: 100 },
+  },
+};
 
 export interface SubjectStat {
   subject: Subject;

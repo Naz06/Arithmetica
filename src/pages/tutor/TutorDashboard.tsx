@@ -14,6 +14,7 @@ import { Input, Textarea, Select } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { Chat, ChatList } from '../../components/shared/Chat';
 import { FeatureSettingsPanel } from '../../components/tutor/FeatureSettingsPanel';
+import { PenaltyManagement } from '../../components/tutor/PenaltyManagement';
 import {
   Users,
   BookOpen,
@@ -40,6 +41,7 @@ import {
   Sparkles,
   ListChecks,
   ClipboardCheck,
+  AlertTriangle,
 } from 'lucide-react';
 import { StudentProfile, ParentProfile, Resource, ScheduleEvent, Subject, YearGroup, ResourceLevel, ResourceSubtype, Notification } from '../../types';
 import { adminService, UserRecord, CreateUserData } from '../../services/adminService';
@@ -79,6 +81,7 @@ export const TutorDashboard: React.FC = () => {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
   const [showAdminModal, setShowAdminModal] = useState(false);
+  const [showPenaltyModal, setShowPenaltyModal] = useState(false);
   const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
   const notificationDropdownRef = useRef<HTMLDivElement>(null);
   const [selectedStudent, setSelectedStudent] = useState<StudentProfile | null>(null);
@@ -126,6 +129,8 @@ export const TutorDashboard: React.FC = () => {
     } else if (path.includes('/admin')) {
       loadAdminData();
       setShowAdminModal(true);
+    } else if (path.includes('/penalties')) {
+      setShowPenaltyModal(true);
     }
   }, [location.pathname]);
 
@@ -594,6 +599,14 @@ export const TutorDashboard: React.FC = () => {
                 </div>
               )}
             </div>
+            <Button
+              variant="secondary"
+              onClick={() => setShowPenaltyModal(true)}
+              icon={<AlertTriangle className="w-4 h-4" />}
+              className="text-orange-400 border-orange-500/30 hover:bg-orange-500/10"
+            >
+              Penalties
+            </Button>
             <Button variant="secondary" onClick={() => setShowEventModal(true)} icon={<Calendar className="w-4 h-4" />}>
               Schedule Session
             </Button>
@@ -2085,6 +2098,21 @@ export const TutorDashboard: React.FC = () => {
             </Button>
           </div>
         </div>
+      </Modal>
+
+      {/* Penalty Management Modal */}
+      <Modal
+        isOpen={showPenaltyModal}
+        onClose={() => setShowPenaltyModal(false)}
+        title="Penalty Management"
+        size="xl"
+      >
+        <PenaltyManagement
+          students={students}
+          onUpdateStudent={(updatedStudent) => {
+            updateStudent(updatedStudent.id, updatedStudent);
+          }}
+        />
       </Modal>
     </DashboardLayout>
   );

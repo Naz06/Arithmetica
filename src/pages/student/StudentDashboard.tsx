@@ -31,9 +31,13 @@ import {
   CheckCircle,
   Clock,
   Send,
+  AlertTriangle,
+  History,
+  TrendingDown,
 } from 'lucide-react';
-import { StudentProfile, ShopItem, QuickNotificationType, Notification, ResourceLevel } from '../../types';
+import { StudentProfile, ShopItem, QuickNotificationType, Notification, ResourceLevel, PenaltyRecord } from '../../types';
 import { shopItems } from '../../data/demoData';
+import { getPenaltyDisplayInfo, getTotalPenaltiesInPeriod, isStudentAtRisk } from '../../utils/penaltySystem';
 
 export const StudentDashboard: React.FC = () => {
   const location = useLocation();
@@ -73,6 +77,19 @@ export const StudentDashboard: React.FC = () => {
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showStatsModal, setShowStatsModal] = useState(false);
   const [showQuickMessageModal, setShowQuickMessageModal] = useState(false);
+  const [showPenaltyHistoryModal, setShowPenaltyHistoryModal] = useState(false);
+
+  // Calculate penalty stats
+  const penaltyHistory = student?.stats.penaltyHistory || [];
+  const recentPenalties = penaltyHistory.filter(p => {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 30);
+    return new Date(p.appliedAt) >= cutoff && !p.waived;
+  });
+  const { count: penaltyCount, totalPoints: penaltyPointsLost } = student
+    ? getTotalPenaltiesInPeriod(penaltyHistory, 30)
+    : { count: 0, totalPoints: 0 };
+  const riskStatus = student ? isStudentAtRisk(student) : { atRisk: false, riskLevel: 'low' as const, reasons: [] };
 
   // Quick message state
   const [quickMessageType, setQuickMessageType] = useState<QuickNotificationType>('update');
@@ -330,6 +347,44 @@ export const StudentDashboard: React.FC = () => {
           </div>
         </div>
 
+        {/* Risk Warning Banner */}
+        {riskStatus.atRisk && (
+          <div className={`p-4 rounded-xl border flex items-center gap-4 ${
+            riskStatus.riskLevel === 'high'
+              ? 'bg-red-500/10 border-red-500/30'
+              : 'bg-orange-500/10 border-orange-500/30'
+          }`}>
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+              riskStatus.riskLevel === 'high' ? 'bg-red-500/20' : 'bg-orange-500/20'
+            }`}>
+              <AlertTriangle className={`w-5 h-5 ${
+                riskStatus.riskLevel === 'high' ? 'text-red-400' : 'text-orange-400'
+              }`} />
+            </div>
+            <div className="flex-1">
+              <p className={`font-medium ${
+                riskStatus.riskLevel === 'high' ? 'text-red-400' : 'text-orange-400'
+              }`}>
+                {riskStatus.riskLevel === 'high' ? 'High Risk Alert!' : 'Engagement Warning'}
+              </p>
+              <p className="text-sm text-neutral-400">
+                {riskStatus.reasons.slice(0, 2).join(' • ')}
+              </p>
+            </div>
+            {penaltyCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowPenaltyHistoryModal(true)}
+                className="text-neutral-400 hover:text-neutral-100"
+              >
+                <History className="w-4 h-4 mr-1" />
+                View History
+              </Button>
+            )}
+          </div>
+        )}
+
         {/* Game Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <GameStatCard
@@ -376,6 +431,8 @@ export const StudentDashboard: React.FC = () => {
               enrolledSubjects={student.subjects}
               currentPoints={student.points}
               streakDays={student.stats.streakDays}
+              recentPenalties={recentPenalties}
+              showWarnings={true}
             />
 
             {/* Strengths & Weaknesses */}
@@ -773,6 +830,87 @@ export const StudentDashboard: React.FC = () => {
               </div>
             </div>
           ))}
+        </div>
+      </Modal>
+
+      {/* Penalty History Modal */}
+      <Modal
+        isOpen={showPenaltyHistoryModal}
+        onClose={() => setShowPenaltyHistoryModal(false)}
+        title="Penalty History"
+        size="md"
+      >
+        <div className="space-y-4">
+          {/* Summary Stats */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-center">
+              <p className="text-2xl font-bold text-red-400">{penaltyCount}</p>
+              <p className="text-sm text-neutral-400">Penalties (30 days)</p>
+            </div>
+            <div className="p-4 bg-orange-500/10 border border-orange-500/30 rounded-xl text-center">
+              <p className="text-2xl font-bold text-orange-400">-{penaltyPointsLost}</p>
+              <p className="text-sm text-neutral-400">Points Lost</p>
+            </div>
+          </div>
+
+          {/* Tips to Avoid Penalties */}
+          <div className="p-3 bg-primary-500/10 border border-primary-500/30 rounded-xl">
+            <p className="text-sm font-medium text-primary-400 mb-2">Tips to Avoid Penalties:</p>
+            <ul className="text-xs text-neutral-400 space-y-1">
+              <li>• Attend all scheduled sessions</li>
+              <li>• Submit homework on time</li>
+              <li>• Maintain your daily streak</li>
+              <li>• Stay engaged with at least 50% progress weekly</li>
+            </ul>
+          </div>
+
+          {/* Penalty List */}
+          {penaltyHistory.length === 0 ? (
+            <div className="text-center py-8">
+              <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" />
+              <p className="text-neutral-400">No penalties! Keep up the great work!</p>
+            </div>
+          ) : (
+            <div className="space-y-3 max-h-64 overflow-y-auto">
+              {penaltyHistory.slice().reverse().map((penalty) => {
+                const displayInfo = getPenaltyDisplayInfo(penalty.type);
+                return (
+                  <div
+                    key={penalty.id}
+                    className={`p-3 rounded-xl border ${
+                      penalty.waived
+                        ? 'bg-neutral-800/30 border-neutral-700 opacity-60'
+                        : 'bg-red-500/5 border-red-500/20'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-2">
+                        <Badge
+                          variant={penalty.waived ? 'default' : 'error'}
+                          size="sm"
+                        >
+                          {displayInfo.label}
+                        </Badge>
+                        {penalty.waived && (
+                          <Badge variant="success" size="sm">Waived</Badge>
+                        )}
+                      </div>
+                      <span className={`font-bold ${penalty.waived ? 'text-neutral-500 line-through' : 'text-red-400'}`}>
+                        -{penalty.pointsDeducted} pts
+                      </span>
+                    </div>
+                    <p className="text-sm text-neutral-400">{penalty.reason}</p>
+                    <p className="text-xs text-neutral-500 mt-1">
+                      {new Date(penalty.appliedAt).toLocaleDateString()}
+                      {penalty.waived && penalty.waivedReason && (
+                        <span className="ml-2 text-green-400">• Waived: {penalty.waivedReason}</span>
+                      )}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </Modal>
 

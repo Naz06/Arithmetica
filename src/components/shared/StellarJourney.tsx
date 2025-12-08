@@ -8,14 +8,19 @@ import {
   Trophy,
   Zap,
   TrendingUp,
+  TrendingDown,
+  AlertTriangle,
 } from 'lucide-react';
-import { Subject, WeeklyProgress } from '../../types';
+import { Subject, WeeklyProgress, PenaltyRecord } from '../../types';
+import { calculateStarBrightness, isLowEngagementWeek } from '../../utils/penaltySystem';
 
 interface StellarJourneyProps {
   weeklyData: WeeklyProgress[];
   enrolledSubjects: Subject[];
   currentPoints: number;
   streakDays?: number;
+  recentPenalties?: PenaltyRecord[];
+  showWarnings?: boolean;
 }
 
 export const StellarJourney: React.FC<StellarJourneyProps> = ({
@@ -23,7 +28,14 @@ export const StellarJourney: React.FC<StellarJourneyProps> = ({
   enrolledSubjects,
   currentPoints,
   streakDays = 0,
+  recentPenalties = [],
+  showWarnings = true,
 }) => {
+  // Check for recent penalties to show warning
+  const hasRecentPenalties = recentPenalties.filter(p => !p.waived).length > 0;
+  const totalPenaltyPoints = recentPenalties
+    .filter(p => !p.waived)
+    .reduce((sum, p) => sum + p.pointsDeducted, 0);
   // Calculate stats
   const stats = useMemo(() => {
     if (weeklyData.length === 0) return { bestWeek: 0, totalPoints: 0, avgProgress: 0 };
@@ -83,12 +95,18 @@ export const StellarJourney: React.FC<StellarJourneyProps> = ({
       });
       const avgScore = count > 0 ? total / count : 0;
 
+      // Check if this was a low engagement week
+      const isLowEngagement = isLowEngagementWeek(week, enrolledSubjects);
+      const starBrightness = calculateStarBrightness(avgScore);
+
       return {
         x,
         y,
         week: week.week,
         points: week.points || 0,
         avgScore,
+        isLowEngagement,
+        starBrightness,
         subjects: enrolledSubjects.map(subject => ({
           subject,
           value: (week[subject as keyof WeeklyProgress] as number) || 0,
@@ -311,23 +329,27 @@ export const StellarJourney: React.FC<StellarJourneyProps> = ({
             {/* Week Nodes as Stars */}
             {pathData.nodes.map((node, index) => {
               const isCurrentNode = index === currentNodeIndex;
-              const brightness = Math.min(1, node.avgScore / 100 + 0.3);
+              const brightness = node.starBrightness;
               const nodeSize = isCurrentNode ? 14 : 8 + (node.avgScore / 100) * 6;
               const milestone = getMilestoneBadge(node.avgScore);
+              const isFaded = node.isLowEngagement && !isCurrentNode;
 
               return (
-                <g key={index}>
-                  {/* Node glow */}
+                <g key={index} className={isFaded ? 'opacity-50' : ''}>
+                  {/* Node glow - reduced for faded weeks */}
                   <circle
                     cx={node.x}
                     cy={node.y}
                     r={nodeSize + 8}
-                    fill={`rgba(99, 102, 241, ${brightness * 0.3})`}
-                    filter="url(#glow)"
+                    fill={isFaded
+                      ? 'rgba(239, 68, 68, 0.2)' // Red tint for low engagement
+                      : `rgba(99, 102, 241, ${brightness * 0.3})`
+                    }
+                    filter={isFaded ? undefined : "url(#glow)"}
                   />
 
-                  {/* Star shape for high performers */}
-                  {node.avgScore >= 70 ? (
+                  {/* Star shape for high performers, faded star for low engagement */}
+                  {node.avgScore >= 70 && !isFaded ? (
                     <g filter="url(#starGlow)">
                       {/* Multi-point star */}
                       <polygon
@@ -335,6 +357,36 @@ export const StellarJourney: React.FC<StellarJourneyProps> = ({
                         fill={isCurrentNode ? '#FFD700' : `rgba(255, 255, 255, ${brightness})`}
                         className={isCurrentNode ? 'node-pulse' : ''}
                         style={{ color: '#FFD700' }}
+                      />
+                    </g>
+                  ) : isFaded ? (
+                    // Faded/cracked star for low engagement weeks
+                    <g>
+                      <circle
+                        cx={node.x}
+                        cy={node.y}
+                        r={nodeSize}
+                        fill="rgba(239, 68, 68, 0.3)"
+                        stroke="rgba(239, 68, 68, 0.5)"
+                        strokeWidth="1"
+                        strokeDasharray="2 2"
+                      />
+                      {/* X mark to indicate penalty/low engagement */}
+                      <line
+                        x1={node.x - nodeSize * 0.4}
+                        y1={node.y - nodeSize * 0.4}
+                        x2={node.x + nodeSize * 0.4}
+                        y2={node.y + nodeSize * 0.4}
+                        stroke="rgba(239, 68, 68, 0.6)"
+                        strokeWidth="2"
+                      />
+                      <line
+                        x1={node.x + nodeSize * 0.4}
+                        y1={node.y - nodeSize * 0.4}
+                        x2={node.x - nodeSize * 0.4}
+                        y2={node.y + nodeSize * 0.4}
+                        stroke="rgba(239, 68, 68, 0.6)"
+                        strokeWidth="2"
                       />
                     </g>
                   ) : (
@@ -427,8 +479,29 @@ export const StellarJourney: React.FC<StellarJourneyProps> = ({
               <span className="text-xs text-yellow-400">⭐</span>
               <span className="text-xs text-neutral-400">= 70%+ Week</span>
             </div>
+            <div className="flex items-center gap-2 pl-4 border-l border-neutral-700">
+              <div className="w-3 h-3 rounded-full bg-red-500/30 border border-red-500/50" />
+              <span className="text-xs text-neutral-400">= Low Engagement</span>
+            </div>
           </div>
         </div>
+
+        {/* Penalty Warning Banner */}
+        {showWarnings && hasRecentPenalties && (
+          <div className="mt-3 p-3 bg-red-500/10 border border-red-500/30 rounded-xl flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0">
+              <AlertTriangle className="w-4 h-4 text-red-400" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-red-400">
+                Recent Penalties Applied
+              </p>
+              <p className="text-xs text-neutral-400">
+                You've lost <span className="text-red-400 font-medium">-{totalPenaltyPoints} pts</span> recently. Keep up your engagement to avoid further penalties!
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Weekly breakdown tooltip hint */}
         <p className="text-xs text-neutral-500 text-center mt-3">

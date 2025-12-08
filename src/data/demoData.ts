@@ -8,6 +8,7 @@ import {
   ChatMessage,
   ShopItem,
   Topic,
+  PenaltyRecord,
 } from '../types';
 
 // Demo Users
@@ -75,13 +76,39 @@ export const demoStudents: StudentProfile[] = [
       weeklyProgress: [
         { week: 'Week 1', mathematics: 65, economics: 0, physics: 60, points: 150 },
         { week: 'Week 2', mathematics: 70, economics: 0, physics: 65, points: 200 },
-        { week: 'Week 3', mathematics: 75, economics: 0, physics: 68, points: 180 },
+        { week: 'Week 3', mathematics: 35, economics: 0, physics: 40, points: 50 }, // Low engagement week
         { week: 'Week 4', mathematics: 78, economics: 0, physics: 72, points: 250 },
         { week: 'Week 5', mathematics: 82, economics: 0, physics: 74, points: 220 },
       ],
       totalSessions: 32,
       completedAssignments: 28,
       averageScore: 84,
+      attendanceRate: 94,
+      streakDays: 5,
+      currentStreak: 5,
+      longestStreak: 14,
+      lastActiveDate: new Date().toISOString(),
+      missedSessionsCount: 1,
+      lateHomeworkCount: 2,
+      lowEngagementWeeks: 1,
+      penaltyHistory: [
+        {
+          id: 'penalty-demo-001',
+          type: 'late-homework',
+          pointsDeducted: 25,
+          reason: 'Late homework submission',
+          appliedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
+          appliedBy: 'system',
+        },
+        {
+          id: 'penalty-demo-002',
+          type: 'low-engagement',
+          pointsDeducted: 30,
+          reason: 'Low engagement during Week 3',
+          appliedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days ago
+          appliedBy: 'tutor',
+        },
+      ],
     },
     schedule: [],
     createdAt: '2023-09-01',
@@ -147,6 +174,11 @@ export const demoStudents: StudentProfile[] = [
       totalSessions: 48,
       completedAssignments: 45,
       averageScore: 91,
+      attendanceRate: 100,
+      streakDays: 28,
+      currentStreak: 28,
+      longestStreak: 45,
+      penaltyHistory: [], // Perfect record - no penalties!
     },
     schedule: [],
     createdAt: '2023-08-15',
@@ -196,6 +228,25 @@ export const demoStudents: StudentProfile[] = [
       totalSessions: 15,
       completedAssignments: 12,
       averageScore: 70,
+      attendanceRate: 87,
+      streakDays: 3,
+      currentStreak: 3,
+      longestStreak: 7,
+      missedSessionsCount: 1,
+      penaltyHistory: [
+        {
+          id: 'penalty-demo-003',
+          type: 'missed-session',
+          pointsDeducted: 15,
+          reason: 'Missed scheduled tutoring session due to illness',
+          appliedAt: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000).toISOString(), // 21 days ago
+          appliedBy: 'system',
+          waived: true,
+          waivedBy: 'tutor',
+          waivedAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
+          waivedReason: 'Valid medical excuse provided by parent',
+        },
+      ],
     },
     schedule: [],
     createdAt: '2024-01-10',
