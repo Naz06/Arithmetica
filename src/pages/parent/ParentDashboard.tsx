@@ -12,6 +12,7 @@ import { ProgressBar, CircularProgress } from '../../components/ui/ProgressBar';
 import { Modal } from '../../components/ui/Modal';
 import { Button } from '../../components/ui/Button';
 import { Chat } from '../../components/shared/Chat';
+import { ConstellationSkillTree } from '../../components/shared/ConstellationSkillTree';
 import {
   TrendingUp,
   BookOpen,
@@ -257,6 +258,13 @@ export const ParentDashboard: React.FC = () => {
             changeLabel="improvement"
           />
         </div>
+
+        {/* Constellation Skill Tree - Curriculum Progress */}
+        <ConstellationSkillTree
+          enrolledSubjects={child.subjects}
+          subjectStats={child.stats.subjectStats.filter(s => child.subjects.includes(s.subject))}
+          yearGroup={child.yearGroup}
+        />
 
         {/* Charts Section */}
         <div className="grid lg:grid-cols-2 gap-6">
