@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { useAuth } from '../../context/AuthContext';
 import { useData } from '../../context/DataContext';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '../../components/ui/Card';
 import { StatCard } from '../../components/shared/StatCard';
-import { UpcomingEvents } from '../../components/shared/Calendar';
+import { Calendar, UpcomingEvents } from '../../components/shared/Calendar';
 import { Avatar } from '../../components/ui/Avatar';
 import { Badge } from '../../components/ui/Badge';
 import { ProgressBar } from '../../components/ui/ProgressBar';
@@ -66,6 +66,8 @@ export const TutorDashboard: React.FC = () => {
   const [showStudentModal, setShowStudentModal] = useState(false);
   const [showResourceModal, setShowResourceModal] = useState(false);
   const [showEventModal, setShowEventModal] = useState(false);
+  const [showAddEventForm, setShowAddEventForm] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<ScheduleEvent | null>(null);
   const [showChatModal, setShowChatModal] = useState(false);
   const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
   const [showAssessmentsModal, setShowAssessmentsModal] = useState(false);
@@ -73,6 +75,7 @@ export const TutorDashboard: React.FC = () => {
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
+  const notificationDropdownRef = useRef<HTMLDivElement>(null);
   const [selectedStudent, setSelectedStudent] = useState<StudentProfile | null>(null);
   const [selectedChatContact, setSelectedChatContact] = useState<{ id: string; name: string } | null>(null);
 
@@ -120,6 +123,23 @@ export const TutorDashboard: React.FC = () => {
       setShowAdminModal(true);
     }
   }, [location.pathname]);
+
+  // Close notification dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (notificationDropdownRef.current && !notificationDropdownRef.current.contains(event.target as Node)) {
+        setShowNotificationDropdown(false);
+      }
+    };
+
+    if (showNotificationDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showNotificationDropdown]);
 
   // Load admin data
   const loadAdminData = async () => {
@@ -369,7 +389,7 @@ export const TutorDashboard: React.FC = () => {
           </div>
           <div className="flex gap-3 items-center">
             {/* Notification Bell */}
-            <div className="relative">
+            <div className="relative" ref={notificationDropdownRef}>
               <button
                 onClick={() => setShowNotificationDropdown(!showNotificationDropdown)}
                 className="relative p-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 transition-colors"
@@ -838,81 +858,167 @@ export const TutorDashboard: React.FC = () => {
         </div>
       </Modal>
 
-      {/* Schedule Event Modal */}
+      {/* Schedule Calendar Modal */}
       <Modal
         isOpen={showEventModal}
-        onClose={() => setShowEventModal(false)}
-        title="Schedule Session"
-        size="md"
+        onClose={() => {
+          setShowEventModal(false);
+          setShowAddEventForm(false);
+          setSelectedEvent(null);
+        }}
+        title="Schedule"
+        size="xl"
       >
-        <div className="space-y-4">
-          <Input
-            label="Session Title"
-            value={newEvent.title}
-            onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
-            placeholder="e.g., Mathematics Session"
-          />
-          <div className="grid grid-cols-2 gap-4">
-            <Select
-              label="Subject"
-              value={newEvent.subject}
-              onChange={(e) => setNewEvent({ ...newEvent, subject: e.target.value as Subject })}
-              options={[
-                { value: 'mathematics', label: 'Mathematics' },
-                { value: 'economics', label: 'Economics' },
-                { value: 'physics', label: 'Physics' },
-              ]}
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Calendar View */}
+          <div className="lg:col-span-2">
+            <Calendar
+              events={tutorSchedule}
+              editable={true}
+              onAddEvent={(date) => {
+                setNewEvent({ ...newEvent, date });
+                setShowAddEventForm(true);
+                setSelectedEvent(null);
+              }}
+              onEventClick={(event) => {
+                setSelectedEvent(event);
+                setShowAddEventForm(false);
+              }}
             />
-            <Select
-              label="Student"
-              value={newEvent.studentId}
-              onChange={(e) => setNewEvent({ ...newEvent, studentId: e.target.value })}
-              options={[
-                { value: '', label: 'Select student' },
-                ...students.map(s => ({ value: s.id, label: s.name })),
-              ]}
-            />
+            <p className="text-xs text-neutral-500 mt-2 text-center">
+              Click on a date to add a session, or click on an event to view details
+            </p>
           </div>
-          <Input
-            label="Date"
-            type="date"
-            value={newEvent.date}
-            onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
-          />
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="Start Time"
-              type="time"
-              value={newEvent.startTime}
-              onChange={(e) => setNewEvent({ ...newEvent, startTime: e.target.value })}
-            />
-            <Input
-              label="End Time"
-              type="time"
-              value={newEvent.endTime}
-              onChange={(e) => setNewEvent({ ...newEvent, endTime: e.target.value })}
-            />
-          </div>
-          <Input
-            label="Location"
-            value={newEvent.location}
-            onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
-            placeholder="Student's Home"
-          />
-          <Textarea
-            label="Notes"
-            value={newEvent.notes}
-            onChange={(e) => setNewEvent({ ...newEvent, notes: e.target.value })}
-            placeholder="Session notes..."
-            rows={2}
-          />
-          <div className="flex gap-3 pt-4">
-            <Button variant="secondary" onClick={() => setShowEventModal(false)} className="flex-1">
-              Cancel
-            </Button>
-            <Button variant="primary" onClick={handleAddEvent} className="flex-1">
-              Schedule
-            </Button>
+
+          {/* Side Panel - Add Event Form or Event Details */}
+          <div className="lg:col-span-1">
+            {showAddEventForm ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Add Session</CardTitle>
+                  <CardDescription>Schedule a new lesson</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Input
+                    label="Session Title"
+                    value={newEvent.title}
+                    onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
+                    placeholder="e.g., Algebra Review"
+                  />
+                  <Select
+                    label="Student"
+                    value={newEvent.studentId}
+                    onChange={(e) => setNewEvent({ ...newEvent, studentId: e.target.value })}
+                    options={[
+                      { value: '', label: 'Select student' },
+                      ...students.map(s => ({ value: s.id, label: s.name })),
+                    ]}
+                  />
+                  <Select
+                    label="Subject"
+                    value={newEvent.subject}
+                    onChange={(e) => setNewEvent({ ...newEvent, subject: e.target.value as Subject })}
+                    options={[
+                      { value: 'mathematics', label: 'Mathematics' },
+                      { value: 'economics', label: 'Economics' },
+                      { value: 'physics', label: 'Physics' },
+                    ]}
+                  />
+                  <Input
+                    label="Date"
+                    type="date"
+                    value={newEvent.date}
+                    onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
+                  />
+                  <div className="grid grid-cols-2 gap-3">
+                    <Input
+                      label="Start"
+                      type="time"
+                      value={newEvent.startTime}
+                      onChange={(e) => setNewEvent({ ...newEvent, startTime: e.target.value })}
+                    />
+                    <Input
+                      label="End"
+                      type="time"
+                      value={newEvent.endTime}
+                      onChange={(e) => setNewEvent({ ...newEvent, endTime: e.target.value })}
+                    />
+                  </div>
+                  <Input
+                    label="Location"
+                    value={newEvent.location}
+                    onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
+                    placeholder="Student's Home"
+                  />
+                  <Textarea
+                    label="Notes"
+                    value={newEvent.notes}
+                    onChange={(e) => setNewEvent({ ...newEvent, notes: e.target.value })}
+                    placeholder="Session notes..."
+                    rows={2}
+                  />
+                  <div className="flex gap-2 pt-2">
+                    <Button variant="secondary" onClick={() => setShowAddEventForm(false)} className="flex-1" size="sm">
+                      Cancel
+                    </Button>
+                    <Button variant="primary" onClick={() => { handleAddEvent(); setShowAddEventForm(false); }} className="flex-1" size="sm">
+                      Add
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : selectedEvent ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">{selectedEvent.title}</CardTitle>
+                  <CardDescription className="capitalize">{selectedEvent.subject}</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Clock className="w-4 h-4 text-neutral-500" />
+                      <span className="text-neutral-300">{selectedEvent.date}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Clock className="w-4 h-4 text-neutral-500" />
+                      <span className="text-neutral-300">{selectedEvent.startTime} - {selectedEvent.endTime}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <MapPin className="w-4 h-4 text-neutral-500" />
+                      <span className="text-neutral-300">{selectedEvent.location || 'No location set'}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Users className="w-4 h-4 text-neutral-500" />
+                      <span className="text-neutral-300">
+                        {students.find(s => s.id === selectedEvent.studentId)?.name || 'Unknown student'}
+                      </span>
+                    </div>
+                  </div>
+                  <Badge variant={selectedEvent.status === 'completed' ? 'success' : selectedEvent.status === 'cancelled' ? 'error' : 'info'}>
+                    {selectedEvent.status}
+                  </Badge>
+                  {selectedEvent.notes && (
+                    <div className="pt-2 border-t border-neutral-800">
+                      <p className="text-xs text-neutral-500 mb-1">Notes</p>
+                      <p className="text-sm text-neutral-300">{selectedEvent.notes}</p>
+                    </div>
+                  )}
+                  <Button variant="secondary" onClick={() => setSelectedEvent(null)} className="w-full" size="sm">
+                    Close
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="h-full flex items-center justify-center">
+                <CardContent className="text-center py-8">
+                  <Calendar className="w-12 h-12 text-neutral-600 mx-auto mb-3" />
+                  <p className="text-neutral-500 text-sm">
+                    Click a date to add a session<br />
+                    or click an event to view details
+                  </p>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </Modal>
