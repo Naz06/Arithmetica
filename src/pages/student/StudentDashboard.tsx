@@ -15,6 +15,7 @@ import { Chat } from '../../components/shared/Chat';
 import { Tabs } from '../../components/ui/Tabs';
 import { ConstellationSkillTree } from '../../components/shared/ConstellationSkillTree';
 import { LessonPlans } from '../../components/shared/LessonPlans';
+import { StellarJourney } from '../../components/shared/StellarJourney';
 import {
   Star,
   Zap,
@@ -33,15 +34,6 @@ import {
 } from 'lucide-react';
 import { StudentProfile, ShopItem, QuickNotificationType, Notification, ResourceLevel } from '../../types';
 import { shopItems } from '../../data/demoData';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
 
 export const StudentDashboard: React.FC = () => {
   const location = useLocation();
@@ -161,17 +153,6 @@ export const StudentDashboard: React.FC = () => {
   const enrolledSubjectStats = student.stats.subjectStats.filter(
     stat => student.subjects.includes(stat.subject)
   );
-
-  // Weekly progress data - filter for enrolled subjects
-  const weeklyData = student.stats.weeklyProgress.map(week => {
-    const filteredWeek: Record<string, unknown> = { week: week.week, points: week.points };
-    student.subjects.forEach(subject => {
-      if (subject in week) {
-        filteredWeek[subject] = week[subject as keyof typeof week];
-      }
-    });
-    return filteredWeek;
-  });
 
   const handlePurchase = (item: ShopItem) => {
     if (student.points >= item.cost && !student.avatar.unlockedItems.includes(item.id)) {
@@ -389,63 +370,13 @@ export const StudentDashboard: React.FC = () => {
               yearGroup={student.yearGroup}
             />
 
-            {/* Weekly Progress Chart */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-green-500" />
-                  Progress Quest
-                </CardTitle>
-                <CardDescription>Your journey over the past weeks</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={weeklyData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#404040" />
-                      <XAxis dataKey="week" tick={{ fill: '#a3a3a3', fontSize: 12 }} />
-                      <YAxis tick={{ fill: '#a3a3a3', fontSize: 12 }} />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: '#171717',
-                          border: '1px solid #404040',
-                          borderRadius: '8px',
-                        }}
-                      />
-                      {student.subjects.includes('mathematics') && (
-                        <Line type="monotone" dataKey="mathematics" stroke="#3B82F6" strokeWidth={2} dot={{ fill: '#3B82F6' }} />
-                      )}
-                      {student.subjects.includes('physics') && (
-                        <Line type="monotone" dataKey="physics" stroke="#A855F7" strokeWidth={2} dot={{ fill: '#A855F7' }} />
-                      )}
-                      {student.subjects.includes('economics') && (
-                        <Line type="monotone" dataKey="economics" stroke="#22C55E" strokeWidth={2} dot={{ fill: '#22C55E' }} />
-                      )}
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="flex justify-center gap-6 mt-4">
-                  {student.subjects.includes('mathematics') && (
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-blue-500" />
-                      <span className="text-sm text-neutral-400">Maths</span>
-                    </div>
-                  )}
-                  {student.subjects.includes('physics') && (
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-purple-500" />
-                      <span className="text-sm text-neutral-400">Physics</span>
-                    </div>
-                  )}
-                  {student.subjects.includes('economics') && (
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-green-500" />
-                      <span className="text-sm text-neutral-400">Economics</span>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            {/* Stellar Journey - Weekly Progress */}
+            <StellarJourney
+              weeklyData={student.stats.weeklyProgress}
+              enrolledSubjects={student.subjects}
+              currentPoints={student.points}
+              streakDays={student.stats.streakDays}
+            />
 
             {/* Strengths & Weaknesses */}
             <div className="grid md:grid-cols-2 gap-6">

@@ -59,6 +59,8 @@ export interface StudentStats {
   totalSessions: number;
   completedAssignments: number;
   averageScore: number;
+  attendanceRate?: number;
+  streakDays?: number;
 }
 
 export interface SubjectStat {
