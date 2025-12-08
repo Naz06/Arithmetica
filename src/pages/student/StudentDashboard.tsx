@@ -13,21 +13,18 @@ import { Modal } from '../../components/ui/Modal';
 import { Button } from '../../components/ui/Button';
 import { Chat } from '../../components/shared/Chat';
 import { Tabs } from '../../components/ui/Tabs';
+import { ConstellationSkillTree } from '../../components/shared/ConstellationSkillTree';
 import {
   Star,
   Zap,
   Target,
   Trophy,
   Flame,
-  Shield,
-  Sword,
-  Heart,
   BookOpen,
   MessageCircle,
   ShoppingBag,
   FileText,
   TrendingUp,
-  TrendingDown,
   Award,
   CheckCircle,
   Clock,
@@ -43,11 +40,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar,
 } from 'recharts';
 
 export const StudentDashboard: React.FC = () => {
@@ -168,12 +160,6 @@ export const StudentDashboard: React.FC = () => {
   const enrolledSubjectStats = student.stats.subjectStats.filter(
     stat => student.subjects.includes(stat.subject)
   );
-
-  // Prepare radar chart data - only enrolled subjects
-  const skillsData = enrolledSubjectStats.map(stat => ({
-    subject: stat.subject.charAt(0).toUpperCase() + stat.subject.slice(1),
-    value: stat.progress,
-  }));
 
   // Weekly progress data - filter for enrolled subjects
   const weeklyData = student.stats.weeklyProgress.map(week => {
@@ -395,61 +381,12 @@ export const StudentDashboard: React.FC = () => {
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Left Column - Stats & Progress */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Subject Skills */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-primary-500" />
-                  Skill Tree
-                </CardTitle>
-                <CardDescription>Your abilities across different subjects</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-2 gap-6">
-                  {/* Radar Chart */}
-                  <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RadarChart data={skillsData}>
-                        <PolarGrid stroke="#404040" />
-                        <PolarAngleAxis dataKey="subject" tick={{ fill: '#a3a3a3', fontSize: 12 }} />
-                        <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: '#a3a3a3' }} />
-                        <Radar
-                          name="Skills"
-                          dataKey="value"
-                          stroke="#0EA5E9"
-                          fill="#0EA5E9"
-                          fillOpacity={0.3}
-                        />
-                      </RadarChart>
-                    </ResponsiveContainer>
-                  </div>
-
-                  {/* Subject Bars */}
-                  <div className="space-y-4">
-                    {enrolledSubjectStats.map(stat => (
-                      <div key={stat.subject} className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            {stat.subject === 'mathematics' && <Sword className="w-4 h-4 text-blue-400" />}
-                            {stat.subject === 'physics' && <Zap className="w-4 h-4 text-purple-400" />}
-                            {stat.subject === 'economics' && <Target className="w-4 h-4 text-green-400" />}
-                            <span className="text-sm font-medium text-neutral-100 capitalize">{stat.subject}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="info" size="sm">{stat.grade}</Badge>
-                            <span className="text-sm text-neutral-400">{stat.progress}%</span>
-                          </div>
-                        </div>
-                        <ProgressBar value={stat.progress} variant="gradient" size="md" />
-                        <p className="text-xs text-neutral-500">
-                          {stat.topicsCompleted}/{stat.totalTopics} topics mastered
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            {/* Constellation Skill Tree */}
+            <ConstellationSkillTree
+              enrolledSubjects={student.subjects}
+              subjectStats={enrolledSubjectStats}
+              yearGroup={student.yearGroup}
+            />
 
             {/* Weekly Progress Chart */}
             <Card>
