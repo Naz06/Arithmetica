@@ -125,9 +125,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const fetchStudents = async (tutorId: string) => {
     if (isDemoMode) return;
 
+    // Join students with profiles to get name and email
     const { data, error } = await supabase
       .from('students')
-      .select('*')
+      .select(`
+        *,
+        profiles:user_id (
+          name,
+          email
+        )
+      `)
       .eq('tutor_id', tutorId);
 
     if (error) {
@@ -137,29 +144,36 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     if (data) {
       // Convert Supabase student data to StudentProfile format
-      const studentProfiles: StudentProfile[] = data.map(s => ({
-        id: s.id,
-        email: '', // Will need to fetch from profiles
-        name: s.user_id, // Placeholder - would join with profiles
-        role: 'student' as const,
-        password: '',
-        yearGroup: s.year_group,
-        subjects: s.subjects || [],
-        parentId: '',
-        tutorId: s.tutor_id,
-        points: s.total_points || 0,
-        level: 1,
-        avatar: { baseCharacter: 'astronaut', unlockedItems: [] },
-        stats: {
-          overallProgress: s.overall_progress || 0,
-          subjectStats: [],
-          strengths: s.strengths || [],
-          weaknesses: s.weaknesses || [],
-          improvements: [],
-          weeklyProgress: [],
-        },
-        achievements: s.achievements || [],
-      }));
+      const studentProfiles: StudentProfile[] = data.map(s => {
+        const profile = s.profiles as { name: string; email: string } | null;
+        return {
+          id: s.id,
+          email: profile?.email || '',
+          name: profile?.name || 'Unknown Student',
+          role: 'student' as const,
+          password: '',
+          yearGroup: s.year_group,
+          subjects: s.subjects || [],
+          parentId: '',
+          tutorId: s.tutor_id,
+          points: s.total_points || 0,
+          level: Math.floor((s.total_points || 0) / 100) + 1,
+          avatar: s.avatar_items || { baseCharacter: 'astronaut', unlockedItems: [] },
+          stats: {
+            overallProgress: s.overall_progress || 0,
+            subjectStats: [],
+            strengths: s.strengths || [],
+            weaknesses: s.weaknesses || [],
+            improvements: [],
+            weeklyProgress: [],
+            totalSessions: s.current_streak || 0,
+            completedAssignments: 0,
+            averageScore: s.overall_progress || 0,
+            attendanceRate: 100,
+          },
+          achievements: s.achievements || [],
+        };
+      });
       setStudents(studentProfiles);
     }
   };
@@ -168,9 +182,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const fetchParents = async () => {
     if (isDemoMode) return;
 
+    // Join parents with profiles to get name and email
     const { data, error } = await supabase
       .from('parents')
-      .select('*');
+      .select(`
+        *,
+        profiles:user_id (
+          name,
+          email
+        )
+      `);
 
     if (error) {
       console.error('Error fetching parents:', error);
@@ -178,14 +199,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     if (data) {
-      const parentProfiles: ParentProfile[] = data.map(p => ({
-        id: p.id,
-        email: '',
-        name: p.user_id,
-        role: 'parent' as const,
-        password: '',
-        childrenIds: p.student_ids || [],
-      }));
+      const parentProfiles: ParentProfile[] = data.map(p => {
+        const profile = p.profiles as { name: string; email: string } | null;
+        return {
+          id: p.id,
+          email: profile?.email || '',
+          name: profile?.name || 'Unknown Parent',
+          role: 'parent' as const,
+          password: '',
+          childrenIds: p.student_ids || [],
+        };
+      });
       setParents(parentProfiles);
     }
   };
