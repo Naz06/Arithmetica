@@ -181,16 +181,91 @@ export const StudentDashboard: React.FC = () => {
     }
   };
 
+  // Rarity color mapping
+  const getRarityColor = (rarity?: string) => {
+    switch (rarity) {
+      case 'common': return 'text-neutral-400 border-neutral-600';
+      case 'rare': return 'text-blue-400 border-blue-500/50';
+      case 'epic': return 'text-purple-400 border-purple-500/50';
+      case 'legendary': return 'text-yellow-400 border-yellow-500/50';
+      default: return 'text-neutral-400 border-neutral-600';
+    }
+  };
+
+  const getRarityGlow = (rarity?: string) => {
+    switch (rarity) {
+      case 'epic': return 'shadow-purple-500/20 shadow-lg';
+      case 'legendary': return 'shadow-yellow-500/30 shadow-lg animate-pulse';
+      default: return '';
+    }
+  };
+
+  // Render shop item card
+  const renderShopItem = (item: ShopItem) => {
+    const owned = student.avatar.unlockedItems.includes(item.id);
+    const canAfford = student.points >= item.cost;
+    return (
+      <div
+        key={item.id}
+        className={`p-4 rounded-xl border text-center transition-all ${getRarityGlow(item.rarity)} ${
+          owned
+            ? 'bg-green-500/10 border-green-500/30'
+            : canAfford
+            ? `bg-neutral-800/50 ${getRarityColor(item.rarity)} hover:border-primary-500`
+            : 'bg-neutral-800/30 border-neutral-800 opacity-50'
+        }`}
+      >
+        <div className="text-4xl mb-2">{item.image}</div>
+        <p className="text-sm font-medium text-neutral-100">{item.name}</p>
+        {item.rarity && (
+          <span className={`text-xs capitalize ${getRarityColor(item.rarity).split(' ')[0]}`}>
+            {item.rarity}
+          </span>
+        )}
+        {item.description && (
+          <p className="text-xs text-neutral-500 mt-1 line-clamp-2">{item.description}</p>
+        )}
+        <p className="text-xs text-yellow-500 mt-1">
+          {owned ? '✓ Owned' : `${item.cost} pts`}
+        </p>
+        {!owned && canAfford && (
+          <Button
+            size="sm"
+            variant="primary"
+            className="mt-2 w-full"
+            onClick={() => handlePurchase(item)}
+          >
+            Buy
+          </Button>
+        )}
+      </div>
+    );
+  };
+
+  // Dynamic achievements based on actual student data
+  const hasPerfectScore = assessments.some(a => a.score === a.maxScore);
+  const highScoreCount = assessments.filter(a => (a.score / a.maxScore) * 100 >= 80).length;
+  const mathProgress = student.stats.subjectStats.find(s => s.subject === 'mathematics')?.progress || 0;
+  const physicsProgress = student.stats.subjectStats.find(s => s.subject === 'physics')?.progress || 0;
+  const economicsProgress = student.stats.subjectStats.find(s => s.subject === 'economics')?.progress || 0;
+
   const achievements = [
-    { id: 1, name: 'First Steps', description: 'Complete your first session', earned: true, icon: '🚀' },
-    { id: 2, name: 'Quick Learner', description: 'Score 80%+ on 5 assessments', earned: true, icon: '⚡' },
-    { id: 3, name: 'Consistent', description: 'Attend 10 sessions in a row', earned: true, icon: '🔥' },
-    { id: 4, name: 'Math Wizard', description: 'Reach 90% progress in Mathematics', earned: student.stats.subjectStats.find(s => s.subject === 'mathematics')?.progress >= 90, icon: '🧮' },
-    { id: 5, name: 'Physics Pro', description: 'Reach 90% progress in Physics', earned: false, icon: '⚛️' },
-    { id: 6, name: 'Perfect Score', description: 'Get 100% on any assessment', earned: false, icon: '💯' },
-    { id: 7, name: 'Knowledge Seeker', description: 'Complete 50 assignments', earned: false, icon: '📚' },
-    { id: 8, name: 'Star Student', description: 'Reach Level 20', earned: false, icon: '⭐' },
+    { id: 1, name: 'First Steps', description: 'Complete your first session', earned: student.stats.totalSessions >= 1, icon: '🚀', points: 25 },
+    { id: 2, name: 'Getting Started', description: 'Reach Level 5', earned: student.level >= 5, icon: '🌱', points: 50 },
+    { id: 3, name: 'Quick Learner', description: 'Score 80%+ on 5 assessments', earned: highScoreCount >= 5, icon: '⚡', points: 75 },
+    { id: 4, name: 'Consistent', description: 'Complete 10 sessions', earned: student.stats.totalSessions >= 10, icon: '🔥', points: 100 },
+    { id: 5, name: 'Math Wizard', description: 'Reach 90% progress in Mathematics', earned: mathProgress >= 90, icon: '🧮', points: 150 },
+    { id: 6, name: 'Physics Pro', description: 'Reach 90% progress in Physics', earned: physicsProgress >= 90, icon: '⚛️', points: 150 },
+    { id: 7, name: 'Economics Expert', description: 'Reach 90% progress in Economics', earned: economicsProgress >= 90, icon: '📊', points: 150 },
+    { id: 8, name: 'Perfect Score', description: 'Get 100% on any assessment', earned: hasPerfectScore, icon: '💯', points: 100 },
+    { id: 9, name: 'Knowledge Seeker', description: 'Complete 50 assignments', earned: student.stats.completedAssignments >= 50, icon: '📚', points: 200 },
+    { id: 10, name: 'Star Student', description: 'Reach Level 20', earned: student.level >= 20, icon: '⭐', points: 250 },
+    { id: 11, name: 'Point Collector', description: 'Earn 1000 constellation points', earned: student.points >= 1000, icon: '💫', points: 100 },
+    { id: 12, name: 'Cosmic Champion', description: 'Earn 5000 constellation points', earned: student.points >= 5000, icon: '🏆', points: 500 },
   ];
+
+  const earnedAchievements = achievements.filter(a => a.earned).length;
+  const totalAchievements = achievements.length;
 
   return (
     <DashboardLayout>
@@ -528,38 +603,7 @@ export const StudentDashboard: React.FC = () => {
               label: 'Outfits',
               content: (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {items.filter(i => i.type === 'outfit').map(item => {
-                    const owned = student.avatar.unlockedItems.includes(item.id);
-                    const canAfford = student.points >= item.cost;
-                    return (
-                      <div
-                        key={item.id}
-                        className={`p-4 rounded-xl border text-center ${
-                          owned
-                            ? 'bg-green-500/10 border-green-500/30'
-                            : canAfford
-                            ? 'bg-neutral-800/50 border-neutral-700 hover:border-primary-500'
-                            : 'bg-neutral-800/30 border-neutral-800 opacity-50'
-                        }`}
-                      >
-                        <div className="text-4xl mb-2">{item.image}</div>
-                        <p className="text-sm font-medium text-neutral-100">{item.name}</p>
-                        <p className="text-xs text-yellow-500 mt-1">
-                          {owned ? 'Owned' : `${item.cost} pts`}
-                        </p>
-                        {!owned && canAfford && (
-                          <Button
-                            size="sm"
-                            variant="primary"
-                            className="mt-2 w-full"
-                            onClick={() => handlePurchase(item)}
-                          >
-                            Buy
-                          </Button>
-                        )}
-                      </div>
-                    );
-                  })}
+                  {items.filter(i => i.type === 'outfit').map(renderShopItem)}
                 </div>
               ),
             },
@@ -568,38 +612,7 @@ export const StudentDashboard: React.FC = () => {
               label: 'Accessories',
               content: (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {items.filter(i => i.type === 'accessory').map(item => {
-                    const owned = student.avatar.unlockedItems.includes(item.id);
-                    const canAfford = student.points >= item.cost;
-                    return (
-                      <div
-                        key={item.id}
-                        className={`p-4 rounded-xl border text-center ${
-                          owned
-                            ? 'bg-green-500/10 border-green-500/30'
-                            : canAfford
-                            ? 'bg-neutral-800/50 border-neutral-700 hover:border-primary-500'
-                            : 'bg-neutral-800/30 border-neutral-800 opacity-50'
-                        }`}
-                      >
-                        <div className="text-4xl mb-2">{item.image}</div>
-                        <p className="text-sm font-medium text-neutral-100">{item.name}</p>
-                        <p className="text-xs text-yellow-500 mt-1">
-                          {owned ? 'Owned' : `${item.cost} pts`}
-                        </p>
-                        {!owned && canAfford && (
-                          <Button
-                            size="sm"
-                            variant="primary"
-                            className="mt-2 w-full"
-                            onClick={() => handlePurchase(item)}
-                          >
-                            Buy
-                          </Button>
-                        )}
-                      </div>
-                    );
-                  })}
+                  {items.filter(i => i.type === 'accessory').map(renderShopItem)}
                 </div>
               ),
             },
@@ -608,38 +621,7 @@ export const StudentDashboard: React.FC = () => {
               label: 'Backgrounds',
               content: (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {items.filter(i => i.type === 'background').map(item => {
-                    const owned = student.avatar.unlockedItems.includes(item.id);
-                    const canAfford = student.points >= item.cost;
-                    return (
-                      <div
-                        key={item.id}
-                        className={`p-4 rounded-xl border text-center ${
-                          owned
-                            ? 'bg-green-500/10 border-green-500/30'
-                            : canAfford
-                            ? 'bg-neutral-800/50 border-neutral-700 hover:border-primary-500'
-                            : 'bg-neutral-800/30 border-neutral-800 opacity-50'
-                        }`}
-                      >
-                        <div className="text-4xl mb-2">{item.image}</div>
-                        <p className="text-sm font-medium text-neutral-100">{item.name}</p>
-                        <p className="text-xs text-yellow-500 mt-1">
-                          {owned ? 'Owned' : `${item.cost} pts`}
-                        </p>
-                        {!owned && canAfford && (
-                          <Button
-                            size="sm"
-                            variant="primary"
-                            className="mt-2 w-full"
-                            onClick={() => handlePurchase(item)}
-                          >
-                            Buy
-                          </Button>
-                        )}
-                      </div>
-                    );
-                  })}
+                  {items.filter(i => i.type === 'background').map(renderShopItem)}
                 </div>
               ),
             },
@@ -648,38 +630,16 @@ export const StudentDashboard: React.FC = () => {
               label: 'Badges',
               content: (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {items.filter(i => i.type === 'badge').map(item => {
-                    const owned = student.avatar.unlockedItems.includes(item.id);
-                    const canAfford = student.points >= item.cost;
-                    return (
-                      <div
-                        key={item.id}
-                        className={`p-4 rounded-xl border text-center ${
-                          owned
-                            ? 'bg-green-500/10 border-green-500/30'
-                            : canAfford
-                            ? 'bg-neutral-800/50 border-neutral-700 hover:border-primary-500'
-                            : 'bg-neutral-800/30 border-neutral-800 opacity-50'
-                        }`}
-                      >
-                        <div className="text-4xl mb-2">{item.image}</div>
-                        <p className="text-sm font-medium text-neutral-100">{item.name}</p>
-                        <p className="text-xs text-yellow-500 mt-1">
-                          {owned ? 'Owned' : `${item.cost} pts`}
-                        </p>
-                        {!owned && canAfford && (
-                          <Button
-                            size="sm"
-                            variant="primary"
-                            className="mt-2 w-full"
-                            onClick={() => handlePurchase(item)}
-                          >
-                            Buy
-                          </Button>
-                        )}
-                      </div>
-                    );
-                  })}
+                  {items.filter(i => i.type === 'badge').map(renderShopItem)}
+                </div>
+              ),
+            },
+            {
+              id: 'pets',
+              label: 'Pets 🐾',
+              content: (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {items.filter(i => i.type === 'pet').map(renderShopItem)}
                 </div>
               ),
             },
@@ -836,26 +796,50 @@ export const StudentDashboard: React.FC = () => {
         title="Achievements"
         size="lg"
       >
+        <div className="mb-6 p-4 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 rounded-xl">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Trophy className="w-8 h-8 text-yellow-500" />
+              <div>
+                <p className="text-sm text-neutral-400">Progress</p>
+                <p className="text-xl font-bold text-yellow-500">{earnedAchievements} / {totalAchievements}</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-sm text-neutral-400">Completion</p>
+              <p className="text-xl font-bold text-neutral-100">{Math.round((earnedAchievements / totalAchievements) * 100)}%</p>
+            </div>
+          </div>
+          <ProgressBar value={(earnedAchievements / totalAchievements) * 100} variant="gradient" className="mt-3" />
+        </div>
+
         <div className="grid grid-cols-2 gap-4">
           {achievements.map(achievement => (
             <div
               key={achievement.id}
-              className={`p-4 rounded-xl border ${
+              className={`p-4 rounded-xl border transition-all ${
                 achievement.earned
                   ? 'bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border-yellow-500/30'
-                  : 'bg-neutral-800/30 border-neutral-800 opacity-50'
+                  : 'bg-neutral-800/30 border-neutral-800 opacity-60 grayscale'
               }`}
             >
               <div className="flex items-center gap-3">
-                <div className="text-3xl">{achievement.icon}</div>
-                <div>
+                <div className={`text-3xl ${achievement.earned ? '' : 'opacity-50'}`}>{achievement.icon}</div>
+                <div className="flex-1">
                   <p className="font-medium text-neutral-100">{achievement.name}</p>
                   <p className="text-xs text-neutral-400">{achievement.description}</p>
                 </div>
               </div>
-              {achievement.earned && (
-                <Badge variant="success" size="sm" className="mt-2">Earned!</Badge>
-              )}
+              <div className="flex items-center justify-between mt-3">
+                {achievement.earned ? (
+                  <Badge variant="success" size="sm">✓ Earned!</Badge>
+                ) : (
+                  <Badge variant="default" size="sm">Locked</Badge>
+                )}
+                <span className={`text-xs font-medium ${achievement.earned ? 'text-yellow-500' : 'text-neutral-500'}`}>
+                  +{achievement.points} pts
+                </span>
+              </div>
             </div>
           ))}
         </div>
