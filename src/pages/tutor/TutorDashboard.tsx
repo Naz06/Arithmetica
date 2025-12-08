@@ -91,6 +91,9 @@ export const TutorDashboard: React.FC = () => {
   const [newUserParentId, setNewUserParentId] = useState('');
   const [newUserChildId, setNewUserChildId] = useState('');
   const [createUserSuccess, setCreateUserSuccess] = useState(false);
+  const [generatedCredentials, setGeneratedCredentials] = useState<{ email: string; password: string } | null>(null);
+  const [createUserError, setCreateUserError] = useState<string | null>(null);
+  const [isCreatingUser, setIsCreatingUser] = useState(false);
 
   // Handle URL-based navigation for sidebar items
   useEffect(() => {
@@ -195,83 +198,107 @@ export const TutorDashboard: React.FC = () => {
   };
 
   // Create new user
-  const handleCreateUser = () => {
+  const handleCreateUser = async () => {
     if (!newUserName.trim() || !newUserEmail.trim()) return;
 
-    if (newUserRole === 'student') {
-      const newStudent: StudentProfile = {
-        id: `student-${Date.now()}`,
-        email: newUserEmail,
-        password: 'demo123',
-        name: newUserName,
-        role: 'student',
-        createdAt: new Date().toISOString(),
-        yearGroup: newUserYearGroup,
-        subjects: newUserSubjects,
-        parentId: newUserParentId || undefined,
-        tutorId: 'tutor-001',
-        points: 0,
-        level: 1,
-        avatar: {
-          baseCharacter: 'default',
-          outfit: 'default',
-          accessory: 'none',
-          background: 'default',
-          badge: 'none',
-          unlockedItems: [],
-        },
-        stats: {
-          overallProgress: 0,
-          subjectStats: newUserSubjects.map(subject => ({
-            subject,
-            progress: 0,
-            grade: 'N/A',
-            topicsCompleted: 0,
-            totalTopics: 10,
-            recentScores: [],
-          })),
-          strengths: [],
-          weaknesses: [],
-          improvements: [],
-          weeklyProgress: [],
-          totalSessions: 0,
-          completedAssignments: 0,
-          averageScore: 0,
-        },
-        schedule: [],
-      };
-      addStudent(newStudent);
+    setIsCreatingUser(true);
+    setCreateUserError(null);
 
-      // If parent is selected, link them
-      if (newUserParentId) {
-        linkParentToStudent(newUserParentId, newStudent.id);
-      }
-    } else {
-      // Creating a parent
-      const newParent: ParentProfile = {
-        id: `parent-${Date.now()}`,
-        email: newUserEmail,
-        password: 'demo123',
-        name: newUserName,
-        role: 'parent',
-        createdAt: new Date().toISOString(),
-        childrenIds: newUserChildId ? [newUserChildId] : [],
-        tutorId: 'tutor-001',
-      };
-      addParent(newParent);
+    try {
+      if (newUserRole === 'student') {
+        const newStudent: StudentProfile = {
+          id: `student-${Date.now()}`,
+          email: newUserEmail,
+          password: '',
+          name: newUserName,
+          role: 'student',
+          createdAt: new Date().toISOString(),
+          yearGroup: newUserYearGroup,
+          subjects: newUserSubjects,
+          parentId: newUserParentId || undefined,
+          tutorId: user?.id || 'tutor-001',
+          points: 0,
+          level: 1,
+          avatar: {
+            baseCharacter: 'default',
+            outfit: 'default',
+            accessory: 'none',
+            background: 'default',
+            badge: 'none',
+            unlockedItems: [],
+          },
+          stats: {
+            overallProgress: 0,
+            subjectStats: newUserSubjects.map(subject => ({
+              subject,
+              progress: 0,
+              grade: 'N/A',
+              topicsCompleted: 0,
+              totalTopics: 10,
+              recentScores: [],
+            })),
+            strengths: [],
+            weaknesses: [],
+            improvements: [],
+            weeklyProgress: [],
+            totalSessions: 0,
+            completedAssignments: 0,
+            averageScore: 0,
+          },
+          schedule: [],
+        };
 
-      // If child is selected, link them
-      if (newUserChildId) {
-        linkParentToStudent(newParent.id, newUserChildId);
+        const result = await addStudent(newStudent);
+
+        if (!result.success) {
+          setCreateUserError(result.error || 'Failed to create student');
+          setIsCreatingUser(false);
+          return;
+        }
+
+        // Store credentials to display
+        setGeneratedCredentials({ email: newUserEmail, password: result.password || '' });
+
+        // If parent is selected, link them
+        if (newUserParentId && result.success) {
+          linkParentToStudent(newUserParentId, newStudent.id);
+        }
+      } else {
+        // Creating a parent
+        const newParent: ParentProfile = {
+          id: `parent-${Date.now()}`,
+          email: newUserEmail,
+          password: '',
+          name: newUserName,
+          role: 'parent',
+          createdAt: new Date().toISOString(),
+          childrenIds: newUserChildId ? [newUserChildId] : [],
+          tutorId: user?.id || 'tutor-001',
+        };
+
+        const result = await addParent(newParent);
+
+        if (!result.success) {
+          setCreateUserError(result.error || 'Failed to create parent');
+          setIsCreatingUser(false);
+          return;
+        }
+
+        // Store credentials to display
+        setGeneratedCredentials({ email: newUserEmail, password: result.password || '' });
+
+        // If child is selected, link them
+        if (newUserChildId && result.success) {
+          linkParentToStudent(newParent.id, newUserChildId);
+        }
       }
+
+      setCreateUserSuccess(true);
+      setIsCreatingUser(false);
+    } catch (error) {
+      setCreateUserError('An unexpected error occurred');
+      setIsCreatingUser(false);
     }
-
-    setCreateUserSuccess(true);
-    setTimeout(() => {
-      setCreateUserSuccess(false);
-      setShowCreateUserModal(false);
-      resetCreateUserForm();
-    }, 1500);
   };
 
   const resetCreateUserForm = () => {
@@ -282,6 +309,9 @@ export const TutorDashboard: React.FC = () => {
     setNewUserSubjects(['mathematics']);
     setNewUserParentId('');
     setNewUserChildId('');
+    setGeneratedCredentials(null);
+    setCreateUserError(null);
+    setCreateUserSuccess(false);
   };
 
   const handleAddEvent = () => {
@@ -1251,7 +1281,41 @@ export const TutorDashboard: React.FC = () => {
               <CheckCircle className="w-8 h-8 text-green-500" />
             </div>
             <h3 className="text-lg font-semibold text-neutral-100 mb-2">Account Created!</h3>
-            <p className="text-neutral-400 text-sm">The new {newUserRole} account has been created successfully.</p>
+            <p className="text-neutral-400 text-sm mb-6">The new {newUserRole} account has been created successfully.</p>
+
+            {generatedCredentials && (
+              <div className="bg-neutral-800/50 border border-neutral-700 rounded-xl p-4 text-left mx-auto max-w-sm">
+                <h4 className="text-sm font-medium text-neutral-300 mb-3 flex items-center gap-2">
+                  <Key className="w-4 h-4" />
+                  Login Credentials
+                </h4>
+                <div className="space-y-2">
+                  <div>
+                    <p className="text-xs text-neutral-500">Email</p>
+                    <p className="text-sm text-neutral-100 font-mono bg-neutral-900 px-2 py-1 rounded">{generatedCredentials.email}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-neutral-500">Temporary Password</p>
+                    <p className="text-sm text-neutral-100 font-mono bg-neutral-900 px-2 py-1 rounded">{generatedCredentials.password}</p>
+                  </div>
+                </div>
+                <p className="text-xs text-amber-400 mt-3 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" />
+                  User should change password on first login
+                </p>
+              </div>
+            )}
+
+            <Button
+              variant="primary"
+              className="mt-6"
+              onClick={() => {
+                setShowCreateUserModal(false);
+                resetCreateUserForm();
+              }}
+            >
+              Done
+            </Button>
           </div>
         ) : (
           <div className="space-y-6">
@@ -1369,9 +1433,16 @@ export const TutorDashboard: React.FC = () => {
               />
             )}
 
+            {createUserError && (
+              <div className="flex items-center gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <p className="text-sm">{createUserError}</p>
+              </div>
+            )}
+
             <div className="pt-4 border-t border-neutral-800">
               <p className="text-xs text-neutral-500 mb-4">
-                Default password will be set to "demo123". The user can change it after logging in.
+                A temporary password will be generated using today's day and date (e.g., "Monday08"). The user should change it after first login.
               </p>
               <div className="flex gap-3">
                 <Button
@@ -1381,6 +1452,7 @@ export const TutorDashboard: React.FC = () => {
                     setShowCreateUserModal(false);
                     resetCreateUserForm();
                   }}
+                  disabled={isCreatingUser}
                 >
                   Cancel
                 </Button>
@@ -1388,10 +1460,17 @@ export const TutorDashboard: React.FC = () => {
                   variant="primary"
                   className="flex-1"
                   onClick={handleCreateUser}
-                  disabled={!newUserName.trim() || !newUserEmail.trim() || (newUserRole === 'student' && newUserSubjects.length === 0)}
-                  icon={<UserPlus className="w-4 h-4" />}
+                  disabled={!newUserName.trim() || !newUserEmail.trim() || (newUserRole === 'student' && newUserSubjects.length === 0) || isCreatingUser}
+                  icon={isCreatingUser ? undefined : <UserPlus className="w-4 h-4" />}
                 >
-                  Create Account
+                  {isCreatingUser ? (
+                    <span className="flex items-center gap-2">
+                      <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+                      Creating...
+                    </span>
+                  ) : (
+                    'Create Account'
+                  )}
                 </Button>
               </div>
             </div>

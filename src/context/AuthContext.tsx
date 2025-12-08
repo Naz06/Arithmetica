@@ -25,8 +25,8 @@ interface AuthContextType {
   getStudentsByParentId: (parentId: string) => StudentProfile[];
   updateStudent: (student: StudentProfile) => void;
   refreshProfile: () => Promise<void>;
-  addStudent: (student: StudentProfile) => void;
-  addParent: (parent: ParentProfile) => void;
+  addStudent: (student: StudentProfile) => Promise<{ success: boolean; password?: string; error?: string }>;
+  addParent: (parent: ParentProfile) => Promise<{ success: boolean; password?: string; error?: string }>;
   getParents: () => ParentProfile[];
   linkParentToStudent: (parentId: string, studentId: string) => void;
 }
@@ -409,37 +409,44 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return parents;
   };
 
-  const addStudent = async (student: StudentProfile) => {
-    // Update local state first
-    setStudents(prev => [...prev, student]);
+  // Generate password from day + date (e.g., "Sunday08")
+  const generatePassword = (): string => {
+    const now = new Date();
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const day = days[now.getDay()];
+    const date = String(now.getDate()).padStart(2, '0');
+    return `${day}${date}`;
+  };
 
-    // If in live mode, also save to Supabase
+  const addStudent = async (student: StudentProfile): Promise<{ success: boolean; password?: string; error?: string }> => {
+    // Generate password
+    const generatedPassword = generatePassword();
+
+    // If in live mode, create auth user and save to Supabase
     if (!isDemoMode && user?.role === 'tutor') {
       try {
-        // Create auth user for student
-        const { data: authData, error: authError } = await supabase.auth.admin?.createUser?.({
+        // Create auth user via signUp
+        const { data: authData, error: authError } = await supabase.auth.signUp({
           email: student.email,
-          password: 'demo123',
-          email_confirm: true,
-          user_metadata: { name: student.name, role: 'student' }
-        }) || { data: null, error: null };
+          password: generatedPassword,
+          options: {
+            data: {
+              name: student.name,
+              role: 'student',
+              must_change_password: true,
+            },
+          },
+        });
 
-        // If admin API not available, try regular signup
-        if (!authData && !authError) {
-          // Insert directly into students table with the provided ID
-          await supabase.from('students').insert({
-            id: student.id,
-            user_id: student.id,
-            tutor_id: user.id,
-            year_group: student.yearGroup,
-            subjects: student.subjects,
-            overall_progress: 0,
-            total_points: 0,
-          });
-        } else if (authData?.user) {
+        if (authError) {
+          console.error('Error creating student auth:', authError);
+          return { success: false, error: authError.message };
+        }
+
+        if (authData?.user) {
           // Insert student record linked to auth user
-          await supabase.from('students').insert({
-            id: student.id,
+          const { error: insertError } = await supabase.from('students').insert({
+            id: authData.user.id,
             user_id: authData.user.id,
             tutor_id: user.id,
             year_group: student.yearGroup,
@@ -447,28 +454,91 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             overall_progress: 0,
             total_points: 0,
           });
+
+          if (insertError) {
+            console.error('Error inserting student record:', insertError);
+            return { success: false, error: insertError.message };
+          }
+
+          // Update local state with the new student (using auth user id)
+          const newStudent: StudentProfile = {
+            ...student,
+            id: authData.user.id,
+          };
+          setStudents(prev => [...prev, newStudent]);
+
+          return { success: true, password: generatedPassword };
         }
+
+        return { success: false, error: 'Failed to create user' };
       } catch (error) {
         console.error('Error saving student to Supabase:', error);
+        return { success: false, error: 'An unexpected error occurred' };
       }
+    } else {
+      // Demo mode - just update local state
+      setStudents(prev => [...prev, student]);
+      return { success: true, password: generatedPassword };
     }
   };
 
-  const addParent = async (parent: ParentProfile) => {
-    // Update local state first
-    setParents(prev => [...prev, parent]);
+  const addParent = async (parent: ParentProfile): Promise<{ success: boolean; password?: string; error?: string }> => {
+    // Generate password
+    const generatedPassword = generatePassword();
 
-    // If in live mode, also save to Supabase
+    // If in live mode, create auth user and save to Supabase
     if (!isDemoMode && user?.role === 'tutor') {
       try {
-        await supabase.from('parents').insert({
-          id: parent.id,
-          user_id: parent.id,
-          student_ids: parent.childrenIds || [],
+        // Create auth user via signUp
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: parent.email,
+          password: generatedPassword,
+          options: {
+            data: {
+              name: parent.name,
+              role: 'parent',
+              must_change_password: true,
+            },
+          },
         });
+
+        if (authError) {
+          console.error('Error creating parent auth:', authError);
+          return { success: false, error: authError.message };
+        }
+
+        if (authData?.user) {
+          // Insert parent record
+          const { error: insertError } = await supabase.from('parents').insert({
+            id: authData.user.id,
+            user_id: authData.user.id,
+            student_ids: parent.childrenIds || [],
+          });
+
+          if (insertError) {
+            console.error('Error inserting parent record:', insertError);
+            return { success: false, error: insertError.message };
+          }
+
+          // Update local state with the new parent
+          const newParent: ParentProfile = {
+            ...parent,
+            id: authData.user.id,
+          };
+          setParents(prev => [...prev, newParent]);
+
+          return { success: true, password: generatedPassword };
+        }
+
+        return { success: false, error: 'Failed to create user' };
       } catch (error) {
         console.error('Error saving parent to Supabase:', error);
+        return { success: false, error: 'An unexpected error occurred' };
       }
+    } else {
+      // Demo mode - just update local state
+      setParents(prev => [...prev, parent]);
+      return { success: true, password: generatedPassword };
     }
   };
 
