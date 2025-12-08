@@ -157,6 +157,22 @@ export interface ScheduleEvent {
   tutorId: string;
   status: 'scheduled' | 'completed' | 'cancelled';
   notes?: string;
+  // Lesson Plan (for upcoming sessions)
+  lessonPlan?: {
+    objectives: string[];      // What will be covered
+    topics: string[];          // Topics from skill tree
+    resources?: string[];      // Resources to bring/use
+    homework?: string;         // Pre-session homework
+  };
+  // Session Notes (for completed sessions)
+  sessionNotes?: {
+    summary: string;           // What was covered
+    topicsCovered: string[];   // Topics actually covered
+    studentPerformance?: 'excellent' | 'good' | 'needs-improvement';
+    tutorNotes?: string;       // Private tutor observations
+    nextSteps?: string;        // Recommendations for next session
+    homeworkAssigned?: string; // Post-session homework
+  };
 }
 
 // Chat System

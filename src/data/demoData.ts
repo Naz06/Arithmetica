@@ -324,12 +324,20 @@ export const demoAssessments: Assessment[] = [
   },
 ];
 
+// Helper to get relative dates for demo
+const getRelativeDate = (daysFromNow: number): string => {
+  const date = new Date();
+  date.setDate(date.getDate() + daysFromNow);
+  return date.toISOString().split('T')[0];
+};
+
 export const demoSchedule: ScheduleEvent[] = [
+  // Upcoming sessions with lesson plans
   {
     id: 'event-001',
     title: 'Mathematics Session',
     subject: 'mathematics',
-    date: '2024-02-05',
+    date: getRelativeDate(2),
     startTime: '16:00',
     endTime: '17:30',
     location: 'Student\'s Home',
@@ -337,12 +345,22 @@ export const demoSchedule: ScheduleEvent[] = [
     tutorId: 'tutor-001',
     status: 'scheduled',
     notes: 'Focus on trigonometry revision',
+    lessonPlan: {
+      objectives: [
+        'Review SOHCAHTOA and basic trig ratios',
+        'Solve problems involving angles of elevation and depression',
+        'Practice exam-style trigonometry questions',
+      ],
+      topics: ['Trigonometry'],
+      resources: ['GCSE Maths Workbook Chapter 8', 'Trig practice worksheet'],
+      homework: 'Complete questions 1-10 from the trig worksheet before the session',
+    },
   },
   {
     id: 'event-002',
     title: 'Physics Session',
     subject: 'physics',
-    date: '2024-02-07',
+    date: getRelativeDate(4),
     startTime: '15:00',
     endTime: '16:30',
     location: 'Student\'s Home',
@@ -350,12 +368,22 @@ export const demoSchedule: ScheduleEvent[] = [
     tutorId: 'tutor-001',
     status: 'scheduled',
     notes: 'Waves and sound practical problems',
+    lessonPlan: {
+      objectives: [
+        'Understand wave properties: frequency, wavelength, amplitude',
+        'Learn the wave equation v = fλ',
+        'Explore sound wave phenomena and applications',
+      ],
+      topics: ['Waves'],
+      resources: ['Physics revision guide', 'Wave simulation website'],
+      homework: 'Watch the waves introduction video (link in resources)',
+    },
   },
   {
     id: 'event-003',
     title: 'Economics Session',
     subject: 'economics',
-    date: '2024-02-06',
+    date: getRelativeDate(3),
     startTime: '17:00',
     endTime: '18:30',
     location: 'Student\'s Home',
@@ -363,12 +391,21 @@ export const demoSchedule: ScheduleEvent[] = [
     tutorId: 'tutor-001',
     status: 'scheduled',
     notes: 'Market failure and government intervention',
+    lessonPlan: {
+      objectives: [
+        'Define market failure and identify its causes',
+        'Analyse externalities using diagrams',
+        'Evaluate government intervention methods',
+      ],
+      topics: ['Market Failure', 'Government Intervention'],
+      resources: ['A-Level Economics textbook Ch. 6', 'Externalities diagram pack'],
+    },
   },
   {
     id: 'event-004',
     title: 'Mathematics Session',
     subject: 'mathematics',
-    date: '2024-02-08',
+    date: getRelativeDate(5),
     startTime: '10:00',
     endTime: '11:00',
     location: 'Student\'s Home',
@@ -376,6 +413,139 @@ export const demoSchedule: ScheduleEvent[] = [
     tutorId: 'tutor-001',
     status: 'scheduled',
     notes: 'Long division practice',
+    lessonPlan: {
+      objectives: [
+        'Review short division method',
+        'Introduce long division step-by-step',
+        'Practice with 2-digit and 3-digit divisors',
+      ],
+      topics: ['Division'],
+      resources: ['Year 6 Maths workbook'],
+      homework: 'Practice times tables 6, 7, 8, 9',
+    },
+  },
+  // Completed sessions with session notes
+  {
+    id: 'event-005',
+    title: 'Mathematics Session',
+    subject: 'mathematics',
+    date: getRelativeDate(-3),
+    startTime: '16:00',
+    endTime: '17:30',
+    location: 'Student\'s Home',
+    studentId: 'student-001',
+    tutorId: 'tutor-001',
+    status: 'completed',
+    notes: 'Quadratic equations session',
+    lessonPlan: {
+      objectives: ['Master factorising quadratics', 'Solve quadratic equations'],
+      topics: ['Quadratics'],
+    },
+    sessionNotes: {
+      summary: 'Covered factorising quadratics and solving equations by factorisation. Alex showed good understanding of the concepts and was able to complete most exercises independently.',
+      topicsCovered: ['Quadratics'],
+      studentPerformance: 'good',
+      nextSteps: 'Next session will cover the quadratic formula for equations that cannot be factorised easily.',
+      homeworkAssigned: 'Complete exercises 3.4 and 3.5 from the workbook',
+    },
+  },
+  {
+    id: 'event-006',
+    title: 'Physics Session',
+    subject: 'physics',
+    date: getRelativeDate(-7),
+    startTime: '15:00',
+    endTime: '16:30',
+    location: 'Student\'s Home',
+    studentId: 'student-001',
+    tutorId: 'tutor-001',
+    status: 'completed',
+    notes: 'Forces and motion',
+    lessonPlan: {
+      objectives: ['Understand Newton\'s laws', 'Calculate resultant forces'],
+      topics: ['Forces'],
+    },
+    sessionNotes: {
+      summary: 'Introduced Newton\'s three laws of motion with practical examples. Worked through force calculations and free-body diagrams.',
+      topicsCovered: ['Forces'],
+      studentPerformance: 'excellent',
+      nextSteps: 'Build on this foundation with friction and air resistance problems.',
+      homeworkAssigned: 'Answer the Newton\'s Laws quiz online',
+    },
+  },
+  {
+    id: 'event-007',
+    title: 'Mathematics Session',
+    subject: 'mathematics',
+    date: getRelativeDate(-5),
+    startTime: '17:00',
+    endTime: '18:30',
+    location: 'Student\'s Home',
+    studentId: 'student-002',
+    tutorId: 'tutor-001',
+    status: 'completed',
+    notes: 'Calculus - differentiation',
+    lessonPlan: {
+      objectives: ['Apply chain rule', 'Differentiate complex functions'],
+      topics: ['Calculus: Differentiation'],
+    },
+    sessionNotes: {
+      summary: 'Advanced differentiation techniques including chain rule and product rule. Emma demonstrated excellent understanding and worked through challenging problems with confidence.',
+      topicsCovered: ['Calculus: Differentiation'],
+      studentPerformance: 'excellent',
+      tutorNotes: 'Emma is ready to move on to integration. Very strong mathematical intuition.',
+      nextSteps: 'Begin integration and the reverse of differentiation.',
+      homeworkAssigned: 'Past paper questions on differentiation',
+    },
+  },
+  {
+    id: 'event-008',
+    title: 'Mathematics Session',
+    subject: 'mathematics',
+    date: getRelativeDate(-4),
+    startTime: '10:00',
+    endTime: '11:00',
+    location: 'Student\'s Home',
+    studentId: 'student-003',
+    tutorId: 'tutor-001',
+    status: 'completed',
+    notes: 'Fractions revision',
+    lessonPlan: {
+      objectives: ['Add and subtract fractions', 'Simplify fractions'],
+      topics: ['Fractions'],
+    },
+    sessionNotes: {
+      summary: 'Revised adding and subtracting fractions with different denominators. James found finding common denominators tricky at first but improved with practice.',
+      topicsCovered: ['Fractions'],
+      studentPerformance: 'needs-improvement',
+      tutorNotes: 'James needs more practice with LCM for finding common denominators.',
+      nextSteps: 'More practice on fractions before moving to decimals.',
+      homeworkAssigned: 'Fractions worksheet - 10 questions',
+    },
+  },
+  {
+    id: 'event-009',
+    title: 'Economics Session',
+    subject: 'economics',
+    date: getRelativeDate(-10),
+    startTime: '17:00',
+    endTime: '18:30',
+    location: 'Student\'s Home',
+    studentId: 'student-002',
+    tutorId: 'tutor-001',
+    status: 'completed',
+    notes: 'Supply and demand analysis',
+    lessonPlan: {
+      objectives: ['Draw supply and demand curves', 'Analyse equilibrium changes'],
+      topics: ['Supply & Demand', 'Price Mechanism'],
+    },
+    sessionNotes: {
+      summary: 'Comprehensive review of supply and demand curves, market equilibrium, and shifts vs movements along curves. Emma showed strong analytical skills in explaining diagram changes.',
+      topicsCovered: ['Supply & Demand', 'Price Mechanism'],
+      studentPerformance: 'excellent',
+      nextSteps: 'Apply these concepts to elasticity in the next session.',
+      homeworkAssigned: 'Read Chapter 4 on elasticity',
+    },
   },
 ];
 

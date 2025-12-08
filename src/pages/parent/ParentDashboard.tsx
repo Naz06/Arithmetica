@@ -13,6 +13,7 @@ import { Modal } from '../../components/ui/Modal';
 import { Button } from '../../components/ui/Button';
 import { Chat } from '../../components/shared/Chat';
 import { ConstellationSkillTree } from '../../components/shared/ConstellationSkillTree';
+import { LessonPlans } from '../../components/shared/LessonPlans';
 import {
   TrendingUp,
   BookOpen,
@@ -383,8 +384,8 @@ export const ParentDashboard: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* Schedule */}
-          <UpcomingEvents events={schedule} />
+          {/* Lesson Plans & Session History */}
+          <LessonPlans schedule={schedule} />
         </div>
 
         {/* Strengths & Areas for Improvement */}

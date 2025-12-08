@@ -14,6 +14,7 @@ import { Button } from '../../components/ui/Button';
 import { Chat } from '../../components/shared/Chat';
 import { Tabs } from '../../components/ui/Tabs';
 import { ConstellationSkillTree } from '../../components/shared/ConstellationSkillTree';
+import { LessonPlans } from '../../components/shared/LessonPlans';
 import {
   Star,
   Zap,
@@ -490,7 +491,7 @@ export const StudentDashboard: React.FC = () => {
 
           {/* Right Column - Schedule & Resources */}
           <div className="space-y-6">
-            <UpcomingEvents events={schedule} />
+            <LessonPlans schedule={schedule} />
 
             {/* Recent Resources */}
             <Card>
