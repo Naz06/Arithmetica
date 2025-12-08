@@ -121,6 +121,75 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return data;
   };
 
+  // Fetch students from Supabase for a tutor
+  const fetchStudents = async (tutorId: string) => {
+    if (isDemoMode) return;
+
+    const { data, error } = await supabase
+      .from('students')
+      .select('*')
+      .eq('tutor_id', tutorId);
+
+    if (error) {
+      console.error('Error fetching students:', error);
+      return;
+    }
+
+    if (data) {
+      // Convert Supabase student data to StudentProfile format
+      const studentProfiles: StudentProfile[] = data.map(s => ({
+        id: s.id,
+        email: '', // Will need to fetch from profiles
+        name: s.user_id, // Placeholder - would join with profiles
+        role: 'student' as const,
+        password: '',
+        yearGroup: s.year_group,
+        subjects: s.subjects || [],
+        parentId: '',
+        tutorId: s.tutor_id,
+        points: s.total_points || 0,
+        level: 1,
+        avatar: { baseCharacter: 'astronaut', unlockedItems: [] },
+        stats: {
+          overallProgress: s.overall_progress || 0,
+          subjectStats: [],
+          strengths: s.strengths || [],
+          weaknesses: s.weaknesses || [],
+          improvements: [],
+          weeklyProgress: [],
+        },
+        achievements: s.achievements || [],
+      }));
+      setStudents(studentProfiles);
+    }
+  };
+
+  // Fetch parents from Supabase
+  const fetchParents = async () => {
+    if (isDemoMode) return;
+
+    const { data, error } = await supabase
+      .from('parents')
+      .select('*');
+
+    if (error) {
+      console.error('Error fetching parents:', error);
+      return;
+    }
+
+    if (data) {
+      const parentProfiles: ParentProfile[] = data.map(p => ({
+        id: p.id,
+        email: '',
+        name: p.user_id,
+        role: 'parent' as const,
+        password: '',
+        childrenIds: p.student_ids || [],
+      }));
+      setParents(parentProfiles);
+    }
+  };
+
   // Initialize auth state
   useEffect(() => {
     if (isDemoMode) {
@@ -152,6 +221,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           if (userProfile) {
             setProfile(userProfile);
             setUser(profileToUser(userProfile));
+
+            // If tutor, fetch their students and parents
+            if (userProfile.role === 'tutor') {
+              await fetchStudents(initialSession.user.id);
+              await fetchParents();
+            }
           }
         }
       } catch (error) {
@@ -174,6 +249,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           if (userProfile) {
             setProfile(userProfile);
             setUser(profileToUser(userProfile));
+
+            // If tutor, fetch their students and parents
+            if (userProfile.role === 'tutor') {
+              await fetchStudents(currentSession.user.id);
+              await fetchParents();
+            }
           }
         } else {
           setProfile(null);
@@ -328,25 +409,101 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return parents;
   };
 
-  const addStudent = (student: StudentProfile) => {
+  const addStudent = async (student: StudentProfile) => {
+    // Update local state first
     setStudents(prev => [...prev, student]);
+
+    // If in live mode, also save to Supabase
+    if (!isDemoMode && user?.role === 'tutor') {
+      try {
+        // Create auth user for student
+        const { data: authData, error: authError } = await supabase.auth.admin?.createUser?.({
+          email: student.email,
+          password: 'demo123',
+          email_confirm: true,
+          user_metadata: { name: student.name, role: 'student' }
+        }) || { data: null, error: null };
+
+        // If admin API not available, try regular signup
+        if (!authData && !authError) {
+          // Insert directly into students table with the provided ID
+          await supabase.from('students').insert({
+            id: student.id,
+            user_id: student.id,
+            tutor_id: user.id,
+            year_group: student.yearGroup,
+            subjects: student.subjects,
+            overall_progress: 0,
+            total_points: 0,
+          });
+        } else if (authData?.user) {
+          // Insert student record linked to auth user
+          await supabase.from('students').insert({
+            id: student.id,
+            user_id: authData.user.id,
+            tutor_id: user.id,
+            year_group: student.yearGroup,
+            subjects: student.subjects,
+            overall_progress: 0,
+            total_points: 0,
+          });
+        }
+      } catch (error) {
+        console.error('Error saving student to Supabase:', error);
+      }
+    }
   };
 
-  const addParent = (parent: ParentProfile) => {
+  const addParent = async (parent: ParentProfile) => {
+    // Update local state first
     setParents(prev => [...prev, parent]);
+
+    // If in live mode, also save to Supabase
+    if (!isDemoMode && user?.role === 'tutor') {
+      try {
+        await supabase.from('parents').insert({
+          id: parent.id,
+          user_id: parent.id,
+          student_ids: parent.childrenIds || [],
+        });
+      } catch (error) {
+        console.error('Error saving parent to Supabase:', error);
+      }
+    }
   };
 
-  const linkParentToStudent = (parentId: string, studentId: string) => {
-    // Update the student to have the parentId
+  const linkParentToStudent = async (parentId: string, studentId: string) => {
+    // Update local state
     setStudents(prev => prev.map(s =>
       s.id === studentId ? { ...s, parentId } : s
     ));
-    // Update the parent to include this child in childrenIds
     setParents(prev => prev.map(p =>
       p.id === parentId
         ? { ...p, childrenIds: [...(p.childrenIds || []), studentId] }
         : p
     ));
+
+    // If in live mode, update Supabase
+    if (!isDemoMode) {
+      try {
+        // Get current parent's student_ids
+        const { data: parentData } = await supabase
+          .from('parents')
+          .select('student_ids')
+          .eq('id', parentId)
+          .single();
+
+        const currentIds = parentData?.student_ids || [];
+
+        // Update parent's student_ids
+        await supabase
+          .from('parents')
+          .update({ student_ids: [...currentIds, studentId] })
+          .eq('id', parentId);
+      } catch (error) {
+        console.error('Error linking parent to student in Supabase:', error);
+      }
+    }
   };
 
   const getTutor = (): TutorProfile => {
