@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { supabase, isDemoMode } from '../lib/supabase';
+import { supabase, isDemoSession, enableDemoMode, disableDemoMode, hasSupabaseConfig } from '../lib/supabase';
 import { TutorProfile, StudentProfile, ParentProfile } from '../types';
 import { demoTutor, demoStudents, demoParents, getAllUsers } from '../data/demoData';
 import type { User, Session } from '@supabase/supabase-js';
@@ -14,9 +14,12 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   isDemoMode: boolean;
+  hasLiveMode: boolean; // Whether live mode is available (Supabase configured)
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signUp: (email: string, password: string, name: string, role: UserRole) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
+  enterDemoMode: () => void; // Switch to demo mode
+  exitDemoMode: () => void;  // Switch to live mode
   getUserById: (id: string) => AnyUser | undefined;
   getStudentById: (id: string) => StudentProfile | undefined;
   getParentById: (id: string) => ParentProfile | undefined;
@@ -34,14 +37,16 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  // Demo mode is now dynamic and user-selectable
+  const [isDemoMode, setIsDemoMode] = useState<boolean>(isDemoSession());
   const [user, setUser] = useState<AnyUser | null>(null);
   const [supabaseUser, setSupabaseUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   // In live mode, start with empty arrays - data comes from Supabase
   // In demo mode, use demo data
-  const [students, setStudents] = useState<StudentProfile[]>(isDemoMode ? demoStudents : []);
-  const [parents, setParents] = useState<ParentProfile[]>(isDemoMode ? demoParents : []);
+  const [students, setStudents] = useState<StudentProfile[]>(isDemoSession() ? demoStudents : []);
+  const [parents, setParents] = useState<ParentProfile[]>(isDemoSession() ? demoParents : []);
   const [profile, setProfile] = useState<Profile | null>(null);
 
   // Convert Supabase profile to app user format
@@ -398,6 +403,30 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setSupabaseUser(null);
   };
 
+  // Enter demo mode - for visitors who want to explore the app
+  const enterDemoMode = () => {
+    enableDemoMode();
+    setIsDemoMode(true);
+    setStudents(demoStudents);
+    setParents(demoParents);
+    // Clear any live session
+    setSupabaseUser(null);
+    setSession(null);
+    setProfile(null);
+    setUser(null);
+  };
+
+  // Exit demo mode - switch back to live mode
+  const exitDemoMode = async () => {
+    disableDemoMode();
+    setIsDemoMode(false);
+    setUser(null);
+    setStudents([]);
+    setParents([]);
+    localStorage.removeItem('stellar_user');
+    // The auth state change listener will handle any existing live session
+  };
+
   const refreshProfile = async () => {
     if (isDemoMode || !supabaseUser) return;
 
@@ -641,9 +670,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         isAuthenticated: !!user,
         isLoading,
         isDemoMode,
+        hasLiveMode: hasSupabaseConfig,
         login,
         signUp,
         logout,
+        enterDemoMode,
+        exitDemoMode,
         getUserById,
         getStudentById,
         getParentById,

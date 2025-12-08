@@ -414,31 +414,104 @@ export const demoChatMessages: ChatMessage[] = [
   },
 ];
 
+// Constellation Points Earning Guide:
+// - Lesson completed: 25 points
+// - Assessment 70-84%: 30 points
+// - Assessment 85-94%: 50 points
+// - Assessment 95-100%: 100 points
+// - 7-day streak: 50 bonus
+// - 30-day streak: 200 bonus
+
 export const shopItems: ShopItem[] = [
-  // Outfits
-  { id: 'outfit-001', name: 'Space Suit Blue', type: 'outfit', cost: 0, image: '🧑‍🚀', unlocked: true },
-  { id: 'outfit-002', name: 'Space Suit Gold', type: 'outfit', cost: 500, image: '👨‍🚀', unlocked: false },
-  { id: 'outfit-003', name: 'Lab Coat Purple', type: 'outfit', cost: 750, image: '🥼', unlocked: false },
-  { id: 'outfit-004', name: 'Cosmic Explorer', type: 'outfit', cost: 1000, image: '🦸', unlocked: false },
-  { id: 'outfit-005', name: 'Quantum Suit', type: 'outfit', cost: 1500, image: '🦹', unlocked: false },
-  // Accessories
-  { id: 'acc-001', name: 'Telescope', type: 'accessory', cost: 200, image: '🔭', unlocked: false },
-  { id: 'acc-002', name: 'Calculator', type: 'accessory', cost: 150, image: '🧮', unlocked: false },
-  { id: 'acc-003', name: 'Star Map', type: 'accessory', cost: 300, image: '🗺️', unlocked: false },
-  { id: 'acc-004', name: 'Data Tablet', type: 'accessory', cost: 400, image: '📱', unlocked: false },
-  { id: 'acc-005', name: 'Rocket Boots', type: 'accessory', cost: 800, image: '🚀', unlocked: false },
-  // Backgrounds
-  { id: 'bg-001', name: 'Nebula', type: 'background', cost: 300, image: '🌌', unlocked: false },
-  { id: 'bg-002', name: 'Galaxy', type: 'background', cost: 500, image: '✨', unlocked: false },
-  { id: 'bg-003', name: 'Planets', type: 'background', cost: 400, image: '🪐', unlocked: false },
-  { id: 'bg-004', name: 'Black Hole', type: 'background', cost: 1000, image: '🕳️', unlocked: false },
-  { id: 'bg-005', name: 'Supernova', type: 'background', cost: 1200, image: '💥', unlocked: false },
-  // Badges
-  { id: 'badge-001', name: 'Rising Star', type: 'badge', cost: 100, image: '⭐', unlocked: false },
-  { id: 'badge-002', name: 'Star Explorer', type: 'badge', cost: 250, image: '🌟', unlocked: false },
-  { id: 'badge-003', name: 'Quantum Master', type: 'badge', cost: 600, image: '⚛️', unlocked: false },
-  { id: 'badge-004', name: 'Galaxy Champion', type: 'badge', cost: 1000, image: '🏆', unlocked: false },
-  { id: 'badge-005', name: 'Universe Legend', type: 'badge', cost: 2000, image: '👑', unlocked: false },
+  // === OUTFITS (Space-themed clothing) ===
+  // Common (75-150 points)
+  { id: 'outfit-001', name: 'Cadet Jumpsuit', type: 'outfit', cost: 0, image: '🧑‍🚀', rarity: 'common', unlocked: true, description: 'Standard issue academy jumpsuit' },
+  { id: 'outfit-002', name: 'Pilot Uniform', type: 'outfit', cost: 100, image: '👨‍✈️', rarity: 'common', unlocked: false, description: 'Official starship pilot attire' },
+  { id: 'outfit-003', name: 'Mechanic Overalls', type: 'outfit', cost: 125, image: '🔧', rarity: 'common', unlocked: false, description: 'Durable workshop gear' },
+  // Rare (200-400 points)
+  { id: 'outfit-004', name: 'Space Suit Blue', type: 'outfit', cost: 250, image: '🧑‍🚀', rarity: 'rare', unlocked: false, description: 'Classic blue EVA suit' },
+  { id: 'outfit-005', name: 'Lab Coat White', type: 'outfit', cost: 300, image: '🥼', rarity: 'rare', unlocked: false, description: 'Research scientist attire' },
+  { id: 'outfit-006', name: 'Navigator Jacket', type: 'outfit', cost: 350, image: '🧥', rarity: 'rare', unlocked: false, description: 'Stylish navigation officer look' },
+  // Epic (500-800 points)
+  { id: 'outfit-007', name: 'Space Suit Gold', type: 'outfit', cost: 600, image: '👨‍🚀', rarity: 'epic', unlocked: false, description: 'Prestigious gold commander suit' },
+  { id: 'outfit-008', name: 'Lab Coat Purple', type: 'outfit', cost: 650, image: '🥼', rarity: 'epic', unlocked: false, description: 'Elite research division coat' },
+  { id: 'outfit-009', name: 'Cosmic Explorer', type: 'outfit', cost: 750, image: '🦸', rarity: 'epic', unlocked: false, description: 'Legendary explorer gear' },
+  // Legendary (1000-2000 points)
+  { id: 'outfit-010', name: 'Quantum Suit', type: 'outfit', cost: 1200, image: '🦹', rarity: 'legendary', unlocked: false, description: 'Reality-bending quantum armor' },
+  { id: 'outfit-011', name: 'Celestial Robes', type: 'outfit', cost: 1500, image: '✨', rarity: 'legendary', unlocked: false, description: 'Robes woven from starlight' },
+  { id: 'outfit-012', name: 'Void Commander', type: 'outfit', cost: 2000, image: '👑', rarity: 'legendary', unlocked: false, description: 'Supreme fleet commander uniform' },
+
+  // === ACCESSORIES (Items your avatar can hold/wear) ===
+  // Common (50-150 points)
+  { id: 'acc-001', name: 'Star Glasses', type: 'accessory', cost: 75, image: '🕶️', rarity: 'common', unlocked: false, description: 'Cool star-shaped shades' },
+  { id: 'acc-002', name: 'Calculator', type: 'accessory', cost: 100, image: '🧮', rarity: 'common', unlocked: false, description: 'Essential math companion' },
+  { id: 'acc-003', name: 'Compass', type: 'accessory', cost: 125, image: '🧭', rarity: 'common', unlocked: false, description: 'Never lose your way' },
+  { id: 'acc-004', name: 'Notebook', type: 'accessory', cost: 75, image: '📓', rarity: 'common', unlocked: false, description: 'For brilliant ideas' },
+  // Rare (200-400 points)
+  { id: 'acc-005', name: 'Telescope', type: 'accessory', cost: 250, image: '🔭', rarity: 'rare', unlocked: false, description: 'See distant galaxies' },
+  { id: 'acc-006', name: 'Star Map', type: 'accessory', cost: 300, image: '🗺️', rarity: 'rare', unlocked: false, description: 'Chart your course through space' },
+  { id: 'acc-007', name: 'Data Tablet', type: 'accessory', cost: 350, image: '📱', rarity: 'rare', unlocked: false, description: 'High-tech learning device' },
+  { id: 'acc-008', name: 'Meteor Fragment', type: 'accessory', cost: 400, image: '☄️', rarity: 'rare', unlocked: false, description: 'A piece of the cosmos' },
+  // Epic (500-800 points)
+  { id: 'acc-009', name: 'Rocket Boots', type: 'accessory', cost: 600, image: '🚀', rarity: 'epic', unlocked: false, description: 'Blast off in style!' },
+  { id: 'acc-010', name: 'Plasma Sword', type: 'accessory', cost: 700, image: '⚔️', rarity: 'epic', unlocked: false, description: 'Blade of pure energy' },
+  { id: 'acc-011', name: 'Holo-Shield', type: 'accessory', cost: 750, image: '🛡️', rarity: 'epic', unlocked: false, description: 'Holographic defense field' },
+  // Legendary (1000-2000 points)
+  { id: 'acc-012', name: 'Infinity Gauntlet', type: 'accessory', cost: 1500, image: '🧤', rarity: 'legendary', unlocked: false, description: 'Harness cosmic power' },
+  { id: 'acc-013', name: 'Time Crystal', type: 'accessory', cost: 1800, image: '💎', rarity: 'legendary', unlocked: false, description: 'Bend time itself' },
+
+  // === BACKGROUNDS (Scene behind your avatar) ===
+  // Common (100-150 points)
+  { id: 'bg-001', name: 'Starfield', type: 'background', cost: 100, image: '✨', rarity: 'common', unlocked: false, description: 'A sea of twinkling stars' },
+  { id: 'bg-002', name: 'Moon Base', type: 'background', cost: 125, image: '🌙', rarity: 'common', unlocked: false, description: 'Lunar research station' },
+  { id: 'bg-003', name: 'Orbital Station', type: 'background', cost: 150, image: '🛸', rarity: 'common', unlocked: false, description: 'Space station view' },
+  // Rare (200-400 points)
+  { id: 'bg-004', name: 'Nebula', type: 'background', cost: 250, image: '🌌', rarity: 'rare', unlocked: false, description: 'Colorful cosmic clouds' },
+  { id: 'bg-005', name: 'Planets', type: 'background', cost: 300, image: '🪐', rarity: 'rare', unlocked: false, description: 'Ringed planet panorama' },
+  { id: 'bg-006', name: 'Asteroid Field', type: 'background', cost: 350, image: '🌑', rarity: 'rare', unlocked: false, description: 'Navigate the rocks' },
+  { id: 'bg-007', name: 'Comet Trail', type: 'background', cost: 400, image: '☄️', rarity: 'rare', unlocked: false, description: 'Ride the cosmic ice' },
+  // Epic (500-800 points)
+  { id: 'bg-008', name: 'Galaxy', type: 'background', cost: 550, image: '🌀', rarity: 'epic', unlocked: false, description: 'Spiral galaxy view' },
+  { id: 'bg-009', name: 'Aurora Borealis', type: 'background', cost: 650, image: '🌈', rarity: 'epic', unlocked: false, description: 'Dancing lights in space' },
+  { id: 'bg-010', name: 'Binary Sunset', type: 'background', cost: 750, image: '🌅', rarity: 'epic', unlocked: false, description: 'Two suns setting together' },
+  // Legendary (1000-2000 points)
+  { id: 'bg-011', name: 'Black Hole', type: 'background', cost: 1200, image: '🕳️', rarity: 'legendary', unlocked: false, description: 'Edge of the event horizon' },
+  { id: 'bg-012', name: 'Supernova', type: 'background', cost: 1500, image: '💥', rarity: 'legendary', unlocked: false, description: 'Witness a star\'s death' },
+  { id: 'bg-013', name: 'Multiverse Portal', type: 'background', cost: 2000, image: '🌀', rarity: 'legendary', unlocked: false, description: 'Gateway to infinite realities' },
+
+  // === BADGES (Achievement display items) ===
+  // Common (50-100 points)
+  { id: 'badge-001', name: 'Rising Star', type: 'badge', cost: 50, image: '⭐', rarity: 'common', unlocked: false, description: 'You\'re on your way!' },
+  { id: 'badge-002', name: 'Math Rookie', type: 'badge', cost: 75, image: '➕', rarity: 'common', unlocked: false, description: 'Numbers are your friends' },
+  { id: 'badge-003', name: 'Science Starter', type: 'badge', cost: 75, image: '🔬', rarity: 'common', unlocked: false, description: 'Curiosity awakened' },
+  { id: 'badge-004', name: 'First Steps', type: 'badge', cost: 100, image: '👣', rarity: 'common', unlocked: false, description: 'Every journey begins with one step' },
+  // Rare (200-400 points)
+  { id: 'badge-005', name: 'Star Explorer', type: 'badge', cost: 200, image: '🌟', rarity: 'rare', unlocked: false, description: 'Charting new territories' },
+  { id: 'badge-006', name: 'Problem Solver', type: 'badge', cost: 250, image: '🧩', rarity: 'rare', unlocked: false, description: 'No challenge too great' },
+  { id: 'badge-007', name: 'Streak Master', type: 'badge', cost: 300, image: '🔥', rarity: 'rare', unlocked: false, description: 'Consistency is key' },
+  { id: 'badge-008', name: 'Knowledge Seeker', type: 'badge', cost: 350, image: '📚', rarity: 'rare', unlocked: false, description: 'Always learning more' },
+  // Epic (500-800 points)
+  { id: 'badge-009', name: 'Quantum Master', type: 'badge', cost: 500, image: '⚛️', rarity: 'epic', unlocked: false, description: 'Understanding the universe' },
+  { id: 'badge-010', name: 'Perfectionist', type: 'badge', cost: 600, image: '💯', rarity: 'epic', unlocked: false, description: 'Nothing but the best' },
+  { id: 'badge-011', name: 'Elite Scholar', type: 'badge', cost: 700, image: '🎓', rarity: 'epic', unlocked: false, description: 'Academic excellence achieved' },
+  // Legendary (1000-2000 points)
+  { id: 'badge-012', name: 'Galaxy Champion', type: 'badge', cost: 1000, image: '🏆', rarity: 'legendary', unlocked: false, description: 'Champion of the cosmos' },
+  { id: 'badge-013', name: 'Universe Legend', type: 'badge', cost: 1500, image: '👑', rarity: 'legendary', unlocked: false, description: 'A legend among stars' },
+  { id: 'badge-014', name: 'Cosmic Transcendent', type: 'badge', cost: 2000, image: '🌌', rarity: 'legendary', unlocked: false, description: 'Beyond mortal understanding' },
+
+  // === PETS (Companion creatures) ===
+  // Common (100-150 points)
+  { id: 'pet-001', name: 'Star Blob', type: 'pet', cost: 100, image: '⭐', rarity: 'common', unlocked: false, description: 'A friendly glowing blob' },
+  { id: 'pet-002', name: 'Moon Mouse', type: 'pet', cost: 125, image: '🐭', rarity: 'common', unlocked: false, description: 'Tiny lunar companion' },
+  // Rare (250-400 points)
+  { id: 'pet-003', name: 'Comet Cat', type: 'pet', cost: 300, image: '🐱', rarity: 'rare', unlocked: false, description: 'Leaves a trail of stardust' },
+  { id: 'pet-004', name: 'Nebula Owl', type: 'pet', cost: 350, image: '🦉', rarity: 'rare', unlocked: false, description: 'Wise cosmic observer' },
+  // Epic (600-800 points)
+  { id: 'pet-005', name: 'Solar Fox', type: 'pet', cost: 650, image: '🦊', rarity: 'epic', unlocked: false, description: 'Radiates warm energy' },
+  { id: 'pet-006', name: 'Asteroid Turtle', type: 'pet', cost: 750, image: '🐢', rarity: 'epic', unlocked: false, description: 'Carries a mini planet' },
+  // Legendary (1200-1800 points)
+  { id: 'pet-007', name: 'Celestial Dragon', type: 'pet', cost: 1500, image: '🐉', rarity: 'legendary', unlocked: false, description: 'Ancient guardian of knowledge' },
+  { id: 'pet-008', name: 'Phoenix of Wisdom', type: 'pet', cost: 1800, image: '🔥', rarity: 'legendary', unlocked: false, description: 'Rises from every challenge' },
 ];
 
 export const topics: Topic[] = [

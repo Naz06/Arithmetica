@@ -85,17 +85,30 @@ export interface AvatarConfig {
   accessory: string;
   background: string;
   badge: string;
+  pet?: string;
   unlockedItems: string[];
 }
 
 export interface ShopItem {
   id: string;
   name: string;
-  type: 'outfit' | 'accessory' | 'background' | 'badge';
+  type: 'outfit' | 'accessory' | 'background' | 'badge' | 'pet';
   cost: number;
   image: string;
   unlocked: boolean;
+  rarity?: 'common' | 'rare' | 'epic' | 'legendary';
+  description?: string;
 }
+
+// Constellation Points Configuration
+export const CONSTELLATION_POINTS = {
+  LESSON_COMPLETED: 25,
+  ASSESSMENT_SCORE_70_84: 30,
+  ASSESSMENT_SCORE_85_94: 50,
+  ASSESSMENT_SCORE_95_100: 100,
+  STREAK_7_DAYS: 50,
+  STREAK_30_DAYS: 200,
+} as const;
 
 // Resource Levels and Subtypes
 export type ResourceLevel = 'year5-6' | 'gcse' | 'alevel';

@@ -16,11 +16,13 @@ import {
   Users,
   ArrowLeft,
   Info,
+  Play,
+  LogIn,
 } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const { login, isDemoMode } = useAuth();
+  const { login, isDemoMode, hasLiveMode, enterDemoMode, exitDemoMode } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -83,19 +85,39 @@ export const LoginPage: React.FC = () => {
 
         {/* Mode Indicator */}
         {isDemoMode && (
-          <div className="flex items-center gap-2 p-3 mb-4 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-400">
-            <Info className="w-5 h-5 flex-shrink-0" />
-            <p className="text-sm">
-              <strong>Demo Mode</strong> - Using local demo data. Set up Supabase for live mode.
-            </p>
+          <div className="flex items-center justify-between gap-2 p-3 mb-4 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-400">
+            <div className="flex items-center gap-2">
+              <Info className="w-5 h-5 flex-shrink-0" />
+              <p className="text-sm">
+                <strong>Demo Mode</strong> - Explore with sample data
+              </p>
+            </div>
+            {hasLiveMode && (
+              <button
+                onClick={exitDemoMode}
+                className="text-xs px-3 py-1 bg-amber-500/20 hover:bg-amber-500/30 rounded-lg transition-colors flex items-center gap-1"
+              >
+                <LogIn className="w-3 h-3" />
+                Exit Demo
+              </button>
+            )}
           </div>
         )}
         {!isDemoMode && (
-          <div className="flex items-center gap-2 p-3 mb-4 bg-green-500/10 border border-green-500/30 rounded-xl text-green-400">
-            <Info className="w-5 h-5 flex-shrink-0" />
-            <p className="text-sm">
-              <strong>Live Mode</strong> - Connected to Supabase database.
-            </p>
+          <div className="flex items-center justify-between gap-2 p-3 mb-4 bg-green-500/10 border border-green-500/30 rounded-xl text-green-400">
+            <div className="flex items-center gap-2">
+              <Info className="w-5 h-5 flex-shrink-0" />
+              <p className="text-sm">
+                <strong>Live Mode</strong> - Connected to database
+              </p>
+            </div>
+            <button
+              onClick={enterDemoMode}
+              className="text-xs px-3 py-1 bg-green-500/20 hover:bg-green-500/30 rounded-lg transition-colors flex items-center gap-1"
+            >
+              <Play className="w-3 h-3" />
+              Try Demo
+            </button>
           </div>
         )}
 
@@ -156,57 +178,79 @@ export const LoginPage: React.FC = () => {
               Need an account? Contact your administrator.
             </p>
 
-            {/* Demo Accounts - Admin NOT shown */}
-            <div className="mt-8 pt-8 border-t border-neutral-800">
-              <p className="text-sm text-neutral-400 text-center mb-4">
-                Try a demo account:
-              </p>
-              <div className="grid grid-cols-3 gap-3">
-                <button
-                  onClick={() => handleDemoLogin('tutor')}
-                  className="flex flex-col items-center gap-2 p-3 bg-neutral-800/50 hover:bg-neutral-800 rounded-xl transition-colors group"
-                >
-                  <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
-                    <BookOpen className="w-5 h-5" />
-                  </div>
-                  <span className="text-xs text-neutral-400 group-hover:text-neutral-100">Tutor</span>
-                </button>
-
-                <button
-                  onClick={() => handleDemoLogin('student')}
-                  className="flex flex-col items-center gap-2 p-3 bg-neutral-800/50 hover:bg-neutral-800 rounded-xl transition-colors group"
-                >
-                  <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center text-green-400 group-hover:scale-110 transition-transform">
-                    <GraduationCap className="w-5 h-5" />
-                  </div>
-                  <span className="text-xs text-neutral-400 group-hover:text-neutral-100">Student</span>
-                </button>
-
-                <button
-                  onClick={() => handleDemoLogin('parent')}
-                  className="flex flex-col items-center gap-2 p-3 bg-neutral-800/50 hover:bg-neutral-800 rounded-xl transition-colors group"
-                >
-                  <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform">
-                    <Users className="w-5 h-5" />
-                  </div>
-                  <span className="text-xs text-neutral-400 group-hover:text-neutral-100">Parent</span>
-                </button>
-              </div>
-
-              <div className="mt-6 p-4 bg-neutral-800/30 rounded-xl">
-                <p className="text-xs text-neutral-500 text-center">
-                  <strong className="text-neutral-400">Demo Credentials:</strong>
-                  <br />
-                  Tutor: tutor@arithmetica.co.uk
-                  <br />
-                  Student: alex@stellar.edu
-                  <br />
-                  Parent: parent.thompson@email.com
-                  <br />
-                  <span className="text-neutral-600">Password: demo123</span>
+            {/* Demo Accounts - Only show in demo mode */}
+            {isDemoMode ? (
+              <div className="mt-8 pt-8 border-t border-neutral-800">
+                <p className="text-sm text-neutral-400 text-center mb-4">
+                  Quick login as:
                 </p>
+                <div className="grid grid-cols-3 gap-3">
+                  <button
+                    onClick={() => handleDemoLogin('tutor')}
+                    className="flex flex-col items-center gap-2 p-3 bg-neutral-800/50 hover:bg-neutral-800 rounded-xl transition-colors group"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
+                      <BookOpen className="w-5 h-5" />
+                    </div>
+                    <span className="text-xs text-neutral-400 group-hover:text-neutral-100">Tutor</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleDemoLogin('student')}
+                    className="flex flex-col items-center gap-2 p-3 bg-neutral-800/50 hover:bg-neutral-800 rounded-xl transition-colors group"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center text-green-400 group-hover:scale-110 transition-transform">
+                      <GraduationCap className="w-5 h-5" />
+                    </div>
+                    <span className="text-xs text-neutral-400 group-hover:text-neutral-100">Student</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleDemoLogin('parent')}
+                    className="flex flex-col items-center gap-2 p-3 bg-neutral-800/50 hover:bg-neutral-800 rounded-xl transition-colors group"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform">
+                      <Users className="w-5 h-5" />
+                    </div>
+                    <span className="text-xs text-neutral-400 group-hover:text-neutral-100">Parent</span>
+                  </button>
+                </div>
+
+                <div className="mt-6 p-4 bg-neutral-800/30 rounded-xl">
+                  <p className="text-xs text-neutral-500 text-center">
+                    <strong className="text-neutral-400">Demo Credentials:</strong>
+                    <br />
+                    Tutor: tutor@arithmetica.co.uk
+                    <br />
+                    Student: alex@stellar.edu
+                    <br />
+                    Parent: parent.thompson@email.com
+                    <br />
+                    <span className="text-neutral-600">Password: demo123</span>
+                  </p>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="mt-8 pt-8 border-t border-neutral-800">
+                <div className="text-center">
+                  <p className="text-sm text-neutral-400 mb-4">
+                    Want to explore the platform first?
+                  </p>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={enterDemoMode}
+                    className="w-full"
+                  >
+                    <Play className="w-4 h-4 mr-2" />
+                    Try Demo Mode
+                  </Button>
+                  <p className="text-xs text-neutral-500 mt-3">
+                    No account needed. Explore with sample data.
+                  </p>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -7,6 +7,7 @@ import {
   ShopItem,
   StudentProfile,
   Notification,
+  CONSTELLATION_POINTS,
 } from '../types';
 import {
   demoResources,
@@ -15,7 +16,7 @@ import {
   demoChatMessages,
   shopItems as initialShopItems,
 } from '../data/demoData';
-import { supabase, isDemoMode } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 
 interface DataContextType {
@@ -67,24 +68,41 @@ interface DataContextType {
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { user } = useAuth();
+  const { user, isDemoMode } = useAuth();
 
   // In live mode, start with empty arrays - data comes from Supabase
   // In demo mode, use demo data for demonstration purposes
-  const [resources, setResources] = useState<Resource[]>(isDemoMode ? demoResources : []);
-  const [assessments, setAssessments] = useState<Assessment[]>(isDemoMode ? demoAssessments : []);
-  const [schedule, setSchedule] = useState<ScheduleEvent[]>(isDemoMode ? demoSchedule : []);
-  const [messages, setMessages] = useState<ChatMessage[]>(isDemoMode ? demoChatMessages : []);
-  const [shopItems, setShopItems] = useState<ShopItem[]>(isDemoMode ? initialShopItems : []);
+  const [resources, setResources] = useState<Resource[]>([]);
+  const [assessments, setAssessments] = useState<Assessment[]>([]);
+  const [schedule, setSchedule] = useState<ScheduleEvent[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [shopItems, setShopItems] = useState<ShopItem[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Reset data when demo mode changes
+  useEffect(() => {
+    if (isDemoMode) {
+      setResources(demoResources);
+      setAssessments(demoAssessments);
+      setSchedule(demoSchedule);
+      setMessages(demoChatMessages);
+      setShopItems(initialShopItems);
+    } else {
+      setResources([]);
+      setAssessments([]);
+      setSchedule([]);
+      setMessages([]);
+      setShopItems([]);
+    }
+  }, [isDemoMode]);
 
   // Load data from Supabase when user logs in (live mode only)
   useEffect(() => {
     if (!isDemoMode && user?.role === 'tutor') {
       loadAllData();
     }
-  }, [user]);
+  }, [user, isDemoMode]);
 
   const loadAllData = async () => {
     if (isDemoMode || !user) return;
@@ -284,6 +302,42 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return resources.filter(r => r.studentIds.includes(studentId));
   };
 
+  // Calculate constellation points based on assessment score percentage
+  const calculateAssessmentPoints = (score: number, maxScore: number): number => {
+    const percentage = (score / maxScore) * 100;
+    if (percentage >= 95) return CONSTELLATION_POINTS.ASSESSMENT_SCORE_95_100;
+    if (percentage >= 85) return CONSTELLATION_POINTS.ASSESSMENT_SCORE_85_94;
+    if (percentage >= 70) return CONSTELLATION_POINTS.ASSESSMENT_SCORE_70_84;
+    return 0; // No points for scores below 70%
+  };
+
+  // Award constellation points to a student
+  const awardConstellationPoints = async (studentId: string, points: number) => {
+    if (points <= 0) return;
+
+    if (!isDemoMode) {
+      // Get current points
+      const { data } = await supabase
+        .from('students')
+        .select('total_points')
+        .eq('id', studentId)
+        .single();
+
+      const currentPoints = data?.total_points || 0;
+      const newPoints = currentPoints + points;
+
+      // Update points in Supabase
+      const { error } = await supabase
+        .from('students')
+        .update({ total_points: newPoints })
+        .eq('id', studentId);
+
+      if (error) {
+        console.error('Error awarding constellation points:', error);
+      }
+    }
+  };
+
   // Assessments
   const addAssessment = async (assessment: Assessment) => {
     setAssessments(prev => [...prev, assessment]);
@@ -312,6 +366,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         score: Math.round((assessment.score / assessment.maxScore) * 100),
         date: assessment.date,
       });
+
+      // Award constellation points based on assessment score
+      const pointsEarned = calculateAssessmentPoints(assessment.score, assessment.maxScore);
+      await awardConstellationPoints(assessment.studentId, pointsEarned);
 
       // Update student's overall progress based on assessments
       await recalculateStudentProgress(assessment.studentId);
@@ -419,18 +477,32 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const incrementStudentSessions = async (studentId: string) => {
     if (isDemoMode) return;
 
-    // Get current session count
+    // Get current session count and points
     const { data } = await supabase
       .from('students')
-      .select('current_streak')
+      .select('current_streak, total_points')
       .eq('id', studentId)
       .single();
 
     const currentStreak = (data?.current_streak || 0) + 1;
+    let pointsToAward = CONSTELLATION_POINTS.LESSON_COMPLETED;
 
+    // Check for streak bonuses
+    if (currentStreak === 7) {
+      pointsToAward += CONSTELLATION_POINTS.STREAK_7_DAYS;
+    } else if (currentStreak === 30) {
+      pointsToAward += CONSTELLATION_POINTS.STREAK_30_DAYS;
+    }
+
+    const newTotalPoints = (data?.total_points || 0) + pointsToAward;
+
+    // Update streak and points together
     await supabase
       .from('students')
-      .update({ current_streak: currentStreak })
+      .update({
+        current_streak: currentStreak,
+        total_points: newTotalPoints
+      })
       .eq('id', studentId);
   };
 
