@@ -575,7 +575,7 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
             </div>
 
             {/* SVG Star Grid */}
-            <svg viewBox="0 0 100 105" className="w-full h-[420px] lg:h-[520px]" preserveAspectRatio="xMidYMid meet">
+            <svg viewBox="0 0 100 105" className="w-full h-[420px] lg:h-[520px] relative z-20" preserveAspectRatio="xMidYMid meet" style={{ pointerEvents: 'auto' }}>
               <defs>
                 {/* Glow filters for different levels */}
                 <filter id="nodeGlowMastered" x="-100%" y="-100%" width="300%" height="300%">
@@ -920,7 +920,7 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
 
             {/* Hover tooltip */}
             {hoveredTopic && !selectedTopic && (
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-[#1a1a2e]/95 border border-[#3a3a5a] rounded-lg px-4 py-2 z-20 backdrop-blur-sm">
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-[#1a1a2e]/95 border border-[#3a3a5a] rounded-lg px-4 py-2 z-30 backdrop-blur-sm pointer-events-none">
                 <p className="text-sm font-medium text-neutral-100">
                   {currentConstellation.topics.find((t) => t.id === hoveredTopic)?.name}
                 </p>
