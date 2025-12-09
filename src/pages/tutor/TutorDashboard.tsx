@@ -21,7 +21,7 @@ import { Leaderboard } from '../../components/shared/Leaderboard';
 import {
   Users,
   BookOpen,
-  Calendar,
+  Calendar as CalendarIcon,
   TrendingUp,
   FileText,
   MessageCircle,
@@ -806,7 +806,7 @@ export const TutorDashboard: React.FC = () => {
             >
               Penalties
             </Button>
-            <Button variant="secondary" onClick={() => setShowEventModal(true)} icon={<Calendar className="w-4 h-4" />}>
+            <Button variant="secondary" onClick={() => setShowEventModal(true)} icon={<CalendarIcon className="w-4 h-4" />}>
               Schedule Session
             </Button>
             <Button variant="primary" onClick={() => setShowResourceModal(true)} icon={<Plus className="w-4 h-4" />}>
@@ -909,7 +909,7 @@ export const TutorDashboard: React.FC = () => {
               <StatCard
                 title="Sessions This Week"
                 value={tutorSchedule.filter(e => e.status === 'scheduled').length}
-                icon={<Calendar className="w-6 h-6" />}
+                icon={<CalendarIcon className="w-6 h-6" />}
               />
               <StatCard
                 title="Resources Shared"
@@ -1833,7 +1833,7 @@ export const TutorDashboard: React.FC = () => {
             ) : (
               <Card className="h-full flex items-center justify-center">
                 <CardContent className="text-center py-8">
-                  <Calendar className="w-12 h-12 text-neutral-600 mx-auto mb-3" />
+                  <CalendarIcon className="w-12 h-12 text-neutral-600 mx-auto mb-3" />
                   <p className="text-neutral-500 text-sm">
                     Click a date to add a session<br />
                     or click an event to view details
