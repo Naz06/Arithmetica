@@ -72,6 +72,8 @@ export const TutorDashboard: React.FC = () => {
     getUnreadNotificationCount,
     markNotificationAsRead,
     deleteNotification,
+    assessments,
+    getAssessmentsByStudentId,
   } = useData();
 
   const students = getAllStudents();
@@ -1249,71 +1251,76 @@ export const TutorDashboard: React.FC = () => {
                   </CardContent>
                 </Card>
 
-                {/* Weekly Progress Chart */}
+                {/* Exam History & Performance Trends */}
                 <Card className="lg:col-span-2">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <TrendingUp className="w-5 h-5 text-green-400" />
-                      Weekly Progress
+                      <FileText className="w-5 h-5 text-blue-400" />
+                      Test & Exam History
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     {(() => {
-                      // Subject color mapping
-                      const subjectColors: Record<string, string> = {
-                        mathematics: '#8B5CF6', // Purple
-                        physics: '#3B82F6',     // Blue
-                        chemistry: '#10B981',   // Green
-                        biology: '#F59E0B',     // Amber
-                        english: '#EC4899',     // Pink
-                        economics: '#06B6D4',   // Cyan
+                      // Get student's assessments
+                      const studentAssessments = getAssessmentsByStudentId(analyticsStudent.id)
+                        .sort((a, b) => new Date(b.dateTaken || b.createdAt).getTime() - new Date(a.dateTaken || a.createdAt).getTime());
+
+                      // Type colors and labels
+                      const typeStyles: Record<string, { color: string; bg: string; label: string }> = {
+                        quiz: { color: 'text-cyan-400', bg: 'bg-cyan-500/20', label: 'Quiz' },
+                        test: { color: 'text-purple-400', bg: 'bg-purple-500/20', label: 'Test' },
+                        mock_exam: { color: 'text-orange-400', bg: 'bg-orange-500/20', label: 'Mock Exam' },
+                        homework: { color: 'text-green-400', bg: 'bg-green-500/20', label: 'Homework' },
+                        class_test: { color: 'text-blue-400', bg: 'bg-blue-500/20', label: 'Class Test' },
                       };
 
-                      const rawData = Array.isArray(analyticsStudent.stats?.weeklyProgress) && analyticsStudent.stats.weeklyProgress.length > 0
-                        ? analyticsStudent.stats.weeklyProgress.slice(-8)
-                        : [];
+                      // Subject colors for chart
+                      const subjectColors: Record<string, string> = {
+                        mathematics: '#8B5CF6',
+                        physics: '#3B82F6',
+                        chemistry: '#10B981',
+                        biology: '#F59E0B',
+                        english: '#EC4899',
+                        economics: '#06B6D4',
+                      };
 
-                      // Use raw data directly for multi-subject lines
-                      const chartData = rawData.length > 0
-                        ? rawData.map((val: any, i: number) => ({
-                            week: val?.week || `W${i + 1}`,
-                            mathematics: val?.mathematics || null,
-                            physics: val?.physics || null,
-                            chemistry: val?.chemistry || null,
-                            biology: val?.biology || null,
-                            english: val?.english || null,
-                            economics: val?.economics || null,
-                          }))
-                        : [
-                            { week: 'W1', mathematics: 65, physics: 60 },
-                            { week: 'W2', mathematics: 70, physics: 65 },
-                            { week: 'W3', mathematics: 68, physics: 70 },
-                            { week: 'W4', mathematics: 75, physics: 72 },
-                            { week: 'W5', mathematics: 78, physics: 75 },
-                            { week: 'W6', mathematics: 80, physics: 78 },
-                            { week: 'W7', mathematics: 82, physics: 80 },
-                            { week: 'W8', mathematics: 85, physics: 82 },
-                          ];
+                      // Prepare chart data - group by date and show percentage
+                      const chartData = studentAssessments
+                        .slice()
+                        .reverse()
+                        .slice(-10)
+                        .map(a => ({
+                          date: new Date(a.dateTaken || a.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
+                          score: Math.round((a.score / a.maxScore) * 100),
+                          classAvg: a.classAverage ? Math.round((a.classAverage / a.maxScore) * 100) : null,
+                          title: a.title,
+                          subject: a.subject,
+                        }));
 
-                      // Detect which subjects have data
-                      const activeSubjects = Object.keys(subjectColors).filter(subject =>
-                        chartData.some((d: any) => d[subject] && d[subject] > 0)
-                      );
+                      if (studentAssessments.length === 0) {
+                        return (
+                          <div className="text-center py-8 text-neutral-500">
+                            <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                            <p>No assessments recorded yet</p>
+                          </div>
+                        );
+                      }
 
                       return (
-                        <div>
-                          <div className="h-48">
+                        <div className="space-y-4">
+                          {/* Performance Trend Chart */}
+                          <div className="h-40">
                             <ResponsiveContainer width="100%" height="100%">
                               <LineChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                 <XAxis
-                                  dataKey="week"
-                                  tick={{ fill: '#6B7280', fontSize: 11 }}
+                                  dataKey="date"
+                                  tick={{ fill: '#6B7280', fontSize: 10 }}
                                   axisLine={{ stroke: '#374151' }}
                                   tickLine={false}
                                 />
                                 <YAxis
                                   domain={[0, 100]}
-                                  tick={{ fill: '#6B7280', fontSize: 11 }}
+                                  tick={{ fill: '#6B7280', fontSize: 10 }}
                                   axisLine={{ stroke: '#374151' }}
                                   tickLine={false}
                                 />
@@ -1322,34 +1329,119 @@ export const TutorDashboard: React.FC = () => {
                                     backgroundColor: '#1F2937',
                                     border: '1px solid #374151',
                                     borderRadius: '8px',
-                                    color: '#F3F4F6'
+                                    color: '#F3F4F6',
+                                    fontSize: '12px'
                                   }}
-                                  formatter={(value: number, name: string) => [`${value}%`, name.charAt(0).toUpperCase() + name.slice(1)]}
+                                  formatter={(value: number, name: string) => [
+                                    `${value}%`,
+                                    name === 'score' ? 'Student' : 'Class Avg'
+                                  ]}
+                                  labelFormatter={(label, payload) => payload?.[0]?.payload?.title || label}
                                 />
-                                {activeSubjects.map(subject => (
-                                  <Line
-                                    key={subject}
-                                    type="monotone"
-                                    dataKey={subject}
-                                    stroke={subjectColors[subject]}
-                                    strokeWidth={2}
-                                    dot={{ fill: subjectColors[subject], strokeWidth: 0, r: 3 }}
-                                    activeDot={{ r: 5, strokeWidth: 0 }}
-                                    connectNulls
-                                  />
-                                ))}
+                                <Line
+                                  type="monotone"
+                                  dataKey="score"
+                                  stroke="#8B5CF6"
+                                  strokeWidth={2}
+                                  dot={{ fill: '#8B5CF6', strokeWidth: 0, r: 4 }}
+                                  activeDot={{ r: 6, strokeWidth: 0 }}
+                                />
+                                <Line
+                                  type="monotone"
+                                  dataKey="classAvg"
+                                  stroke="#6B7280"
+                                  strokeWidth={1}
+                                  strokeDasharray="4 4"
+                                  dot={false}
+                                  connectNulls
+                                />
                               </LineChart>
                             </ResponsiveContainer>
                           </div>
-                          {/* Legend */}
-                          <div className="flex flex-wrap gap-3 mt-3 pt-3 border-t border-neutral-700">
-                            {activeSubjects.map(subject => (
-                              <div key={subject} className="flex items-center gap-1.5">
+
+                          {/* Chart Legend */}
+                          <div className="flex gap-4 text-xs text-neutral-400 border-b border-neutral-700 pb-3">
+                            <div className="flex items-center gap-1.5">
+                              <div className="w-3 h-0.5 bg-purple-500 rounded" />
+                              <span>Student Score</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <div className="w-3 h-0.5 bg-neutral-500 rounded" style={{ borderStyle: 'dashed' }} />
+                              <span>Class Average</span>
+                            </div>
+                          </div>
+
+                          {/* Recent Exams Table */}
+                          <div className="space-y-2 max-h-48 overflow-y-auto">
+                            {studentAssessments.slice(0, 6).map((assessment) => {
+                              const percentage = Math.round((assessment.score / assessment.maxScore) * 100);
+                              const typeStyle = typeStyles[assessment.type || 'test'];
+                              const vsClass = assessment.classAverage
+                                ? percentage - Math.round((assessment.classAverage / assessment.maxScore) * 100)
+                                : null;
+
+                              return (
                                 <div
-                                  className="w-3 h-3 rounded-full"
-                                  style={{ backgroundColor: subjectColors[subject] }}
-                                />
-                                <span className="text-xs text-neutral-400 capitalize">{subject}</span>
+                                  key={assessment.id}
+                                  className="flex items-center justify-between p-2 bg-neutral-800/50 rounded-lg hover:bg-neutral-800 transition-colors"
+                                >
+                                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                                    <div className={`px-2 py-0.5 rounded text-xs font-medium ${typeStyle.bg} ${typeStyle.color}`}>
+                                      {typeStyle.label}
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                      <p className="text-sm text-white truncate">{assessment.title}</p>
+                                      <p className="text-xs text-neutral-500">
+                                        {new Date(assessment.dateTaken || assessment.createdAt).toLocaleDateString('en-GB', {
+                                          day: 'numeric',
+                                          month: 'short',
+                                          year: 'numeric'
+                                        })}
+                                        <span className="mx-1">•</span>
+                                        <span className="capitalize">{assessment.subject}</span>
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-3 flex-shrink-0">
+                                    {vsClass !== null && (
+                                      <span className={`text-xs ${vsClass >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                        {vsClass >= 0 ? '+' : ''}{vsClass}% vs class
+                                      </span>
+                                    )}
+                                    <div className="text-right">
+                                      <p className={`text-sm font-semibold ${
+                                        percentage >= 85 ? 'text-green-400' :
+                                        percentage >= 70 ? 'text-blue-400' :
+                                        percentage >= 50 ? 'text-yellow-400' : 'text-red-400'
+                                      }`}>
+                                        {percentage}%
+                                      </p>
+                                      <p className="text-xs text-neutral-500">{assessment.score}/{assessment.maxScore}</p>
+                                    </div>
+                                    {assessment.grade && (
+                                      <Badge
+                                        variant={
+                                          assessment.grade.includes('A') ? 'success' :
+                                          assessment.grade.includes('B') ? 'primary' :
+                                          assessment.grade.includes('C') ? 'warning' : 'danger'
+                                        }
+                                        size="sm"
+                                      >
+                                        {assessment.grade}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+
+                          {/* Type Legend */}
+                          <div className="flex flex-wrap gap-2 pt-2 border-t border-neutral-700">
+                            {Object.entries(typeStyles).map(([type, style]) => (
+                              <div key={type} className="flex items-center gap-1">
+                                <div className={`w-2 h-2 rounded ${style.bg}`} />
+                                <span className="text-xs text-neutral-500">{style.label}</span>
                               </div>
                             ))}
                           </div>

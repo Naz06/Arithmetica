@@ -272,16 +272,22 @@ export interface Resource {
   subtype?: ResourceSubtype;
 }
 
+export type AssessmentType = 'quiz' | 'test' | 'mock_exam' | 'homework' | 'class_test';
+
 export interface Assessment {
   id: string;
   title: string;
+  type?: AssessmentType;
   subject: Subject;
   topic: string;
   studentId: string;
   tutorId: string;
   score: number;
   maxScore: number;
+  grade?: string;
+  classAverage?: number;
   feedback: string;
+  dateTaken?: string;
   createdAt: string;
   gradedAt?: string;
 }
