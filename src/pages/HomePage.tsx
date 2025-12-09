@@ -266,9 +266,9 @@ export const HomePage: React.FC = () => {
               <div className="aspect-square rounded-2xl bg-gradient-to-br from-primary-500/20 to-purple-500/20 border border-primary-500/30 flex items-center justify-center">
                 <div className="text-center p-8">
                   <div className="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-4xl font-bold text-white">
-                    SM
+                    JH
                   </div>
-                  <h3 className="mt-6 text-2xl font-bold text-neutral-100">Sarah Mitchell</h3>
+                  <h3 className="mt-6 text-2xl font-bold text-neutral-100">Jamil Hassan</h3>
                   <p className="text-neutral-400 mt-2">Private Tutor</p>
                 </div>
               </div>
