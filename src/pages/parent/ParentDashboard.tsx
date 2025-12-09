@@ -290,12 +290,38 @@ export const ParentDashboard: React.FC = () => {
                         backgroundColor: '#171717',
                         border: '1px solid #404040',
                         borderRadius: '8px',
+                        color: '#e5e5e5',
                       }}
+                      labelStyle={{ color: '#a3a3a3' }}
                     />
-                    <Area type="monotone" dataKey="mathematics" stackId="1" stroke="#3B82F6" fill="#3B82F6" fillOpacity={0.3} />
-                    <Area type="monotone" dataKey="physics" stackId="2" stroke="#A855F7" fill="#A855F7" fillOpacity={0.3} />
-                    <Area type="monotone" dataKey="economics" stackId="3" stroke="#22C55E" fill="#22C55E" fillOpacity={0.3} />
-                    <Legend />
+                    <Area
+                      type="monotone"
+                      dataKey="mathematics"
+                      stackId="1"
+                      stroke="#3B82F6"
+                      fill="#3B82F6"
+                      fillOpacity={0.3}
+                      activeDot={{ r: 6, fill: '#3B82F6', stroke: '#3B82F6', strokeWidth: 3, strokeOpacity: 0.3, style: { filter: 'drop-shadow(0 0 6px #3B82F6)' } }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="physics"
+                      stackId="2"
+                      stroke="#A855F7"
+                      fill="#A855F7"
+                      fillOpacity={0.3}
+                      activeDot={{ r: 6, fill: '#A855F7', stroke: '#A855F7', strokeWidth: 3, strokeOpacity: 0.3, style: { filter: 'drop-shadow(0 0 6px #A855F7)' } }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="economics"
+                      stackId="3"
+                      stroke="#22C55E"
+                      fill="#22C55E"
+                      fillOpacity={0.3}
+                      activeDot={{ r: 6, fill: '#22C55E', stroke: '#22C55E', strokeWidth: 3, strokeOpacity: 0.3, style: { filter: 'drop-shadow(0 0 6px #22C55E)' } }}
+                    />
+                    <Legend wrapperStyle={{ color: '#a3a3a3' }} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -324,7 +350,18 @@ export const ParentDashboard: React.FC = () => {
                       paddingAngle={5}
                       dataKey="value"
                       nameKey="name"
-                      label={({ name, grade }) => `${name}: ${grade}`}
+                      label={({ cx, cy, midAngle, innerRadius, outerRadius, name, grade }) => {
+                        const RADIAN = Math.PI / 180;
+                        const radius = outerRadius + 25;
+                        const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                        const y = cy + radius * Math.sin(-midAngle * RADIAN);
+                        return (
+                          <text x={x} y={y} fill="#e5e5e5" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" fontSize={12}>
+                            {`${name}: ${grade}`}
+                          </text>
+                        );
+                      }}
+                      labelLine={{ stroke: '#a3a3a3' }}
                     >
                       {subjectData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -335,10 +372,11 @@ export const ParentDashboard: React.FC = () => {
                         backgroundColor: '#171717',
                         border: '1px solid #404040',
                         borderRadius: '8px',
+                        color: '#e5e5e5',
                       }}
                       formatter={(value: number, name: string) => [`${value}%`, name]}
                     />
-                    <Legend />
+                    <Legend wrapperStyle={{ color: '#a3a3a3' }} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -374,7 +412,9 @@ export const ParentDashboard: React.FC = () => {
                           backgroundColor: '#171717',
                           border: '1px solid #404040',
                           borderRadius: '8px',
+                          color: '#e5e5e5',
                         }}
+                        labelStyle={{ color: '#a3a3a3' }}
                       />
                       <Bar dataKey="score" fill="#0EA5E9" radius={[4, 4, 0, 0]} />
                     </BarChart>

@@ -1432,7 +1432,14 @@ export const TutorDashboard: React.FC = () => {
                                     stroke={subjectColors[subject] || '#8B5CF6'}
                                     strokeWidth={2}
                                     dot={{ fill: subjectColors[subject] || '#8B5CF6', strokeWidth: 0, r: 4 }}
-                                    activeDot={{ r: 6, strokeWidth: 0 }}
+                                    activeDot={{
+                                      r: 7,
+                                      fill: subjectColors[subject] || '#8B5CF6',
+                                      stroke: subjectColors[subject] || '#8B5CF6',
+                                      strokeWidth: 3,
+                                      strokeOpacity: 0.3,
+                                      style: { filter: `drop-shadow(0 0 6px ${subjectColors[subject] || '#8B5CF6'})` }
+                                    }}
                                     connectNulls
                                   />
                                 ))}
