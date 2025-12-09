@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Subject, YearGroup } from '../../types';
+import { Subject, YearGroup, TopicMastery } from '../../types';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 import { ProgressBar } from '../ui/ProgressBar';
@@ -261,11 +261,12 @@ const yearGroupToLevel = (yg: YearGroup): string => {
   return 'alevel';
 };
 
-// Create constellations based on student's year group
+// Create constellations based on student's year group and real mastery data
 const createConstellations = (
   enrolledSubjects: Subject[],
   subjectStats: { subject: Subject; progress: number }[],
-  yearGroup: YearGroup
+  yearGroup: YearGroup,
+  topicMastery?: TopicMastery[]
 ): Constellation[] => {
   const level = yearGroupToLevel(yearGroup);
   const levelTopics = curriculumTopics[level];
@@ -282,18 +283,35 @@ const createConstellations = (
     const baseProgress = subjectStats.find((s) => s.subject === subject)?.progress || 0;
     const { color, glow, icon } = colors[subject];
 
-    // Calculate mastery for each topic based on position in the tree
+    // Get topic mastery records for this subject
+    const subjectMastery = topicMastery?.filter(tm => tm.subject === subject) || [];
+
+    // Calculate mastery for each topic - use real data if available
     const topics: TopicNode[] = templates.map((t, index) => {
+      // Check if we have real mastery data for this topic
+      const realMastery = subjectMastery.find(tm => tm.topicId === t.id);
+
       const depth = 1 - t.y / 100; // 0 at bottom, 1 at top
       const hasPrereqs = t.prerequisites.length > 0;
 
-      // Topics unlock based on overall progress
-      const unlockThreshold = hasPrereqs ? depth * 60 : 0;
-      const isUnlocked = baseProgress >= unlockThreshold;
+      // Check if prerequisites are met (all prereqs have mastery >= 50%)
+      const prereqsMet = t.prerequisites.every(prereqId => {
+        const prereqMastery = subjectMastery.find(tm => tm.topicId === prereqId);
+        return prereqMastery ? prereqMastery.mastery >= 50 : baseProgress >= depth * 40;
+      });
 
-      // Mastery decreases as you go higher in the tree
-      const masteryBase = isUnlocked ? Math.max(0, baseProgress - depth * 40) : 0;
-      const mastery = Math.min(100, masteryBase + (index === 0 ? 30 : 0));
+      // Topics unlock if no prereqs OR if all prereqs are sufficiently mastered
+      const isUnlocked = !hasPrereqs || prereqsMet || baseProgress >= depth * 60;
+
+      // Use real mastery if available, otherwise fall back to calculated
+      let mastery: number;
+      if (realMastery) {
+        mastery = realMastery.mastery;
+      } else {
+        // Fallback: calculate based on overall progress (legacy behavior)
+        const masteryBase = isUnlocked ? Math.max(0, baseProgress - depth * 40) : 0;
+        mastery = Math.min(100, masteryBase + (index === 0 ? 30 : 0));
+      }
 
       return {
         ...t,
@@ -317,20 +335,22 @@ interface ConstellationSkillTreeProps {
   enrolledSubjects: Subject[];
   subjectStats: { subject: Subject; progress: number; topicsCompleted: number; totalTopics: number; grade: string }[];
   yearGroup: YearGroup;
+  topicMastery?: TopicMastery[]; // Real mastery data from tutor updates
 }
 
 export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
   enrolledSubjects,
   subjectStats,
   yearGroup,
+  topicMastery,
 }) => {
   const [selectedSubject, setSelectedSubject] = useState<Subject>(enrolledSubjects[0] || 'mathematics');
   const [selectedTopic, setSelectedTopic] = useState<TopicNode | null>(null);
   const [hoveredTopic, setHoveredTopic] = useState<string | null>(null);
 
   const constellations = useMemo(
-    () => createConstellations(enrolledSubjects, subjectStats, yearGroup),
-    [enrolledSubjects, subjectStats, yearGroup]
+    () => createConstellations(enrolledSubjects, subjectStats, yearGroup, topicMastery),
+    [enrolledSubjects, subjectStats, yearGroup, topicMastery]
   );
 
   const currentConstellation = constellations.find((c) => c.subject === selectedSubject);

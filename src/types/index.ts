@@ -54,6 +54,16 @@ export interface Topic {
   description: string;
 }
 
+// Topic Mastery - tracks individual topic progress
+export interface TopicMastery {
+  topicId: string;           // e.g., 'm1', 'p3', 'e5' (matches curriculum topic IDs)
+  subject: Subject;
+  mastery: number;           // 0-100 percentage
+  lastUpdated: string;       // ISO timestamp
+  updatedBy: string;         // Tutor ID who updated it
+  notes?: string;            // Optional tutor notes
+}
+
 export interface StudentStats {
   overallProgress: number;
   subjectStats: SubjectStat[];
@@ -66,6 +76,8 @@ export interface StudentStats {
   averageScore: number;
   attendanceRate?: number;
   streakDays?: number;
+  // Topic mastery tracking (for Constellation Skill Tree)
+  topicMastery?: TopicMastery[];
   // Penalty tracking
   penaltyHistory?: PenaltyRecord[];
   currentStreak?: number;

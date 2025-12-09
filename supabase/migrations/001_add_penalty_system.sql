@@ -34,6 +34,10 @@ ADD COLUMN IF NOT EXISTS inventory JSONB DEFAULT '[]',
 ADD COLUMN IF NOT EXISTS equipped_items JSONB,
 ADD COLUMN IF NOT EXISTS active_boosters JSONB DEFAULT '[]';
 
+-- Add topic mastery tracking for Constellation Skill Tree
+ALTER TABLE students
+ADD COLUMN IF NOT EXISTS topic_mastery JSONB DEFAULT '[]';
+
 -- Comment on the new columns
 COMMENT ON COLUMN students.penalty_history IS 'JSON array of penalty records for gamification system';
 COMMENT ON COLUMN students.low_engagement_weeks IS 'Count of consecutive low engagement weeks';
@@ -46,3 +50,4 @@ COMMENT ON COLUMN students.username IS 'Public display name for leaderboard (pri
 COMMENT ON COLUMN students.inventory IS 'JSON array of owned item IDs from Command Center shop';
 COMMENT ON COLUMN students.equipped_items IS 'JSON object of currently equipped items (title, frame, avatar, spaceship, celebration)';
 COMMENT ON COLUMN students.active_boosters IS 'JSON array of currently active booster effects';
+COMMENT ON COLUMN students.topic_mastery IS 'JSON array of topic mastery records for Constellation Skill Tree (updated by tutor)';

@@ -512,6 +512,7 @@ export const StudentDashboard: React.FC = () => {
               enrolledSubjects={student.subjects}
               subjectStats={enrolledSubjectStats}
               yearGroup={student.yearGroup}
+              topicMastery={student.stats.topicMastery}
             />
 
             {/* Stellar Journey - Weekly Progress */}

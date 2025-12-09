@@ -16,6 +16,7 @@ import { Chat, ChatList } from '../../components/shared/Chat';
 import { FeatureSettingsPanel } from '../../components/tutor/FeatureSettingsPanel';
 import { PenaltyManagement } from '../../components/tutor/PenaltyManagement';
 import { BonusManagement } from '../../components/tutor/BonusManagement';
+import { TopicMasteryManagement } from '../../components/tutor/TopicMasteryManagement';
 import { Leaderboard } from '../../components/shared/Leaderboard';
 import {
   Users,
@@ -87,6 +88,7 @@ export const TutorDashboard: React.FC = () => {
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [showPenaltyModal, setShowPenaltyModal] = useState(false);
   const [showBonusModal, setShowBonusModal] = useState(false);
+  const [showTopicMasteryModal, setShowTopicMasteryModal] = useState(false);
   const [showLeaderboardModal, setShowLeaderboardModal] = useState(false);
   const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
   const notificationDropdownRef = useRef<HTMLDivElement>(null);
@@ -139,6 +141,8 @@ export const TutorDashboard: React.FC = () => {
       setShowPenaltyModal(true);
     } else if (path.includes('/bonuses') || path.includes('/rewards')) {
       setShowBonusModal(true);
+    } else if (path.includes('/topic-mastery') || path.includes('/skill-tree')) {
+      setShowTopicMasteryModal(true);
     } else if (path.includes('/leaderboard')) {
       setShowLeaderboardModal(true);
     }
@@ -616,6 +620,14 @@ export const TutorDashboard: React.FC = () => {
               className="text-yellow-400 border-yellow-500/30 hover:bg-yellow-500/10"
             >
               Leaderboard
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => setShowTopicMasteryModal(true)}
+              icon={<Sparkles className="w-4 h-4" />}
+              className="text-yellow-400 border-yellow-500/30 hover:bg-yellow-500/10"
+            >
+              Topic Mastery
             </Button>
             <Button
               variant="secondary"
@@ -2150,6 +2162,22 @@ export const TutorDashboard: React.FC = () => {
       >
         <BonusManagement
           students={students}
+          onUpdateStudent={(updatedStudent) => {
+            updateStudent(updatedStudent);
+          }}
+        />
+      </Modal>
+
+      {/* Topic Mastery Modal */}
+      <Modal
+        isOpen={showTopicMasteryModal}
+        onClose={() => setShowTopicMasteryModal(false)}
+        title="Topic Mastery Management"
+        size="xl"
+      >
+        <TopicMasteryManagement
+          students={students}
+          tutorId={user?.id || ''}
           onUpdateStudent={(updatedStudent) => {
             updateStudent(updatedStudent);
           }}
