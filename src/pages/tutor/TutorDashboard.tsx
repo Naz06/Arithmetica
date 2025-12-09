@@ -1986,9 +1986,9 @@ export const TutorDashboard: React.FC = () => {
                   {/* Risk Indicator */}
                   {(() => {
                     const riskScore =
-                      (analyticsStudent.stats.attendanceRate < 80 ? 2 : 0) +
-                      (analyticsStudent.stats.averageScore < 60 ? 2 : 0) +
-                      (analyticsStudent.stats.currentStreak < 2 ? 1 : 0) +
+                      ((analyticsStudent.stats.attendanceRate || 100) < 80 ? 2 : 0) +
+                      ((analyticsStudent.stats.averageScore || 0) < 60 ? 2 : 0) +
+                      ((analyticsStudent.stats.streakDays || analyticsStudent.stats.currentStreak || 0) < 2 ? 1 : 0) +
                       ((analyticsStudent.stats.missedSessionsCount || 0) > 2 ? 2 : 0);
                     const riskLevel = riskScore >= 4 ? 'high' : riskScore >= 2 ? 'medium' : 'low';
                     return (
@@ -2020,7 +2020,7 @@ export const TutorDashboard: React.FC = () => {
                     <p className="text-xs text-neutral-400">Attendance</p>
                   </div>
                   <div className="p-3 bg-neutral-800/50 rounded-xl text-center">
-                    <p className="text-2xl font-bold text-yellow-400">{analyticsStudent.stats.currentStreak}</p>
+                    <p className="text-2xl font-bold text-yellow-400">{analyticsStudent.stats.streakDays || analyticsStudent.stats.currentStreak || 0}</p>
                     <p className="text-xs text-neutral-400">Day Streak</p>
                   </div>
                 </div>
@@ -2031,11 +2031,11 @@ export const TutorDashboard: React.FC = () => {
                     <h4 className="text-sm font-medium text-neutral-300">Engagement Score</h4>
                     {(() => {
                       const engagementScore = Math.round(
-                        (analyticsStudent.stats.attendanceRate * 0.3) +
-                        (analyticsStudent.stats.averageScore * 0.25) +
+                        ((analyticsStudent.stats.attendanceRate || 100) * 0.3) +
+                        ((analyticsStudent.stats.averageScore || 0) * 0.25) +
                         ((analyticsStudent.stats.homeworkStreak || 0) * 5) +
-                        (analyticsStudent.stats.currentStreak * 2) +
-                        (Math.min(analyticsStudent.stats.totalSessions, 20) * 1)
+                        ((analyticsStudent.stats.streakDays || analyticsStudent.stats.currentStreak || 0) * 2) +
+                        (Math.min(analyticsStudent.stats.totalSessions || 0, 20) * 1)
                       );
                       return (
                         <span className={`text-lg font-bold ${
