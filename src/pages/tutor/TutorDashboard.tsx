@@ -47,9 +47,13 @@ import {
   AlertTriangle,
   Gift,
   Trophy,
+  Upload,
+  File,
+  Loader2,
 } from 'lucide-react';
 import { StudentProfile, ParentProfile, Resource, ScheduleEvent, Subject, YearGroup, ResourceLevel, ResourceSubtype, Notification } from '../../types';
 import { adminService, UserRecord, CreateUserData } from '../../services/adminService';
+import { resourceService } from '../../services/resourceService';
 
 export const TutorDashboard: React.FC = () => {
   const location = useLocation();
@@ -188,6 +192,9 @@ export const TutorDashboard: React.FC = () => {
     level: 'gcse' as ResourceLevel,
     subtype: 'workbook' as ResourceSubtype,
   });
+  const [resourceFile, setResourceFile] = useState<File | null>(null);
+  const [isUploadingResource, setIsUploadingResource] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [newEvent, setNewEvent] = useState({
     title: '',
@@ -216,15 +223,35 @@ export const TutorDashboard: React.FC = () => {
   });
   const [showCompleteSessionForm, setShowCompleteSessionForm] = useState(false);
 
-  const handleAddResource = () => {
+  const handleAddResource = async () => {
+    setIsUploadingResource(true);
+
+    let fileUrl: string | undefined;
+
+    // Upload file if one was selected
+    if (resourceFile) {
+      const timestamp = Date.now();
+      const sanitizedName = resourceFile.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const filePath = `${user?.id || 'tutor'}/${timestamp}-${sanitizedName}`;
+
+      const uploadedUrl = await resourceService.uploadFile(resourceFile, filePath);
+      if (uploadedUrl) {
+        fileUrl = uploadedUrl;
+      }
+    }
+
     const resource: Resource = {
       id: `resource-${Date.now()}`,
       ...newResource,
+      fileUrl,
       createdAt: new Date().toISOString().split('T')[0],
-      tutorId: 'tutor-001',
+      tutorId: user?.id || 'tutor-001',
     };
+
     addResource(resource);
     setShowResourceModal(false);
+    setIsUploadingResource(false);
+    setResourceFile(null);
     setNewResource({
       title: '',
       description: '',
@@ -235,6 +262,18 @@ export const TutorDashboard: React.FC = () => {
       level: 'gcse',
       subtype: 'workbook',
     });
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setResourceFile(file);
+      // Auto-fill title from filename if empty
+      if (!newResource.title) {
+        const nameWithoutExt = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+        setNewResource(prev => ({ ...prev, title: nameWithoutExt }));
+      }
+    }
   };
 
   // Notification helpers
@@ -1018,6 +1057,56 @@ export const TutorDashboard: React.FC = () => {
             onChange={(e) => setNewResource({ ...newResource, topic: e.target.value })}
             placeholder="e.g., Quadratic Equations"
           />
+
+          {/* File Upload Section */}
+          <div>
+            <label className="block text-sm font-medium text-neutral-400 mb-2">
+              Upload File (PDF, Word, etc.)
+            </label>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileSelect}
+              accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.png,.jpg,.jpeg"
+              className="hidden"
+            />
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${
+                resourceFile
+                  ? 'border-green-500/50 bg-green-500/10'
+                  : 'border-neutral-700 hover:border-neutral-600 bg-neutral-800/50'
+              }`}
+            >
+              {resourceFile ? (
+                <div className="flex items-center justify-center gap-3">
+                  <File className="w-8 h-8 text-green-400" />
+                  <div className="text-left">
+                    <p className="text-neutral-100 font-medium">{resourceFile.name}</p>
+                    <p className="text-sm text-neutral-400">
+                      {(resourceFile.size / 1024 / 1024).toFixed(2)} MB
+                    </p>
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setResourceFile(null);
+                    }}
+                    className="ml-4 p-1 hover:bg-neutral-700 rounded"
+                  >
+                    <X className="w-4 h-4 text-neutral-400" />
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <Upload className="w-10 h-10 text-neutral-500 mx-auto mb-2" />
+                  <p className="text-neutral-300">Click to upload a file</p>
+                  <p className="text-sm text-neutral-500 mt-1">PDF, Word, PowerPoint, Excel, Images</p>
+                </div>
+              )}
+            </div>
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-neutral-400 mb-2">Assign to Students</label>
             <div className="space-y-2">
@@ -1044,11 +1133,23 @@ export const TutorDashboard: React.FC = () => {
             </div>
           </div>
           <div className="flex gap-3 pt-4">
-            <Button variant="secondary" onClick={() => setShowResourceModal(false)} className="flex-1">
+            <Button variant="secondary" onClick={() => setShowResourceModal(false)} className="flex-1" disabled={isUploadingResource}>
               Cancel
             </Button>
-            <Button variant="primary" onClick={handleAddResource} className="flex-1">
-              Add Resource
+            <Button
+              variant="primary"
+              onClick={handleAddResource}
+              className="flex-1"
+              disabled={isUploadingResource || !newResource.title}
+            >
+              {isUploadingResource ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  Uploading...
+                </>
+              ) : (
+                'Add Resource'
+              )}
             </Button>
           </div>
         </div>
