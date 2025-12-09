@@ -160,6 +160,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         homework_streak,
         last_activity_date,
         username,
+        inventory,
+        equipped_items,
+        active_boosters,
         created_at,
         updated_at,
         profiles:user_id (
@@ -192,6 +195,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           level: Math.floor((s.total_points || 0) / 100) + 1,
           avatar: s.avatar_items || { baseCharacter: 'astronaut', unlockedItems: [] },
           username: s.username || undefined,
+          // Command Center fields
+          inventory: s.inventory || [],
+          equippedItems: s.equipped_items || undefined,
+          activeBoosters: s.active_boosters || [],
           stats: {
             overallProgress: s.overall_progress || 0,
             subjectStats: [],
@@ -740,6 +747,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           // Leaderboard username
           username: updatedStudent.username || null,
           last_activity_date: updatedStudent.stats.lastActivityDate || null,
+          // Command Center fields
+          inventory: updatedStudent.inventory || [],
+          equipped_items: updatedStudent.equippedItems || null,
+          active_boosters: updatedStudent.activeBoosters || [],
           // Additional stats
           total_sessions: updatedStudent.stats.totalSessions || 0,
           completed_assignments: updatedStudent.stats.completedAssignments || 0,

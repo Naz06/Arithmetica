@@ -30,6 +30,10 @@ export interface StudentProfile extends User {
   stats: StudentStats;
   schedule: ScheduleEvent[];
   username?: string; // Public display name for leaderboard (not login)
+  // Command Center - Space Shop System
+  inventory?: string[]; // IDs of owned items
+  equippedItems?: EquippedItems; // Currently equipped items
+  activeBoosters?: ActiveBooster[]; // Currently active boosters
 }
 
 export interface ParentProfile extends User {
@@ -74,6 +78,25 @@ export interface StudentStats {
   // Bonus tracking
   bonusHistory?: BonusRecord[];
   homeworkStreak?: number; // Consecutive on-time homework submissions
+}
+
+// Command Center - Equipped Items
+export interface EquippedItems {
+  title: string | null;       // Leaderboard title
+  frame: string | null;       // Profile frame
+  avatar: string;             // Character avatar
+  spaceship: string;          // Stellar Journey ship
+  celebration: string;        // Achievement animation
+}
+
+// Command Center - Active Boosters
+export interface ActiveBooster {
+  id: string;
+  itemId: string;             // Reference to the booster item
+  activatedAt: string;        // ISO timestamp
+  expiresAt?: string;         // ISO timestamp (for duration-based boosters)
+  effect: string;             // Effect description
+  used?: boolean;             // For single-use boosters
 }
 
 // Bonus System Types

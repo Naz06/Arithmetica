@@ -18,6 +18,12 @@ import {
 } from 'lucide-react';
 import { StudentProfile, YearGroup } from '../../types';
 import { validateUsername, generateAnonymousUsername } from '../../utils/profanityFilter';
+import {
+  getItemById,
+  getRarityColor,
+  getRarityBorderColor,
+  getRarityGlow,
+} from '../../data/spaceShopItems';
 
 interface LeaderboardProps {
   students: StudentProfile[];
@@ -37,6 +43,10 @@ interface LeaderboardEntry {
   yearGroup: YearGroup;
   isCurrentUser: boolean;
   rank: number;
+  // Equipped cosmetics
+  equippedTitle?: string;
+  equippedFrame?: string;
+  equippedAvatar?: string;
 }
 
 const getYearGroupLabel = (yg: YearGroup): string => {
@@ -114,6 +124,10 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
       yearGroup: student.yearGroup,
       isCurrentUser: currentStudent?.id === student.id,
       rank: index + 1,
+      // Equipped cosmetics from Command Center
+      equippedTitle: student.equippedItems?.title || undefined,
+      equippedFrame: student.equippedItems?.frame || undefined,
+      equippedAvatar: student.equippedItems?.avatar || undefined,
     }));
   }, [students, selectedLevel, showAllLevels, currentStudent]);
 
@@ -246,56 +260,80 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
               <p className="text-neutral-500">No students in this category yet</p>
             </div>
           ) : (
-            leaderboardData.map(entry => (
-              <div
-                key={entry.id}
-                className={`flex items-center gap-4 p-3 rounded-xl transition-colors ${
-                  entry.isCurrentUser
-                    ? 'bg-primary-500/10 border border-primary-500/30'
-                    : 'bg-neutral-800/50 hover:bg-neutral-800'
-                }`}
-              >
-                {/* Rank Badge */}
-                {getRankBadge(entry.rank)}
+            leaderboardData.map(entry => {
+              const titleItem = entry.equippedTitle ? getItemById(entry.equippedTitle) : null;
+              const frameItem = entry.equippedFrame ? getItemById(entry.equippedFrame) : null;
+              const avatarItem = entry.equippedAvatar ? getItemById(entry.equippedAvatar) : null;
 
-                {/* User Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className={`font-medium truncate ${
-                      entry.isCurrentUser ? 'text-primary-400' : 'text-neutral-100'
-                    }`}>
-                      {entry.displayName}
-                    </span>
-                    {entry.isCurrentUser && (
-                      <Badge variant="info" size="sm">You</Badge>
-                    )}
-                    {showAllLevels && (
-                      <Badge variant="default" size="sm">
-                        {getYearGroupLabel(entry.yearGroup)}
-                      </Badge>
-                    )}
+              return (
+                <div
+                  key={entry.id}
+                  className={`flex items-center gap-4 p-3 rounded-xl transition-colors ${
+                    entry.isCurrentUser
+                      ? 'bg-primary-500/10 border border-primary-500/30'
+                      : 'bg-neutral-800/50 hover:bg-neutral-800'
+                  }`}
+                >
+                  {/* Rank Badge */}
+                  {getRankBadge(entry.rank)}
+
+                  {/* Avatar with Frame */}
+                  <div className={`w-10 h-10 rounded-full bg-neutral-800 flex items-center justify-center text-xl border-2 ${
+                    frameItem ? getRarityBorderColor(frameItem.rarity) : 'border-neutral-700'
+                  } ${frameItem ? getRarityGlow(frameItem.rarity) : ''}`}>
+                    {avatarItem?.icon || '👨‍🚀'}
                   </div>
-                  <div className="flex items-center gap-3 mt-1 text-xs text-neutral-500">
-                    <span className="flex items-center gap-1">
-                      <Star className="w-3 h-3 text-purple-400" />
-                      Level {entry.level}
-                    </span>
-                    {entry.streak > 0 && (
-                      <span className="flex items-center gap-1">
-                        <Flame className="w-3 h-3 text-orange-400" />
-                        {entry.streak} day streak
+
+                  {/* User Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {/* Title (if equipped) */}
+                      {titleItem && (
+                        <span className={`text-xs font-medium ${getRarityColor(titleItem.rarity)}`}>
+                          {titleItem.icon}
+                        </span>
+                      )}
+                      <span className={`font-medium truncate ${
+                        entry.isCurrentUser ? 'text-primary-400' : 'text-neutral-100'
+                      }`}>
+                        {entry.displayName}
                       </span>
-                    )}
+                      {entry.isCurrentUser && (
+                        <Badge variant="info" size="sm">You</Badge>
+                      )}
+                      {showAllLevels && (
+                        <Badge variant="default" size="sm">
+                          {getYearGroupLabel(entry.yearGroup)}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3 mt-1 text-xs text-neutral-500">
+                      {titleItem && (
+                        <span className={`${getRarityColor(titleItem.rarity)}`}>
+                          {titleItem.name}
+                        </span>
+                      )}
+                      <span className="flex items-center gap-1">
+                        <Star className="w-3 h-3 text-purple-400" />
+                        Level {entry.level}
+                      </span>
+                      {entry.streak > 0 && (
+                        <span className="flex items-center gap-1">
+                          <Flame className="w-3 h-3 text-orange-400" />
+                          {entry.streak} day streak
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Points */}
+                  <div className="text-right">
+                    <p className="font-bold text-yellow-500">{entry.points.toLocaleString()}</p>
+                    <p className="text-xs text-neutral-500">points</p>
                   </div>
                 </div>
-
-                {/* Points */}
-                <div className="text-right">
-                  <p className="font-bold text-yellow-500">{entry.points.toLocaleString()}</p>
-                  <p className="text-xs text-neutral-500">points</p>
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
 
@@ -436,6 +474,8 @@ export const LeaderboardPreview: React.FC<{
       points: student.points,
       isCurrentUser: currentStudent?.id === student.id,
       rank: index + 1,
+      equippedAvatar: student.equippedItems?.avatar,
+      equippedTitle: student.equippedItems?.title,
     }));
 
   return (
@@ -448,27 +488,42 @@ export const LeaderboardPreview: React.FC<{
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-          {topStudents.map(entry => (
-            <div
-              key={entry.id}
-              className={`flex items-center gap-3 p-2 rounded-lg ${
-                entry.isCurrentUser
-                  ? 'bg-primary-500/10 border border-primary-500/30'
-                  : 'bg-neutral-800/30'
-              }`}
-            >
-              {getRankBadge(entry.rank)}
-              <span className={`flex-1 text-sm truncate ${
-                entry.isCurrentUser ? 'text-primary-400 font-medium' : 'text-neutral-300'
-              }`}>
-                {entry.displayName}
-                {entry.isCurrentUser && ' (You)'}
-              </span>
-              <span className="text-sm font-medium text-yellow-500">
-                {entry.points.toLocaleString()}
-              </span>
-            </div>
-          ))}
+          {topStudents.map(entry => {
+            const avatarItem = entry.equippedAvatar ? getItemById(entry.equippedAvatar) : null;
+            const titleItem = entry.equippedTitle ? getItemById(entry.equippedTitle) : null;
+
+            return (
+              <div
+                key={entry.id}
+                className={`flex items-center gap-3 p-2 rounded-lg ${
+                  entry.isCurrentUser
+                    ? 'bg-primary-500/10 border border-primary-500/30'
+                    : 'bg-neutral-800/30'
+                }`}
+              >
+                {getRankBadge(entry.rank)}
+                <span className="text-lg">{avatarItem?.icon || '👨‍🚀'}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1">
+                    {titleItem && (
+                      <span className={`text-xs ${getRarityColor(titleItem.rarity)}`}>
+                        {titleItem.icon}
+                      </span>
+                    )}
+                    <span className={`text-sm truncate ${
+                      entry.isCurrentUser ? 'text-primary-400 font-medium' : 'text-neutral-300'
+                    }`}>
+                      {entry.displayName}
+                      {entry.isCurrentUser && ' (You)'}
+                    </span>
+                  </div>
+                </div>
+                <span className="text-sm font-medium text-yellow-500">
+                  {entry.points.toLocaleString()}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </CardContent>
     </Card>

@@ -17,6 +17,8 @@ import { ConstellationSkillTree } from '../../components/shared/ConstellationSki
 import { LessonPlans } from '../../components/shared/LessonPlans';
 import { StellarJourney } from '../../components/shared/StellarJourney';
 import { LeaderboardPreview, Leaderboard } from '../../components/shared/Leaderboard';
+import { CommandCenter, CommandCenterPreview } from '../../components/shared/CommandCenter';
+import { SpaceItemCategory, getItemById, getItemPrice, defaultEquippedItems, defaultInventory } from '../../data/spaceShopItems';
 import {
   Star,
   Zap,
@@ -36,7 +38,8 @@ import {
   History,
   TrendingDown,
 } from 'lucide-react';
-import { StudentProfile, ShopItem, QuickNotificationType, Notification, ResourceLevel, PenaltyRecord } from '../../types';
+import { StudentProfile, ShopItem, QuickNotificationType, Notification, ResourceLevel, PenaltyRecord, EquippedItems, ActiveBooster } from '../../types';
+import { Rocket } from 'lucide-react';
 import { shopItems } from '../../data/demoData';
 import { getPenaltyDisplayInfo, getTotalPenaltiesInPeriod, isStudentAtRisk } from '../../utils/penaltySystem';
 
@@ -80,6 +83,7 @@ export const StudentDashboard: React.FC = () => {
   const [showQuickMessageModal, setShowQuickMessageModal] = useState(false);
   const [showPenaltyHistoryModal, setShowPenaltyHistoryModal] = useState(false);
   const [showLeaderboardModal, setShowLeaderboardModal] = useState(false);
+  const [showCommandCenterModal, setShowCommandCenterModal] = useState(false);
 
   // Calculate penalty stats
   const penaltyHistory = student?.stats.penaltyHistory || [];
@@ -117,6 +121,8 @@ export const StudentDashboard: React.FC = () => {
       setShowQuickMessageModal(true);
     } else if (path.includes('/leaderboard')) {
       setShowLeaderboardModal(true);
+    } else if (path.includes('/command-center')) {
+      setShowCommandCenterModal(true);
     }
   }, [location.pathname]);
 
@@ -164,6 +170,85 @@ export const StudentDashboard: React.FC = () => {
         username,
       });
     }
+  };
+
+  // Command Center handlers
+  const handlePurchaseItem = (itemId: string, price: number) => {
+    if (!student || student.points < price) return;
+
+    const currentInventory = student.inventory || [...defaultInventory];
+    if (currentInventory.includes(itemId)) return; // Already owned
+
+    updateStudent({
+      ...student,
+      points: student.points - price,
+      inventory: [...currentInventory, itemId],
+    });
+  };
+
+  const handleEquipItem = (category: SpaceItemCategory, itemId: string | null) => {
+    if (!student) return;
+
+    const currentEquipped = student.equippedItems || { ...defaultEquippedItems };
+    const updatedEquipped: EquippedItems = { ...currentEquipped };
+
+    switch (category) {
+      case 'title':
+        updatedEquipped.title = itemId;
+        break;
+      case 'frame':
+        updatedEquipped.frame = itemId;
+        break;
+      case 'avatar':
+        if (itemId) updatedEquipped.avatar = itemId;
+        break;
+      case 'spaceship':
+        if (itemId) updatedEquipped.spaceship = itemId;
+        break;
+      case 'celebration':
+        if (itemId) updatedEquipped.celebration = itemId;
+        break;
+    }
+
+    updateStudent({
+      ...student,
+      equippedItems: updatedEquipped,
+    });
+  };
+
+  const handleActivateBooster = (itemId: string) => {
+    if (!student) return;
+
+    const item = getItemById(itemId);
+    if (!item || item.category !== 'booster') return;
+
+    const currentInventory = student.inventory || [];
+    if (!currentInventory.includes(itemId)) return; // Don't own it
+
+    // Remove from inventory (consumable)
+    const updatedInventory = currentInventory.filter(id => id !== itemId);
+
+    // Add to active boosters
+    const currentBoosters = student.activeBoosters || [];
+    const now = new Date();
+    const newBooster: ActiveBooster = {
+      id: `booster-${Date.now()}`,
+      itemId: itemId,
+      activatedAt: now.toISOString(),
+      effect: item.effect || '',
+    };
+
+    // If booster has duration, set expiry
+    if (item.duration) {
+      const expiresAt = new Date(now.getTime() + item.duration * 24 * 60 * 60 * 1000);
+      newBooster.expiresAt = expiresAt.toISOString();
+    }
+
+    updateStudent({
+      ...student,
+      inventory: updatedInventory,
+      activeBoosters: [...currentBoosters, newBooster],
+    });
   };
 
   if (!student) {
@@ -356,8 +441,8 @@ export const StudentDashboard: React.FC = () => {
             <Button variant="secondary" onClick={() => setShowAchievementsModal(true)} icon={<Trophy className="w-4 h-4" />}>
               Achievements
             </Button>
-            <Button variant="primary" onClick={() => setShowChatModal(true)} icon={<MessageCircle className="w-4 h-4" />}>
-              Chat with Tutor
+            <Button variant="primary" onClick={() => setShowCommandCenterModal(true)} icon={<Rocket className="w-4 h-4" />}>
+              Command Center
             </Button>
           </div>
         </div>
@@ -563,6 +648,12 @@ export const StudentDashboard: React.FC = () => {
                 )}
               </CardContent>
             </Card>
+
+            {/* Command Center Preview */}
+            <CommandCenterPreview
+              student={student}
+              onClick={() => setShowCommandCenterModal(true)}
+            />
 
             {/* Leaderboard */}
             <LeaderboardPreview
@@ -1036,6 +1127,21 @@ export const StudentDashboard: React.FC = () => {
           currentYearGroup={student.yearGroup}
           onUpdateUsername={handleUpdateUsername}
           showAllLevels={false}
+        />
+      </Modal>
+
+      {/* Command Center Modal */}
+      <Modal
+        isOpen={showCommandCenterModal}
+        onClose={() => setShowCommandCenterModal(false)}
+        title="Command Center"
+        size="xl"
+      >
+        <CommandCenter
+          student={student}
+          onPurchaseItem={handlePurchaseItem}
+          onEquipItem={handleEquipItem}
+          onActivateBooster={handleActivateBooster}
         />
       </Modal>
     </DashboardLayout>

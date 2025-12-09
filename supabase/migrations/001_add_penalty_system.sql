@@ -28,6 +28,12 @@ ADD COLUMN IF NOT EXISTS attendance_rate INTEGER DEFAULT 100;
 ALTER TABLE students
 ADD COLUMN IF NOT EXISTS username VARCHAR(20);
 
+-- Add Command Center / Space Shop columns
+ALTER TABLE students
+ADD COLUMN IF NOT EXISTS inventory JSONB DEFAULT '[]',
+ADD COLUMN IF NOT EXISTS equipped_items JSONB,
+ADD COLUMN IF NOT EXISTS active_boosters JSONB DEFAULT '[]';
+
 -- Comment on the new columns
 COMMENT ON COLUMN students.penalty_history IS 'JSON array of penalty records for gamification system';
 COMMENT ON COLUMN students.low_engagement_weeks IS 'Count of consecutive low engagement weeks';
@@ -37,3 +43,6 @@ COMMENT ON COLUMN students.bonus_history IS 'JSON array of bonus/reward records 
 COMMENT ON COLUMN students.homework_streak IS 'Count of consecutive on-time homework submissions';
 COMMENT ON COLUMN students.last_activity_date IS 'Last activity timestamp for streak detection';
 COMMENT ON COLUMN students.username IS 'Public display name for leaderboard (privacy protection)';
+COMMENT ON COLUMN students.inventory IS 'JSON array of owned item IDs from Command Center shop';
+COMMENT ON COLUMN students.equipped_items IS 'JSON object of currently equipped items (title, frame, avatar, spaceship, celebration)';
+COMMENT ON COLUMN students.active_boosters IS 'JSON array of currently active booster effects';
