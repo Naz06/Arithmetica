@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { useAuth } from '../../context/AuthContext';
 import { useData } from '../../context/DataContext';
@@ -1257,42 +1258,75 @@ export const TutorDashboard: React.FC = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="flex items-end gap-2 h-40">
-                      {(() => {
-                        const rawData = Array.isArray(analyticsStudent.stats?.weeklyProgress) && analyticsStudent.stats.weeklyProgress.length > 0
-                          ? analyticsStudent.stats.weeklyProgress.slice(-8)
-                          : [];
+                    {(() => {
+                      const rawData = Array.isArray(analyticsStudent.stats?.weeklyProgress) && analyticsStudent.stats.weeklyProgress.length > 0
+                        ? analyticsStudent.stats.weeklyProgress.slice(-8)
+                        : [];
 
-                        // Convert to numbers - handle both {week, mathematics, physics...} and simple number formats
-                        const weeklyData = rawData.length > 0
-                          ? rawData.map((val: any) => {
-                              if (typeof val === 'number') return val;
-                              // Average all subject scores in the object
-                              const subjects = ['mathematics', 'physics', 'chemistry', 'biology', 'english', 'economics'];
-                              const scores = subjects.map(s => val?.[s] || 0).filter(s => s > 0);
-                              return scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : val?.points || val?.progress || 70;
-                            })
-                          : [65, 68, 72, 70, 75, 78, 82, 80]; // Fallback demo data
+                      // Convert to chart data format
+                      const chartData = rawData.length > 0
+                        ? rawData.map((val: any, i: number) => {
+                            if (typeof val === 'number') return { week: `W${i + 1}`, score: val };
+                            // Average all subject scores in the object
+                            const subjects = ['mathematics', 'physics', 'chemistry', 'biology', 'english', 'economics'];
+                            const scores = subjects.map(s => val?.[s] || 0).filter(s => s > 0);
+                            const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : val?.points || val?.progress || 70;
+                            return { week: val?.week || `W${i + 1}`, score: avgScore };
+                          })
+                        : [
+                            { week: 'W1', score: 65 },
+                            { week: 'W2', score: 68 },
+                            { week: 'W3', score: 72 },
+                            { week: 'W4', score: 70 },
+                            { week: 'W5', score: 75 },
+                            { week: 'W6', score: 78 },
+                            { week: 'W7', score: 82 },
+                            { week: 'W8', score: 80 },
+                          ];
 
-                        const maxVal = Math.max(...weeklyData, 100);
-                        return weeklyData.map((numVal: number, i: number) => {
-                          const heightPercent = Math.max((numVal / maxVal) * 100, 5); // Min 5% height
-                          return (
-                            <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                              <div className="flex-1 w-full flex items-end">
-                                <div
-                                  className="w-full bg-primary-500 rounded-t hover:bg-primary-400 transition-colors"
-                                  style={{ height: `${heightPercent}%` }}
-                                  title={`Week ${i + 1}: ${numVal}%`}
-                                />
-                              </div>
-                              <span className="text-xs text-neutral-500">W{i + 1}</span>
-                            </div>
-                          );
-                        });
-                      })()}
-                    </div>
-                    <p className="text-xs text-neutral-600 mt-2 text-center">Hover bars for exact values</p>
+                      return (
+                        <div className="h-48">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                              <defs>
+                                <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.4}/>
+                                  <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0}/>
+                                </linearGradient>
+                              </defs>
+                              <XAxis
+                                dataKey="week"
+                                tick={{ fill: '#6B7280', fontSize: 11 }}
+                                axisLine={{ stroke: '#374151' }}
+                                tickLine={false}
+                              />
+                              <YAxis
+                                domain={[0, 100]}
+                                tick={{ fill: '#6B7280', fontSize: 11 }}
+                                axisLine={{ stroke: '#374151' }}
+                                tickLine={false}
+                              />
+                              <Tooltip
+                                contentStyle={{
+                                  backgroundColor: '#1F2937',
+                                  border: '1px solid #374151',
+                                  borderRadius: '8px',
+                                  color: '#F3F4F6'
+                                }}
+                                formatter={(value: number) => [`${value}%`, 'Score']}
+                              />
+                              <Area
+                                type="monotone"
+                                dataKey="score"
+                                stroke="#8B5CF6"
+                                strokeWidth={2}
+                                fill="url(#colorScore)"
+                              />
+                            </AreaChart>
+                          </ResponsiveContainer>
+                        </div>
+                      );
+                    })()}
                   </CardContent>
                 </Card>
 
