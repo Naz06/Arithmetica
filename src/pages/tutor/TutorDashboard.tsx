@@ -146,8 +146,7 @@ export const TutorDashboard: React.FC = () => {
       setShowResourceModal(true);
     } else if (path.includes('/messages')) {
       setShowChatModal(true);
-    } else if (path.includes('/analytics')) {
-      setShowAnalyticsModal(true);
+    // Analytics now uses inline page, no modal needed
     } else if (path.includes('/assessments')) {
       setShowAssessmentsModal(true);
     } else if (path.includes('/settings')) {
@@ -1275,19 +1274,25 @@ export const TutorDashboard: React.FC = () => {
                             })
                           : [65, 68, 72, 70, 75, 78, 82, 80]; // Fallback demo data
 
-                        const maxVal = Math.max(...weeklyData.map(v => typeof v === 'number' ? v : 70), 100);
-                        return weeklyData.map((numVal: number, i: number) => (
-                          <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                            <div
-                              className="w-full bg-primary-500/80 rounded-t hover:bg-primary-400 transition-colors"
-                              style={{ height: `${(numVal / maxVal) * 100}%` }}
-                              title={`Week ${i + 1}: ${numVal}%`}
-                            />
-                            <span className="text-xs text-neutral-500">W{i + 1}</span>
-                          </div>
-                        ));
+                        const maxVal = Math.max(...weeklyData, 100);
+                        return weeklyData.map((numVal: number, i: number) => {
+                          const heightPercent = Math.max((numVal / maxVal) * 100, 5); // Min 5% height
+                          return (
+                            <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                              <div className="flex-1 w-full flex items-end">
+                                <div
+                                  className="w-full bg-primary-500 rounded-t hover:bg-primary-400 transition-colors"
+                                  style={{ height: `${heightPercent}%` }}
+                                  title={`Week ${i + 1}: ${numVal}%`}
+                                />
+                              </div>
+                              <span className="text-xs text-neutral-500">W{i + 1}</span>
+                            </div>
+                          );
+                        });
                       })()}
                     </div>
+                    <p className="text-xs text-neutral-600 mt-2 text-center">Hover bars for exact values</p>
                   </CardContent>
                 </Card>
 
