@@ -781,6 +781,32 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
                       />
                     )}
 
+                    {/* Mastered pulsing glow ring */}
+                    {topic.mastery >= 90 && (
+                      <>
+                        <circle
+                          cx={0}
+                          cy={0}
+                          r={style.radius + 1}
+                          fill="none"
+                          stroke="#FFD700"
+                          strokeWidth={0.4}
+                          opacity={0.8}
+                          className="animate-mastered-pulse"
+                        />
+                        <circle
+                          cx={0}
+                          cy={0}
+                          r={style.radius + 1.8}
+                          fill="none"
+                          stroke="#FFD700"
+                          strokeWidth={0.2}
+                          opacity={0.4}
+                          className="animate-mastered-pulse-outer"
+                        />
+                      </>
+                    )}
+
                     {/* Socket ring (outer metallic border) */}
                     <circle
                       cx={0}
@@ -1000,6 +1026,18 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
           50% { opacity: 0.3; transform: scale(1.1); }
         }
         .animate-pulse-ring { animation: pulse-ring 1.5s ease-in-out infinite; }
+
+        /* Mastered node glow animations */
+        @keyframes mastered-pulse {
+          0%, 100% { opacity: 0.8; stroke-width: 0.4; }
+          50% { opacity: 0.4; stroke-width: 0.6; }
+        }
+        @keyframes mastered-pulse-outer {
+          0%, 100% { opacity: 0.4; r: calc(100% + 1.8); }
+          50% { opacity: 0.2; r: calc(100% + 2.5); }
+        }
+        .animate-mastered-pulse { animation: mastered-pulse 2s ease-in-out infinite; }
+        .animate-mastered-pulse-outer { animation: mastered-pulse 2s ease-in-out infinite 0.5s; }
       `}</style>
     </Card>
   );
