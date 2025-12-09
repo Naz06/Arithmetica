@@ -99,6 +99,14 @@ export const TutorDashboard: React.FC = () => {
   const [selectedStudent, setSelectedStudent] = useState<StudentProfile | null>(null);
   const [selectedChatContact, setSelectedChatContact] = useState<{ id: string; name: string } | null>(null);
 
+  // Edit strengths/weaknesses state
+  const [isEditingSkills, setIsEditingSkills] = useState(false);
+  const [editStrengths, setEditStrengths] = useState<string[]>([]);
+  const [editWeaknesses, setEditWeaknesses] = useState<string[]>([]);
+  const [newStrength, setNewStrength] = useState('');
+  const [newWeakness, setNewWeakness] = useState('');
+  const [isSavingSkills, setIsSavingSkills] = useState(false);
+
   // Admin states
   const [adminUsers, setAdminUsers] = useState<UserRecord[]>([]);
   const [isLoadingAdmin, setIsLoadingAdmin] = useState(false);
@@ -558,6 +566,70 @@ export const TutorDashboard: React.FC = () => {
     resetSessionNotes();
   };
 
+  // Skill editing handlers
+  const handleStartEditingSkills = () => {
+    if (selectedStudent) {
+      setEditStrengths([...selectedStudent.stats.strengths]);
+      setEditWeaknesses([...selectedStudent.stats.weaknesses]);
+      setIsEditingSkills(true);
+    }
+  };
+
+  const handleCancelEditingSkills = () => {
+    setIsEditingSkills(false);
+    setNewStrength('');
+    setNewWeakness('');
+  };
+
+  const handleAddStrength = () => {
+    if (newStrength.trim() && !editStrengths.includes(newStrength.trim())) {
+      setEditStrengths([...editStrengths, newStrength.trim()]);
+      setNewStrength('');
+    }
+  };
+
+  const handleRemoveStrength = (index: number) => {
+    setEditStrengths(editStrengths.filter((_, i) => i !== index));
+  };
+
+  const handleAddWeakness = () => {
+    if (newWeakness.trim() && !editWeaknesses.includes(newWeakness.trim())) {
+      setEditWeaknesses([...editWeaknesses, newWeakness.trim()]);
+      setNewWeakness('');
+    }
+  };
+
+  const handleRemoveWeakness = (index: number) => {
+    setEditWeaknesses(editWeaknesses.filter((_, i) => i !== index));
+  };
+
+  const handleSaveSkills = async () => {
+    if (!selectedStudent) return;
+    setIsSavingSkills(true);
+    try {
+      await updateStudent(selectedStudent.id, {
+        strengths: editStrengths,
+        weaknesses: editWeaknesses,
+      });
+      // Update local state
+      setSelectedStudent({
+        ...selectedStudent,
+        stats: {
+          ...selectedStudent.stats,
+          strengths: editStrengths,
+          weaknesses: editWeaknesses,
+        },
+      });
+      setIsEditingSkills(false);
+      setNewStrength('');
+      setNewWeakness('');
+    } catch (error) {
+      console.error('Failed to save skills:', error);
+    } finally {
+      setIsSavingSkills(false);
+    }
+  };
+
   const chatContacts = [
     ...students.map(s => ({ id: s.id, name: s.name, role: 'Student', lastMessage: 'Last message...' })),
     ...students
@@ -930,23 +1002,125 @@ export const TutorDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <h4 className="text-sm font-medium text-neutral-400 mb-2">Strengths</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedStudent.stats.strengths.map((s, i) => (
-                        <Badge key={i} variant="success" size="sm">{s}</Badge>
-                      ))}
-                    </div>
+                {/* Power Skills & Training Grounds */}
+                <div className="border-t border-neutral-800 pt-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-sm font-medium text-neutral-400">Power Skills & Training Grounds</h4>
+                    {!isEditingSkills ? (
+                      <Button variant="ghost" size="sm" onClick={handleStartEditingSkills}>
+                        <Settings className="w-4 h-4 mr-1" />
+                        Edit
+                      </Button>
+                    ) : (
+                      <div className="flex gap-2">
+                        <Button variant="ghost" size="sm" onClick={handleCancelEditingSkills}>
+                          Cancel
+                        </Button>
+                        <Button variant="primary" size="sm" onClick={handleSaveSkills} disabled={isSavingSkills}>
+                          {isSavingSkills ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save'}
+                        </Button>
+                      </div>
+                    )}
                   </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-neutral-400 mb-2">Needs Work</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedStudent.stats.weaknesses.map((w, i) => (
-                        <Badge key={i} variant="warning" size="sm">{w}</Badge>
-                      ))}
+
+                  {!isEditingSkills ? (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="text-xs font-medium text-green-400 mb-2 flex items-center gap-1">
+                          <TrendingUp className="w-3 h-3" /> Power Skills
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedStudent.stats.strengths.length > 0 ? (
+                            selectedStudent.stats.strengths.map((s, i) => (
+                              <Badge key={i} variant="success" size="sm">{s}</Badge>
+                            ))
+                          ) : (
+                            <p className="text-xs text-neutral-500 italic">No skills added yet</p>
+                          )}
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-medium text-orange-400 mb-2 flex items-center gap-1">
+                          <Target className="w-3 h-3" /> Training Grounds
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedStudent.stats.weaknesses.length > 0 ? (
+                            selectedStudent.stats.weaknesses.map((w, i) => (
+                              <Badge key={i} variant="warning" size="sm">{w}</Badge>
+                            ))
+                          ) : (
+                            <p className="text-xs text-neutral-500 italic">No areas added yet</p>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-4">
+                      {/* Edit Strengths */}
+                      <div className="space-y-2">
+                        <h4 className="text-xs font-medium text-green-400 flex items-center gap-1">
+                          <TrendingUp className="w-3 h-3" /> Power Skills
+                        </h4>
+                        <div className="flex gap-2">
+                          <Input
+                            value={newStrength}
+                            onChange={(e) => setNewStrength(e.target.value)}
+                            placeholder="Add skill..."
+                            onKeyDown={(e) => e.key === 'Enter' && handleAddStrength()}
+                            className="text-sm"
+                          />
+                          <Button variant="ghost" size="sm" onClick={handleAddStrength}>
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        <div className="flex flex-wrap gap-2 min-h-[40px] p-2 bg-neutral-800/30 rounded-lg">
+                          {editStrengths.map((s, i) => (
+                            <Badge key={i} variant="success" size="sm" className="flex items-center gap-1">
+                              {s}
+                              <button onClick={() => handleRemoveStrength(i)} className="ml-1 hover:text-red-400">
+                                <X className="w-3 h-3" />
+                              </button>
+                            </Badge>
+                          ))}
+                          {editStrengths.length === 0 && (
+                            <p className="text-xs text-neutral-500 italic">Type and press Enter to add</p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Edit Weaknesses */}
+                      <div className="space-y-2">
+                        <h4 className="text-xs font-medium text-orange-400 flex items-center gap-1">
+                          <Target className="w-3 h-3" /> Training Grounds
+                        </h4>
+                        <div className="flex gap-2">
+                          <Input
+                            value={newWeakness}
+                            onChange={(e) => setNewWeakness(e.target.value)}
+                            placeholder="Add area..."
+                            onKeyDown={(e) => e.key === 'Enter' && handleAddWeakness()}
+                            className="text-sm"
+                          />
+                          <Button variant="ghost" size="sm" onClick={handleAddWeakness}>
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        <div className="flex flex-wrap gap-2 min-h-[40px] p-2 bg-neutral-800/30 rounded-lg">
+                          {editWeaknesses.map((w, i) => (
+                            <Badge key={i} variant="warning" size="sm" className="flex items-center gap-1">
+                              {w}
+                              <button onClick={() => handleRemoveWeakness(i)} className="ml-1 hover:text-red-400">
+                                <X className="w-3 h-3" />
+                              </button>
+                            </Badge>
+                          ))}
+                          {editWeaknesses.length === 0 && (
+                            <p className="text-xs text-neutral-500 italic">Type and press Enter to add</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Additional Analytics */}
