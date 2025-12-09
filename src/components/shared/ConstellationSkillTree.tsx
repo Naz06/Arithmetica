@@ -787,18 +787,50 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
                       fill="transparent"
                       pointerEvents="all"
                     />
-                    {/* Selection/hover pulse ring */}
+                    {/* Selection/hover glow ring */}
                     {(isSelected || isHovered) && topic.isUnlocked && (
-                      <circle
-                        cx={topic.x}
-                        cy={topic.y}
-                        r={scaledRadius + 1}
-                        fill="none"
-                        stroke="#fff"
-                        strokeWidth="0.15"
-                        opacity="0.6"
-                        className="animate-pulse-ring"
-                      />
+                      <>
+                        <circle
+                          cx={topic.x}
+                          cy={topic.y}
+                          r={scaledRadius + 1.5}
+                          fill="none"
+                          stroke={currentConstellation.color}
+                          strokeWidth="0.4"
+                          opacity="0.6"
+                          pointerEvents="none"
+                        >
+                          <animate
+                            attributeName="opacity"
+                            values="0.6;0.3;0.6"
+                            dur="1.5s"
+                            repeatCount="indefinite"
+                          />
+                          <animate
+                            attributeName="stroke-width"
+                            values="0.4;0.6;0.4"
+                            dur="1.5s"
+                            repeatCount="indefinite"
+                          />
+                        </circle>
+                        <circle
+                          cx={topic.x}
+                          cy={topic.y}
+                          r={scaledRadius + 2.5}
+                          fill="none"
+                          stroke={currentConstellation.color}
+                          strokeWidth="0.2"
+                          opacity="0.3"
+                          pointerEvents="none"
+                        >
+                          <animate
+                            attributeName="opacity"
+                            values="0.3;0.1;0.3"
+                            dur="1.5s"
+                            repeatCount="indefinite"
+                          />
+                        </circle>
+                      </>
                     )}
 
                     {/* Outer glow */}
@@ -1056,13 +1088,6 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
           50% { stroke-opacity: 1; }
         }
         .animate-energy-flow { animation: energy-flow 2s ease-in-out infinite; }
-
-        /* Pulse ring for selected/hovered nodes */
-        @keyframes pulse-ring {
-          0%, 100% { opacity: 0.6; transform: scale(1); }
-          50% { opacity: 0.3; transform: scale(1.1); }
-        }
-        .animate-pulse-ring { animation: pulse-ring 1.5s ease-in-out infinite; }
 
         /* Mastered node glow animations */
         @keyframes mastered-pulse {
