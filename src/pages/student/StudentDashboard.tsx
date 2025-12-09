@@ -17,8 +17,8 @@ import { ConstellationSkillTree } from '../../components/shared/ConstellationSki
 import { LessonPlans } from '../../components/shared/LessonPlans';
 import { StellarJourney } from '../../components/shared/StellarJourney';
 import { LeaderboardPreview, Leaderboard } from '../../components/shared/Leaderboard';
-import { CommandCenter, CommandCenterPreview } from '../../components/shared/CommandCenter';
-import { SpaceItemCategory, getItemById, getItemPrice, defaultEquippedItems, defaultInventory } from '../../data/spaceShopItems';
+import { CommandCenter } from '../../components/shared/CommandCenter';
+import { SpaceItemCategory, getItemById, defaultEquippedItems, defaultInventory } from '../../data/spaceShopItems';
 import {
   Star,
   Zap,
@@ -26,8 +26,6 @@ import {
   Trophy,
   Flame,
   BookOpen,
-  MessageCircle,
-  ShoppingBag,
   FileText,
   TrendingUp,
   Award,
@@ -36,17 +34,15 @@ import {
   Send,
   AlertTriangle,
   History,
-  TrendingDown,
 } from 'lucide-react';
-import { StudentProfile, ShopItem, QuickNotificationType, Notification, ResourceLevel, PenaltyRecord, EquippedItems, ActiveBooster } from '../../types';
+import { StudentProfile, QuickNotificationType, Notification, ResourceLevel, EquippedItems, ActiveBooster } from '../../types';
 import { Rocket } from 'lucide-react';
-import { shopItems } from '../../data/demoData';
 import { getPenaltyDisplayInfo, getTotalPenaltiesInPeriod, isStudentAtRisk } from '../../utils/penaltySystem';
 
 export const StudentDashboard: React.FC = () => {
   const location = useLocation();
   const { user, getStudentById, updateStudent, getTutor, getAllStudents } = useAuth();
-  const { getResourcesByStudentId, getAssessmentsByStudentId, getScheduleByStudentId, shopItems: items, purchaseItem, addNotification } = useData();
+  const { getResourcesByStudentId, getAssessmentsByStudentId, getScheduleByStudentId, addNotification } = useData();
 
   const student = user?.role === 'student' ? getStudentById(user.id) : null;
   const tutor = getTutor();
@@ -75,7 +71,6 @@ export const StudentDashboard: React.FC = () => {
   const resources = allResources.filter(r => !r.level || r.level === studentLevel);
 
   const [showChatModal, setShowChatModal] = useState(false);
-  const [showShopModal, setShowShopModal] = useState(false);
   const [showAchievementsModal, setShowAchievementsModal] = useState(false);
   const [showResourcesModal, setShowResourcesModal] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
@@ -105,9 +100,7 @@ export const StudentDashboard: React.FC = () => {
   // Handle URL-based navigation for sidebar items
   useEffect(() => {
     const path = location.pathname;
-    if (path.includes('/shop')) {
-      setShowShopModal(true);
-    } else if (path.includes('/achievements')) {
+    if (path.includes('/achievements')) {
       setShowAchievementsModal(true);
     } else if (path.includes('/messages')) {
       setShowChatModal(true);
@@ -271,98 +264,6 @@ export const StudentDashboard: React.FC = () => {
     stat => student.subjects.includes(stat.subject)
   );
 
-  const handlePurchase = (item: ShopItem) => {
-    if (student.points >= item.cost && !student.avatar.unlockedItems.includes(item.id)) {
-      purchaseItem(item.id, student.id, updateStudent, student);
-    }
-  };
-
-  // Rarity color mapping
-  const getRarityColor = (rarity?: string) => {
-    switch (rarity) {
-      case 'common': return 'text-neutral-400 border-neutral-600';
-      case 'rare': return 'text-blue-400 border-blue-500/50';
-      case 'epic': return 'text-purple-400 border-purple-500/50';
-      case 'legendary': return 'text-yellow-400 border-yellow-500/50';
-      default: return 'text-neutral-400 border-neutral-600';
-    }
-  };
-
-  const getRarityGlow = (rarity?: string) => {
-    switch (rarity) {
-      case 'epic': return 'shadow-purple-500/20 shadow-lg';
-      case 'legendary': return 'shadow-yellow-500/30 shadow-lg animate-pulse';
-      default: return '';
-    }
-  };
-
-  // Filter shop items by student level - unlock more items as level increases
-  const getAvailableShopItems = (allItems: ShopItem[], type: string): ShopItem[] => {
-    const filtered = allItems.filter(i => i.type === type);
-    const level = student.level;
-
-    // Calculate how many items to show based on level
-    // Level 1-5: ~40% of items (mostly common)
-    // Level 6-10: ~60% of items (common + rare)
-    // Level 11-15: ~80% of items (common + rare + epic)
-    // Level 16+: 100% of items (all including legendary)
-
-    const sortedByRarity = filtered.sort((a, b) => {
-      const rarityOrder = { 'common': 0, 'rare': 1, 'epic': 2, 'legendary': 3 };
-      return (rarityOrder[a.rarity || 'common'] || 0) - (rarityOrder[b.rarity || 'common'] || 0);
-    });
-
-    let percentToShow = 0.4;
-    if (level >= 16) percentToShow = 1;
-    else if (level >= 11) percentToShow = 0.8;
-    else if (level >= 6) percentToShow = 0.6;
-
-    const itemCount = Math.max(2, Math.ceil(sortedByRarity.length * percentToShow));
-    return sortedByRarity.slice(0, itemCount);
-  };
-
-  // Render shop item card
-  const renderShopItem = (item: ShopItem) => {
-    const owned = student.avatar.unlockedItems.includes(item.id);
-    const canAfford = student.points >= item.cost;
-    return (
-      <div
-        key={item.id}
-        className={`p-4 rounded-xl border text-center transition-all ${getRarityGlow(item.rarity)} ${
-          owned
-            ? 'bg-green-500/10 border-green-500/30'
-            : canAfford
-            ? `bg-neutral-800/50 ${getRarityColor(item.rarity)} hover:border-primary-500`
-            : 'bg-neutral-800/30 border-neutral-800 opacity-50'
-        }`}
-      >
-        <div className="text-4xl mb-2">{item.image}</div>
-        <p className="text-sm font-medium text-neutral-100">{item.name}</p>
-        {item.rarity && (
-          <span className={`text-xs capitalize ${getRarityColor(item.rarity).split(' ')[0]}`}>
-            {item.rarity}
-          </span>
-        )}
-        {item.description && (
-          <p className="text-xs text-neutral-500 mt-1 line-clamp-2">{item.description}</p>
-        )}
-        <p className="text-xs text-yellow-500 mt-1">
-          {owned ? '✓ Owned' : `${item.cost} pts`}
-        </p>
-        {!owned && canAfford && (
-          <Button
-            size="sm"
-            variant="primary"
-            className="mt-2 w-full"
-            onClick={() => handlePurchase(item)}
-          >
-            Buy
-          </Button>
-        )}
-      </div>
-    );
-  };
-
   // Dynamic achievements based on actual student data
   const hasPerfectScore = assessments.some(a => a.score === a.maxScore);
   const highScoreCount = assessments.filter(a => (a.score / a.maxScore) * 100 >= 80).length;
@@ -403,20 +304,54 @@ export const StudentDashboard: React.FC = () => {
         {/* Header with Avatar and Level */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div className="flex items-center gap-6">
-            <GameAvatar
-              character={student.avatar.baseCharacter}
-              outfit={student.avatar.outfit}
-              accessory={student.avatar.accessory}
-              background={student.avatar.background}
-              badge={student.avatar.badge}
-              level={student.level}
-              size="lg"
-            />
+            {/* Clickable Avatar with Equipped Frame */}
+            {(() => {
+              const equipped = student.equippedItems || { title: null, frame: null, avatar: 'avatar-astronaut-blue', spaceship: 'ship-starter-shuttle', celebration: 'celebration-stars' };
+              const frameItem = equipped.frame ? getItemById(equipped.frame) : null;
+              const avatarItem = equipped.avatar ? getItemById(equipped.avatar) : null;
+              const titleItem = equipped.title ? getItemById(equipped.title) : null;
+              const activeBoosters = (student.activeBoosters || []).filter(b => !b.used && (!b.expiresAt || new Date(b.expiresAt) > new Date()));
+
+              return (
+                <button
+                  onClick={() => setShowCommandCenterModal(true)}
+                  className={`relative w-20 h-20 rounded-full bg-neutral-800 flex items-center justify-center text-4xl border-3 transition-all hover:scale-105 cursor-pointer ${
+                    frameItem ? `border-${frameItem.rarity === 'legendary' ? 'yellow' : frameItem.rarity === 'epic' ? 'purple' : frameItem.rarity === 'rare' ? 'blue' : 'neutral'}-500` : 'border-primary-500/50'
+                  } ${frameItem?.rarity === 'legendary' ? 'shadow-yellow-500/30 shadow-lg' : frameItem?.rarity === 'epic' ? 'shadow-purple-500/20 shadow-lg' : ''}`}
+                  title="Open Command Center"
+                >
+                  {avatarItem?.icon || '👨‍🚀'}
+                  {/* Level badge */}
+                  <div className="absolute -bottom-1 -right-1 w-7 h-7 bg-primary-500 rounded-full flex items-center justify-center text-xs font-bold text-white border-2 border-neutral-900">
+                    {student.level}
+                  </div>
+                  {/* Active booster indicator */}
+                  {activeBoosters.length > 0 && (
+                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-yellow-500 rounded-full flex items-center justify-center text-xs animate-pulse" title={`${activeBoosters.length} active booster(s)`}>
+                      ⚡
+                    </div>
+                  )}
+                </button>
+              );
+            })()}
             <div>
-              <h1 className="text-3xl font-bold text-neutral-100 font-['Space_Grotesk']">
-                Welcome back, {student.name.split(' ')[0]}! 🌟
-              </h1>
-              <div className="mt-2 flex items-center gap-4">
+              {/* Name with Title */}
+              {(() => {
+                const equipped = student.equippedItems || { title: null, frame: null, avatar: 'avatar-astronaut-blue', spaceship: 'ship-starter-shuttle', celebration: 'celebration-stars' };
+                const titleItem = equipped.title ? getItemById(equipped.title) : null;
+
+                return (
+                  <h1 className="text-3xl font-bold text-neutral-100 font-['Space_Grotesk'] flex items-center gap-2">
+                    Welcome back, {student.name.split(' ')[0]}!
+                    {titleItem && (
+                      <span className={`text-lg ${titleItem.rarity === 'legendary' ? 'text-yellow-400' : titleItem.rarity === 'epic' ? 'text-purple-400' : titleItem.rarity === 'rare' ? 'text-blue-400' : 'text-neutral-400'}`} title={titleItem.name}>
+                        {titleItem.icon}
+                      </span>
+                    )}
+                  </h1>
+                );
+              })()}
+              <div className="mt-2 flex items-center gap-4 flex-wrap">
                 <div className="flex items-center gap-2">
                   <Star className="w-5 h-5 text-yellow-500" />
                   <span className="text-lg font-bold text-yellow-500">{student.points} pts</span>
@@ -428,15 +363,31 @@ export const StudentDashboard: React.FC = () => {
                   </div>
                   <ProgressBar value={xpProgress} size="sm" variant="gradient" />
                 </div>
+                {/* Active Boosters Display */}
+                {(() => {
+                  const activeBoosters = (student.activeBoosters || []).filter(b => !b.used && (!b.expiresAt || new Date(b.expiresAt) > new Date()));
+                  if (activeBoosters.length === 0) return null;
+
+                  return (
+                    <div className="flex items-center gap-1">
+                      {activeBoosters.slice(0, 3).map(booster => {
+                        const item = getItemById(booster.itemId);
+                        const timeLeft = booster.expiresAt ? Math.max(0, Math.ceil((new Date(booster.expiresAt).getTime() - Date.now()) / (1000 * 60 * 60))) : null;
+                        return (
+                          <span key={booster.id} className="px-2 py-1 bg-yellow-500/20 rounded-full text-xs text-yellow-400 flex items-center gap-1" title={`${item?.name}: ${booster.effect}${timeLeft ? ` (${timeLeft}h left)` : ''}`}>
+                            {item?.icon} {timeLeft ? `${timeLeft}h` : ''}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           </div>
           <div className="flex gap-3">
             <Button variant="secondary" onClick={() => setShowQuickMessageModal(true)} icon={<Send className="w-4 h-4" />}>
               Quick Message
-            </Button>
-            <Button variant="secondary" onClick={() => setShowShopModal(true)} icon={<ShoppingBag className="w-4 h-4" />}>
-              Shop
             </Button>
             <Button variant="secondary" onClick={() => setShowAchievementsModal(true)} icon={<Trophy className="w-4 h-4" />}>
               Achievements
@@ -649,12 +600,6 @@ export const StudentDashboard: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* Command Center Preview */}
-            <CommandCenterPreview
-              student={student}
-              onClick={() => setShowCommandCenterModal(true)}
-            />
-
             {/* Leaderboard */}
             <LeaderboardPreview
               students={getAllStudents()}
@@ -673,79 +618,6 @@ export const StudentDashboard: React.FC = () => {
         size="lg"
       >
         <Chat recipientId={tutor.id} recipientName={tutor.name} />
-      </Modal>
-
-      {/* Shop Modal */}
-      <Modal
-        isOpen={showShopModal}
-        onClose={() => setShowShopModal(false)}
-        title="Cosmic Shop"
-        size="xl"
-      >
-        <div className="mb-6 p-4 bg-primary-500/10 border border-primary-500/30 rounded-xl flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Star className="w-8 h-8 text-yellow-500" />
-            <div>
-              <p className="text-sm text-neutral-400">Your Balance</p>
-              <p className="text-2xl font-bold text-yellow-500">{student.points} Points</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="mb-4 p-3 bg-neutral-800/30 rounded-lg">
-          <p className="text-xs text-neutral-400 text-center">
-            Level {student.level} — {student.level < 6 ? 'Unlock more items at Level 6!' : student.level < 11 ? 'Unlock more items at Level 11!' : student.level < 16 ? 'Unlock legendary items at Level 16!' : 'All items unlocked!'}
-          </p>
-        </div>
-        <Tabs
-          tabs={[
-            {
-              id: 'outfits',
-              label: 'Outfits',
-              content: (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {getAvailableShopItems(items, 'outfit').map(renderShopItem)}
-                </div>
-              ),
-            },
-            {
-              id: 'accessories',
-              label: 'Accessories',
-              content: (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {getAvailableShopItems(items, 'accessory').map(renderShopItem)}
-                </div>
-              ),
-            },
-            {
-              id: 'backgrounds',
-              label: 'Backgrounds',
-              content: (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {getAvailableShopItems(items, 'background').map(renderShopItem)}
-                </div>
-              ),
-            },
-            {
-              id: 'badges',
-              label: 'Badges',
-              content: (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {getAvailableShopItems(items, 'badge').map(renderShopItem)}
-                </div>
-              ),
-            },
-            {
-              id: 'pets',
-              label: 'Pets',
-              content: (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {getAvailableShopItems(items, 'pet').map(renderShopItem)}
-                </div>
-              ),
-            },
-          ]}
-        />
       </Modal>
 
       {/* Resources Modal */}
