@@ -502,6 +502,7 @@ export const StudentDashboard: React.FC = () => {
               streakDays={student.stats.streakDays}
               recentPenalties={recentPenalties}
               showWarnings={true}
+              equippedSpaceship={student.equippedItems?.spaceship || 'ship-starter-shuttle'}
             />
 
             {/* Strengths & Weaknesses */}

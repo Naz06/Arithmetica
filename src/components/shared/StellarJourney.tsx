@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Subject, WeeklyProgress, PenaltyRecord } from '../../types';
 import { calculateStarBrightness, isLowEngagementWeek } from '../../utils/penaltySystem';
+import { getItemById, ItemRarity } from '../../data/spaceShopItems';
 
 interface StellarJourneyProps {
   weeklyData: WeeklyProgress[];
@@ -21,6 +22,7 @@ interface StellarJourneyProps {
   streakDays?: number;
   recentPenalties?: PenaltyRecord[];
   showWarnings?: boolean;
+  equippedSpaceship?: string; // Spaceship item ID from Command Center
 }
 
 export const StellarJourney: React.FC<StellarJourneyProps> = ({
@@ -30,7 +32,23 @@ export const StellarJourney: React.FC<StellarJourneyProps> = ({
   streakDays = 0,
   recentPenalties = [],
   showWarnings = true,
+  equippedSpaceship = 'ship-starter-shuttle',
 }) => {
+  // Get spaceship item details
+  const spaceshipItem = getItemById(equippedSpaceship);
+  const spaceshipIcon = spaceshipItem?.icon || '🚀';
+  const spaceshipRarity = spaceshipItem?.rarity || 'common';
+
+  // Get trail color based on rarity
+  const getTrailColor = (rarity: ItemRarity) => {
+    switch (rarity) {
+      case 'legendary': return { primary: '#FFD700', glow: 'rgba(255, 215, 0, 0.6)', trail: 'rgba(255, 215, 0, 0.3)' };
+      case 'epic': return { primary: '#A855F7', glow: 'rgba(168, 85, 247, 0.6)', trail: 'rgba(168, 85, 247, 0.3)' };
+      case 'rare': return { primary: '#3B82F6', glow: 'rgba(59, 130, 246, 0.6)', trail: 'rgba(59, 130, 246, 0.3)' };
+      default: return { primary: '#6366F1', glow: 'rgba(99, 102, 241, 0.6)', trail: 'rgba(99, 102, 241, 0.3)' };
+    }
+  };
+  const trailColors = getTrailColor(spaceshipRarity);
   // Check for recent penalties to show warning
   const hasRecentPenalties = recentPenalties.filter(p => !p.waived).length > 0;
   const totalPenaltyPoints = recentPenalties
@@ -440,26 +458,90 @@ export const StellarJourney: React.FC<StellarJourneyProps> = ({
               );
             })}
 
-            {/* Rocket at current position */}
+            {/* Spaceship at current position with trail */}
             {pathData.nodes.length > 0 && (
               <g
-                transform={`translate(${pathData.nodes[currentNodeIndex].x}, ${pathData.nodes[currentNodeIndex].y - 25})`}
-                className="rocket-animate"
+                transform={`translate(${pathData.nodes[currentNodeIndex].x}, ${pathData.nodes[currentNodeIndex].y})`}
               >
-                <text fontSize="24" textAnchor="middle" dominantBaseline="middle">
-                  🚀
-                </text>
+                {/* Trail particles behind the ship */}
+                <g className="trail-particles">
+                  {/* Main engine trail */}
+                  <ellipse
+                    cx="-25"
+                    cy="8"
+                    rx="20"
+                    ry="4"
+                    fill={trailColors.trail}
+                    opacity="0.6"
+                  >
+                    <animate attributeName="rx" values="20;15;20" dur="0.5s" repeatCount="indefinite" />
+                    <animate attributeName="opacity" values="0.6;0.3;0.6" dur="0.5s" repeatCount="indefinite" />
+                  </ellipse>
+                  <ellipse
+                    cx="-40"
+                    cy="8"
+                    rx="15"
+                    ry="3"
+                    fill={trailColors.trail}
+                    opacity="0.4"
+                  >
+                    <animate attributeName="rx" values="15;10;15" dur="0.6s" repeatCount="indefinite" />
+                  </ellipse>
+                  <ellipse
+                    cx="-55"
+                    cy="8"
+                    rx="10"
+                    ry="2"
+                    fill={trailColors.trail}
+                    opacity="0.2"
+                  >
+                    <animate attributeName="opacity" values="0.2;0.1;0.2" dur="0.7s" repeatCount="indefinite" />
+                  </ellipse>
 
-                {/* Rocket trail */}
-                <ellipse
+                  {/* Sparkle particles */}
+                  {[...Array(5)].map((_, i) => (
+                    <circle
+                      key={i}
+                      cx={-30 - i * 12}
+                      cy={8 + Math.sin(i * 1.5) * 4}
+                      r={2 - i * 0.3}
+                      fill={trailColors.primary}
+                      opacity={0.6 - i * 0.1}
+                    >
+                      <animate
+                        attributeName="opacity"
+                        values={`${0.6 - i * 0.1};${0.2 - i * 0.02};${0.6 - i * 0.1}`}
+                        dur={`${0.3 + i * 0.1}s`}
+                        repeatCount="indefinite"
+                      />
+                    </circle>
+                  ))}
+                </g>
+
+                {/* Ship glow effect */}
+                <circle
                   cx="0"
-                  cy="20"
-                  rx="8"
-                  ry="15"
-                  fill="url(#rocketGrad)"
+                  cy="0"
+                  r="18"
+                  fill={trailColors.glow}
+                  filter="url(#glow)"
                   opacity="0.4"
-                  style={{ transform: 'rotate(45deg)' }}
-                />
+                >
+                  <animate attributeName="r" values="18;22;18" dur="1.5s" repeatCount="indefinite" />
+                  <animate attributeName="opacity" values="0.4;0.6;0.4" dur="1.5s" repeatCount="indefinite" />
+                </circle>
+
+                {/* The spaceship icon */}
+                <g className="rocket-animate">
+                  <text
+                    fontSize="28"
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    style={{ filter: spaceshipRarity === 'legendary' ? 'drop-shadow(0 0 6px gold)' : spaceshipRarity === 'epic' ? 'drop-shadow(0 0 4px purple)' : undefined }}
+                  >
+                    {spaceshipIcon}
+                  </text>
+                </g>
               </g>
             )}
           </svg>
