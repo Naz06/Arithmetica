@@ -163,6 +163,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         inventory,
         equipped_items,
         active_boosters,
+        topic_mastery,
         created_at,
         updated_at,
         profiles:user_id (
@@ -219,6 +220,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             bonusHistory: s.bonus_history || [],
             homeworkStreak: s.homework_streak || 0,
             lastActivityDate: s.last_activity_date || undefined,
+            // Topic mastery for Constellation Skill Tree
+            topicMastery: s.topic_mastery || [],
           },
           achievements: s.achievements || [],
         };
@@ -757,6 +760,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           average_score: updatedStudent.stats.averageScore || 0,
           attendance_rate: updatedStudent.stats.attendanceRate || 100,
           weekly_progress: updatedStudent.stats.weeklyProgress || [],
+          // Topic mastery for Constellation Skill Tree
+          topic_mastery: updatedStudent.stats.topicMastery || [],
         };
 
         const { error } = await supabase

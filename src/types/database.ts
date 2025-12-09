@@ -53,6 +53,29 @@ export interface Database {
           achievements: string[];
           strengths: string[];
           weaknesses: string[];
+          // Penalty system fields
+          penalty_history: Json;
+          low_engagement_weeks: number;
+          missed_sessions_count: number;
+          // Bonus system fields
+          bonus_history: Json;
+          homework_streak: number;
+          last_activity_date: string | null;
+          // Weekly progress for Stellar Journey
+          weekly_progress: Json;
+          // Additional stats
+          total_sessions: number;
+          completed_assignments: number;
+          average_score: number;
+          attendance_rate: number;
+          // Leaderboard
+          username: string | null;
+          // Command Center
+          inventory: Json;
+          equipped_items: Json | null;
+          active_boosters: Json;
+          // Topic mastery for Constellation Skill Tree
+          topic_mastery: Json;
           created_at: string;
           updated_at: string;
         };
@@ -69,6 +92,22 @@ export interface Database {
           achievements?: string[];
           strengths?: string[];
           weaknesses?: string[];
+          penalty_history?: Json;
+          low_engagement_weeks?: number;
+          missed_sessions_count?: number;
+          bonus_history?: Json;
+          homework_streak?: number;
+          last_activity_date?: string | null;
+          weekly_progress?: Json;
+          total_sessions?: number;
+          completed_assignments?: number;
+          average_score?: number;
+          attendance_rate?: number;
+          username?: string | null;
+          inventory?: Json;
+          equipped_items?: Json | null;
+          active_boosters?: Json;
+          topic_mastery?: Json;
           created_at?: string;
           updated_at?: string;
         };
@@ -82,6 +121,22 @@ export interface Database {
           achievements?: string[];
           strengths?: string[];
           weaknesses?: string[];
+          penalty_history?: Json;
+          low_engagement_weeks?: number;
+          missed_sessions_count?: number;
+          bonus_history?: Json;
+          homework_streak?: number;
+          last_activity_date?: string | null;
+          weekly_progress?: Json;
+          total_sessions?: number;
+          completed_assignments?: number;
+          average_score?: number;
+          attendance_rate?: number;
+          username?: string | null;
+          inventory?: Json;
+          equipped_items?: Json | null;
+          active_boosters?: Json;
+          topic_mastery?: Json;
           updated_at?: string;
         };
       };
