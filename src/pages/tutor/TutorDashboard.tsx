@@ -50,6 +50,7 @@ import {
   Upload,
   File,
   Loader2,
+  BarChart3,
 } from 'lucide-react';
 import { StudentProfile, ParentProfile, Resource, ScheduleEvent, Subject, YearGroup, ResourceLevel, ResourceSubtype, Notification } from '../../types';
 import { adminService, UserRecord, CreateUserData } from '../../services/adminService';
