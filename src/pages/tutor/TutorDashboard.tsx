@@ -1284,18 +1284,33 @@ export const TutorDashboard: React.FC = () => {
                         economics: '#06B6D4',
                       };
 
-                      // Prepare chart data - group by date and show percentage
-                      const chartData = studentAssessments
+                      // Get unique subjects from assessments
+                      const activeSubjects = [...new Set(studentAssessments.map(a => a.subject))];
+
+                      // Group assessments by date, with subject scores
+                      const assessmentsByDate = studentAssessments
                         .slice()
                         .reverse()
-                        .slice(-10)
-                        .map(a => ({
-                          date: new Date(a.dateTaken || a.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
-                          score: Math.round((a.score / a.maxScore) * 100),
-                          classAvg: a.classAverage ? Math.round((a.classAverage / a.maxScore) * 100) : null,
-                          title: a.title,
-                          subject: a.subject,
-                        }));
+                        .reduce((acc: any[], a) => {
+                          const dateStr = new Date(a.dateTaken || a.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+                          const percentage = Math.round((a.score / a.maxScore) * 100);
+
+                          // Find existing date entry or create new one
+                          let entry = acc.find(e => e.date === dateStr);
+                          if (!entry) {
+                            entry = { date: dateStr, title: a.title };
+                            acc.push(entry);
+                          }
+
+                          // Add subject score (if multiple same subject on same day, take latest)
+                          entry[a.subject] = percentage;
+                          entry.title = a.title;
+
+                          return acc;
+                        }, []);
+
+                      // Take last 12 data points for chart
+                      const chartData = assessmentsByDate.slice(-12);
 
                       if (studentAssessments.length === 0) {
                         return (
@@ -1308,7 +1323,7 @@ export const TutorDashboard: React.FC = () => {
 
                       return (
                         <div className="space-y-4">
-                          {/* Performance Trend Chart */}
+                          {/* Performance Trend Chart - Multi-subject */}
                           <div className="h-40">
                             <ResponsiveContainer width="100%" height="100%">
                               <LineChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -1334,41 +1349,36 @@ export const TutorDashboard: React.FC = () => {
                                   }}
                                   formatter={(value: number, name: string) => [
                                     `${value}%`,
-                                    name === 'score' ? 'Student' : 'Class Avg'
+                                    name.charAt(0).toUpperCase() + name.slice(1)
                                   ]}
-                                  labelFormatter={(label, payload) => payload?.[0]?.payload?.title || label}
                                 />
-                                <Line
-                                  type="monotone"
-                                  dataKey="score"
-                                  stroke="#8B5CF6"
-                                  strokeWidth={2}
-                                  dot={{ fill: '#8B5CF6', strokeWidth: 0, r: 4 }}
-                                  activeDot={{ r: 6, strokeWidth: 0 }}
-                                />
-                                <Line
-                                  type="monotone"
-                                  dataKey="classAvg"
-                                  stroke="#6B7280"
-                                  strokeWidth={1}
-                                  strokeDasharray="4 4"
-                                  dot={false}
-                                  connectNulls
-                                />
+                                {activeSubjects.map(subject => (
+                                  <Line
+                                    key={subject}
+                                    type="monotone"
+                                    dataKey={subject}
+                                    stroke={subjectColors[subject] || '#8B5CF6'}
+                                    strokeWidth={2}
+                                    dot={{ fill: subjectColors[subject] || '#8B5CF6', strokeWidth: 0, r: 4 }}
+                                    activeDot={{ r: 6, strokeWidth: 0 }}
+                                    connectNulls
+                                  />
+                                ))}
                               </LineChart>
                             </ResponsiveContainer>
                           </div>
 
-                          {/* Chart Legend */}
-                          <div className="flex gap-4 text-xs text-neutral-400 border-b border-neutral-700 pb-3">
-                            <div className="flex items-center gap-1.5">
-                              <div className="w-3 h-0.5 bg-purple-500 rounded" />
-                              <span>Student Score</span>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                              <div className="w-3 h-0.5 bg-neutral-500 rounded" style={{ borderStyle: 'dashed' }} />
-                              <span>Class Average</span>
-                            </div>
+                          {/* Subject Legend */}
+                          <div className="flex flex-wrap gap-3 text-xs text-neutral-400 border-b border-neutral-700 pb-3">
+                            {activeSubjects.map(subject => (
+                              <div key={subject} className="flex items-center gap-1.5">
+                                <div
+                                  className="w-3 h-3 rounded-full"
+                                  style={{ backgroundColor: subjectColors[subject] || '#8B5CF6' }}
+                                />
+                                <span className="capitalize">{subject}</span>
+                              </div>
+                            ))}
                           </div>
 
                           {/* Recent Exams Table */}
