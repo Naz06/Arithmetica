@@ -1261,23 +1261,32 @@ export const TutorDashboard: React.FC = () => {
                   <CardContent>
                     <div className="flex items-end gap-2 h-40">
                       {(() => {
-                        const weeklyData = Array.isArray(analyticsStudent.stats?.weeklyProgress) && analyticsStudent.stats.weeklyProgress.length > 0
+                        const rawData = Array.isArray(analyticsStudent.stats?.weeklyProgress) && analyticsStudent.stats.weeklyProgress.length > 0
                           ? analyticsStudent.stats.weeklyProgress.slice(-8)
-                          : [65, 68, 72, 70, 75, 78, 82, 80]; // Demo data
-                        const maxVal = Math.max(...weeklyData, 100);
-                        return weeklyData.map((val: any, i: number) => {
-                          const numVal = typeof val === 'number' ? val : (val?.progress || 70);
-                          return (
-                            <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                              <div
-                                className="w-full bg-primary-500/80 rounded-t hover:bg-primary-400 transition-colors"
-                                style={{ height: `${(numVal / maxVal) * 100}%` }}
-                                title={`Week ${i + 1}: ${numVal}%`}
-                              />
-                              <span className="text-xs text-neutral-500">W{i + 1}</span>
-                            </div>
-                          );
-                        });
+                          : [];
+
+                        // Convert to numbers - handle both {week, mathematics, physics...} and simple number formats
+                        const weeklyData = rawData.length > 0
+                          ? rawData.map((val: any) => {
+                              if (typeof val === 'number') return val;
+                              // Average all subject scores in the object
+                              const subjects = ['mathematics', 'physics', 'chemistry', 'biology', 'english', 'economics'];
+                              const scores = subjects.map(s => val?.[s] || 0).filter(s => s > 0);
+                              return scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : val?.points || val?.progress || 70;
+                            })
+                          : [65, 68, 72, 70, 75, 78, 82, 80]; // Fallback demo data
+
+                        const maxVal = Math.max(...weeklyData.map(v => typeof v === 'number' ? v : 70), 100);
+                        return weeklyData.map((numVal: number, i: number) => (
+                          <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                            <div
+                              className="w-full bg-primary-500/80 rounded-t hover:bg-primary-400 transition-colors"
+                              style={{ height: `${(numVal / maxVal) * 100}%` }}
+                              title={`Week ${i + 1}: ${numVal}%`}
+                            />
+                            <span className="text-xs text-neutral-500">W{i + 1}</span>
+                          </div>
+                        ));
                       })()}
                     </div>
                   </CardContent>
