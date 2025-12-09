@@ -212,6 +212,34 @@
   outline: none !important;
 }
 
+.recharts-wrapper,
+.recharts-surface,
+.recharts-legend-wrapper,
+.recharts-legend-item,
+.recharts-pie-sector,
+.recharts-sector,
+.recharts-bar-rectangle,
+.recharts-area,
+.recharts-dot {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.recharts-wrapper:focus,
+.recharts-surface:focus,
+.recharts-legend-wrapper:focus,
+.recharts-legend-item:focus,
+.recharts-pie-sector:focus,
+.recharts-sector:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Legend text color for dark theme */
+.recharts-legend-item-text {
+  color: #a3a3a3 !important;
+}
+
 .recharts-default-tooltip {
   @apply bg-neutral-900 border-neutral-700 rounded-lg shadow-lg;
 }
