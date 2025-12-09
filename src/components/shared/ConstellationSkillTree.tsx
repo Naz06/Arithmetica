@@ -536,7 +536,7 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
           {/* Star Grid Visualization */}
           <div className="lg:col-span-2 relative bg-gradient-to-b from-[#0a0a1a] via-[#0f0f2a] to-[#0a0a1a] overflow-hidden">
             {/* Twinkling star background */}
-            <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
               {Array.from({ length: 50 }, (_, i) => (
                 <div
                   key={i}
@@ -554,7 +554,7 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
             </div>
 
             {/* Ancient texture overlay */}
-            <div className="absolute inset-0 opacity-20">
+            <div className="absolute inset-0 opacity-20 pointer-events-none">
               <svg width="100%" height="100%" className="absolute inset-0">
                 <defs>
                   <pattern id="runicPattern" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
@@ -567,7 +567,7 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
             </div>
 
             {/* Grid name */}
-            <div className="absolute top-4 left-4 z-10">
+            <div className="absolute top-4 left-4 z-10 pointer-events-none">
               <h3 className="text-lg font-bold" style={{ color: currentConstellation.color }}>
                 {currentConstellation.name}
               </h3>
