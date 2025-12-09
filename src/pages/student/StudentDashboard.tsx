@@ -309,15 +309,33 @@ export const StudentDashboard: React.FC = () => {
               const equipped = student.equippedItems || { title: null, frame: null, avatar: 'avatar-astronaut-blue', spaceship: 'ship-starter-shuttle', celebration: 'celebration-stars' };
               const frameItem = equipped.frame ? getItemById(equipped.frame) : null;
               const avatarItem = equipped.avatar ? getItemById(equipped.avatar) : null;
-              const titleItem = equipped.title ? getItemById(equipped.title) : null;
               const activeBoosters = (student.activeBoosters || []).filter(b => !b.used && (!b.expiresAt || new Date(b.expiresAt) > new Date()));
+
+              // Get frame border class based on rarity
+              const getFrameBorderClass = () => {
+                if (!frameItem) return 'border-primary-500/50';
+                switch (frameItem.rarity) {
+                  case 'legendary': return 'border-yellow-500';
+                  case 'epic': return 'border-purple-500';
+                  case 'rare': return 'border-blue-500';
+                  default: return 'border-neutral-500';
+                }
+              };
+
+              const getFrameGlowClass = () => {
+                if (!frameItem) return '';
+                switch (frameItem.rarity) {
+                  case 'legendary': return 'shadow-[0_0_20px_rgba(234,179,8,0.5)]';
+                  case 'epic': return 'shadow-[0_0_15px_rgba(168,85,247,0.4)]';
+                  case 'rare': return 'shadow-[0_0_10px_rgba(59,130,246,0.3)]';
+                  default: return '';
+                }
+              };
 
               return (
                 <button
                   onClick={() => setShowCommandCenterModal(true)}
-                  className={`relative w-20 h-20 rounded-full bg-neutral-800 flex items-center justify-center text-4xl border-3 transition-all hover:scale-105 cursor-pointer ${
-                    frameItem ? `border-${frameItem.rarity === 'legendary' ? 'yellow' : frameItem.rarity === 'epic' ? 'purple' : frameItem.rarity === 'rare' ? 'blue' : 'neutral'}-500` : 'border-primary-500/50'
-                  } ${frameItem?.rarity === 'legendary' ? 'shadow-yellow-500/30 shadow-lg' : frameItem?.rarity === 'epic' ? 'shadow-purple-500/20 shadow-lg' : ''}`}
+                  className={`relative w-20 h-20 rounded-full bg-neutral-800 flex items-center justify-center text-4xl border-4 transition-all hover:scale-105 cursor-pointer ${getFrameBorderClass()} ${getFrameGlowClass()}`}
                   title="Open Command Center"
                 >
                   {avatarItem?.icon || '👨‍🚀'}
