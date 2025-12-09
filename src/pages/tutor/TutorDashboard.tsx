@@ -74,6 +74,7 @@ export const TutorDashboard: React.FC = () => {
     deleteNotification,
     assessments,
     getAssessmentsByStudentId,
+    addAssessment,
   } = useData();
 
   const students = getAllStudents();
@@ -119,6 +120,22 @@ export const TutorDashboard: React.FC = () => {
   const [editAttendanceRate, setEditAttendanceRate] = useState(0);
   const [isSavingAssessment, setIsSavingAssessment] = useState(false);
   const [assessmentSaveSuccess, setAssessmentSaveSuccess] = useState(false);
+
+  // Add New Assessment modal state
+  const [showAddAssessmentModal, setShowAddAssessmentModal] = useState(false);
+  const [newAssessment, setNewAssessment] = useState({
+    title: '',
+    type: 'test' as 'quiz' | 'test' | 'mock_exam' | 'homework' | 'class_test',
+    subject: '' as string,
+    topic: '',
+    score: 0,
+    maxScore: 100,
+    grade: '',
+    classAverage: '' as string | number,
+    dateTaken: new Date().toISOString().split('T')[0],
+    feedback: '',
+  });
+  const [isAddingAssessment, setIsAddingAssessment] = useState(false);
 
   // Admin states
   const [adminUsers, setAdminUsers] = useState<UserRecord[]>([]);
@@ -673,6 +690,53 @@ export const TutorDashboard: React.FC = () => {
       console.error('Failed to save assessment:', error);
     } finally {
       setIsSavingAssessment(false);
+    }
+  };
+
+  // Handle adding a new assessment/test result
+  const handleAddNewAssessment = async () => {
+    if (!analyticsStudent || !newAssessment.title || !newAssessment.subject) return;
+
+    setIsAddingAssessment(true);
+    try {
+      const assessmentData = {
+        id: `assessment-${Date.now()}`,
+        title: newAssessment.title,
+        type: newAssessment.type,
+        subject: newAssessment.subject as any,
+        topic: newAssessment.topic,
+        studentId: analyticsStudent.id,
+        tutorId: tutorId,
+        score: newAssessment.score,
+        maxScore: newAssessment.maxScore,
+        grade: newAssessment.grade || undefined,
+        classAverage: newAssessment.classAverage ? Number(newAssessment.classAverage) : undefined,
+        feedback: newAssessment.feedback,
+        dateTaken: newAssessment.dateTaken,
+        createdAt: new Date().toISOString(),
+        gradedAt: new Date().toISOString(),
+      };
+
+      await addAssessment(assessmentData);
+
+      // Reset form
+      setNewAssessment({
+        title: '',
+        type: 'test',
+        subject: analyticsStudent.subjects?.[0] || '',
+        topic: '',
+        score: 0,
+        maxScore: 100,
+        grade: '',
+        classAverage: '',
+        dateTaken: new Date().toISOString().split('T')[0],
+        feedback: '',
+      });
+      setShowAddAssessmentModal(false);
+    } catch (error) {
+      console.error('Failed to add assessment:', error);
+    } finally {
+      setIsAddingAssessment(false);
     }
   };
 
@@ -1253,11 +1317,25 @@ export const TutorDashboard: React.FC = () => {
 
                 {/* Exam History & Performance Trends */}
                 <Card className="lg:col-span-2">
-                  <CardHeader>
+                  <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle className="flex items-center gap-2">
                       <FileText className="w-5 h-5 text-blue-400" />
                       Test & Exam History
                     </CardTitle>
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        setNewAssessment(prev => ({
+                          ...prev,
+                          subject: analyticsStudent.subjects?.[0] || '',
+                        }));
+                        setShowAddAssessmentModal(true);
+                      }}
+                      className="flex items-center gap-1"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Result
+                    </Button>
                   </CardHeader>
                   <CardContent>
                     {(() => {
@@ -3435,6 +3513,184 @@ export const TutorDashboard: React.FC = () => {
           students={students}
           showAllLevels={true}
         />
+      </Modal>
+
+      {/* Add Assessment Modal */}
+      <Modal
+        isOpen={showAddAssessmentModal}
+        onClose={() => setShowAddAssessmentModal(false)}
+        title={`Add Test/Exam Result${analyticsStudent ? ` - ${analyticsStudent.name}` : ''}`}
+        size="lg"
+      >
+        <div className="space-y-4">
+          {/* Title */}
+          <div>
+            <label className="block text-sm font-medium text-neutral-300 mb-1">
+              Assessment Title *
+            </label>
+            <Input
+              value={newAssessment.title}
+              onChange={(e) => setNewAssessment(prev => ({ ...prev, title: e.target.value }))}
+              placeholder="e.g., Algebra Mid-Term Test"
+            />
+          </div>
+
+          {/* Type and Subject Row */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-neutral-300 mb-1">
+                Type *
+              </label>
+              <Select
+                value={newAssessment.type}
+                onChange={(e) => setNewAssessment(prev => ({ ...prev, type: e.target.value as any }))}
+                options={[
+                  { value: 'quiz', label: 'Quiz' },
+                  { value: 'test', label: 'Test' },
+                  { value: 'mock_exam', label: 'Mock Exam' },
+                  { value: 'homework', label: 'Homework' },
+                  { value: 'class_test', label: 'Class Test' },
+                ]}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-neutral-300 mb-1">
+                Subject *
+              </label>
+              <Select
+                value={newAssessment.subject}
+                onChange={(e) => setNewAssessment(prev => ({ ...prev, subject: e.target.value }))}
+                options={
+                  analyticsStudent?.subjects?.map(s => ({
+                    value: s,
+                    label: s.charAt(0).toUpperCase() + s.slice(1),
+                  })) || []
+                }
+              />
+            </div>
+          </div>
+
+          {/* Topic and Date Row */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-neutral-300 mb-1">
+                Topic
+              </label>
+              <Input
+                value={newAssessment.topic}
+                onChange={(e) => setNewAssessment(prev => ({ ...prev, topic: e.target.value }))}
+                placeholder="e.g., Quadratic Equations"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-neutral-300 mb-1">
+                Date Taken *
+              </label>
+              <Input
+                type="date"
+                value={newAssessment.dateTaken}
+                onChange={(e) => setNewAssessment(prev => ({ ...prev, dateTaken: e.target.value }))}
+              />
+            </div>
+          </div>
+
+          {/* Score Row */}
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-neutral-300 mb-1">
+                Score *
+              </label>
+              <Input
+                type="number"
+                value={newAssessment.score}
+                onChange={(e) => setNewAssessment(prev => ({ ...prev, score: Number(e.target.value) }))}
+                min={0}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-neutral-300 mb-1">
+                Max Score *
+              </label>
+              <Input
+                type="number"
+                value={newAssessment.maxScore}
+                onChange={(e) => setNewAssessment(prev => ({ ...prev, maxScore: Number(e.target.value) }))}
+                min={1}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-neutral-300 mb-1">
+                Grade
+              </label>
+              <Input
+                value={newAssessment.grade}
+                onChange={(e) => setNewAssessment(prev => ({ ...prev, grade: e.target.value }))}
+                placeholder="e.g., A, B+, C"
+              />
+            </div>
+          </div>
+
+          {/* Class Average */}
+          <div>
+            <label className="block text-sm font-medium text-neutral-300 mb-1">
+              Class Average (optional)
+            </label>
+            <Input
+              type="number"
+              value={newAssessment.classAverage}
+              onChange={(e) => setNewAssessment(prev => ({ ...prev, classAverage: e.target.value }))}
+              placeholder="Enter class average score for comparison"
+              min={0}
+            />
+          </div>
+
+          {/* Feedback */}
+          <div>
+            <label className="block text-sm font-medium text-neutral-300 mb-1">
+              Feedback
+            </label>
+            <Textarea
+              value={newAssessment.feedback}
+              onChange={(e) => setNewAssessment(prev => ({ ...prev, feedback: e.target.value }))}
+              placeholder="Enter feedback for the student..."
+              rows={3}
+            />
+          </div>
+
+          {/* Preview */}
+          {newAssessment.score > 0 && newAssessment.maxScore > 0 && (
+            <div className="p-3 bg-neutral-800 rounded-lg">
+              <p className="text-sm text-neutral-400">Preview:</p>
+              <p className="text-lg font-semibold text-white">
+                Score: {newAssessment.score}/{newAssessment.maxScore} ({Math.round((newAssessment.score / newAssessment.maxScore) * 100)}%)
+                {newAssessment.grade && <span className="ml-2 text-purple-400">Grade: {newAssessment.grade}</span>}
+              </p>
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="flex justify-end gap-3 pt-4 border-t border-neutral-700">
+            <Button
+              variant="ghost"
+              onClick={() => setShowAddAssessmentModal(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleAddNewAssessment}
+              disabled={isAddingAssessment || !newAssessment.title || !newAssessment.subject}
+            >
+              {isAddingAssessment ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Assessment'
+              )}
+            </Button>
+          </div>
+        </div>
       </Modal>
     </DashboardLayout>
   );
