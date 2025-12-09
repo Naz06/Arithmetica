@@ -681,44 +681,33 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
                       />
                     )}
 
-                    {/* Orbiting satellite for mastered stars */}
+                    {/* Orbiting satellite emoji for mastered stars */}
                     {style.rays > 0 && (
                       <g>
-                        {/* Orbit path (faint) */}
+                        {/* Orbit path (very faint) */}
                         <circle
                           cx={topic.x}
                           cy={topic.y}
-                          r={style.outerSize + 1.8}
+                          r={style.outerSize + 2.2}
                           fill="none"
                           stroke="#FFD700"
-                          strokeWidth="0.08"
-                          strokeOpacity="0.2"
-                          strokeDasharray="0.3,0.6"
+                          strokeWidth="0.05"
+                          strokeOpacity="0.15"
+                          strokeDasharray="0.2,0.5"
                         />
-                        {/* Satellite */}
-                        <circle
-                          r="0.35"
-                          fill="#FFD700"
+                        {/* Satellite emoji */}
+                        <text
+                          fontSize="1.2"
+                          textAnchor="middle"
+                          dominantBaseline="middle"
                         >
                           <animateMotion
-                            dur="12s"
+                            dur="25s"
                             repeatCount="indefinite"
-                            path={`M${topic.x + style.outerSize + 1.8},${topic.y} A${style.outerSize + 1.8},${style.outerSize + 1.8} 0 1,1 ${topic.x + style.outerSize + 1.79},${topic.y} A${style.outerSize + 1.8},${style.outerSize + 1.8} 0 1,1 ${topic.x + style.outerSize + 1.8},${topic.y}`}
+                            path={`M${topic.x + style.outerSize + 2.2},${topic.y} A${style.outerSize + 2.2},${style.outerSize + 2.2} 0 1,1 ${topic.x + style.outerSize + 2.19},${topic.y} A${style.outerSize + 2.2},${style.outerSize + 2.2} 0 1,1 ${topic.x + style.outerSize + 2.2},${topic.y}`}
                           />
-                        </circle>
-                        {/* Satellite trail */}
-                        <circle
-                          r="0.2"
-                          fill="#FFD700"
-                          opacity="0.4"
-                        >
-                          <animateMotion
-                            dur="12s"
-                            repeatCount="indefinite"
-                            begin="-0.3s"
-                            path={`M${topic.x + style.outerSize + 1.8},${topic.y} A${style.outerSize + 1.8},${style.outerSize + 1.8} 0 1,1 ${topic.x + style.outerSize + 1.79},${topic.y} A${style.outerSize + 1.8},${style.outerSize + 1.8} 0 1,1 ${topic.x + style.outerSize + 1.8},${topic.y}`}
-                          />
-                        </circle>
+                          🛰️
+                        </text>
                       </g>
                     )}
 
@@ -956,39 +945,39 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
         .animate-nebula-drift-reverse { animation: nebula-drift-reverse 10s ease-in-out infinite; }
         .animate-nebula-pulse { animation: nebula-pulse 6s ease-in-out infinite; }
 
-        /* Star glow pulse animations */
+        /* Star glow pulse animations - very subtle */
         @keyframes glow-pulse-2 {
-          0%, 100% { opacity: 0.3; transform: scale(1); }
-          50% { opacity: 0.5; transform: scale(1.1); }
+          0%, 100% { opacity: 0.25; transform: scale(1); }
+          50% { opacity: 0.35; transform: scale(1.02); }
         }
         @keyframes glow-pulse-2-5 {
-          0%, 100% { opacity: 0.25; transform: scale(1); }
-          50% { opacity: 0.4; transform: scale(1.08); }
+          0%, 100% { opacity: 0.2; transform: scale(1); }
+          50% { opacity: 0.3; transform: scale(1.02); }
         }
         @keyframes glow-pulse-3 {
-          0%, 100% { opacity: 0.2; transform: scale(1); }
-          50% { opacity: 0.35; transform: scale(1.05); }
+          0%, 100% { opacity: 0.15; transform: scale(1); }
+          50% { opacity: 0.25; transform: scale(1.01); }
         }
-        .animate-glow-pulse-2 { animation: glow-pulse-2 2s ease-in-out infinite; }
-        .animate-glow-pulse-2\\.5 { animation: glow-pulse-2-5 2.5s ease-in-out infinite; }
-        .animate-glow-pulse-3 { animation: glow-pulse-3 3s ease-in-out infinite; }
+        .animate-glow-pulse-2 { animation: glow-pulse-2 5s ease-in-out infinite; }
+        .animate-glow-pulse-2\\.5 { animation: glow-pulse-2-5 6s ease-in-out infinite; }
+        .animate-glow-pulse-3 { animation: glow-pulse-3 7s ease-in-out infinite; }
 
-        /* Star shape pulse animations */
+        /* Star shape pulse animations - very subtle */
         @keyframes star-pulse-2 {
           0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.08); }
+          50% { transform: scale(1.02); }
         }
         @keyframes star-pulse-2-5 {
           0%, 100% { transform: scale(1); opacity: 0.5; }
-          50% { transform: scale(1.05); opacity: 0.7; }
+          50% { transform: scale(1.02); opacity: 0.55; }
         }
         @keyframes star-pulse-3 {
           0%, 100% { transform: scale(1); opacity: 0.7; }
-          50% { transform: scale(1.03); opacity: 0.85; }
+          50% { transform: scale(1.01); opacity: 0.75; }
         }
-        .animate-star-pulse-2 { animation: star-pulse-2 2s ease-in-out infinite; }
-        .animate-star-pulse-2\\.5 { animation: star-pulse-2-5 2.5s ease-in-out infinite; }
-        .animate-star-pulse-3 { animation: star-pulse-3 3s ease-in-out infinite; }
+        .animate-star-pulse-2 { animation: star-pulse-2 6s ease-in-out infinite; }
+        .animate-star-pulse-2\\.5 { animation: star-pulse-2-5 7s ease-in-out infinite; }
+        .animate-star-pulse-3 { animation: star-pulse-3 8s ease-in-out infinite; }
 
         /* Slow spin for mastered star rays */
         @keyframes spin-slow {
@@ -1004,40 +993,34 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
         }
         .animate-comet-fade { animation: comet-fade 3s ease-in-out infinite; }
 
-        /* Sparkle particles */
+        /* Sparkle particles - very subtle */
         @keyframes sparkle {
-          0%, 100% { opacity: 0.3; transform: scale(0.8); }
-          50% { opacity: 1; transform: scale(1.2); }
+          0%, 100% { opacity: 0.4; transform: scale(0.95); }
+          50% { opacity: 0.7; transform: scale(1.05); }
         }
-        .animate-sparkle { animation: sparkle 1.5s ease-in-out infinite; }
+        .animate-sparkle { animation: sparkle 4s ease-in-out infinite; }
 
-        /* Subtle random bobbing animations - 4 variants for variety */
+        /* Very subtle bobbing - barely perceptible */
         @keyframes subtle-bob-1 {
           0%, 100% { transform: translate(0, 0); }
-          25% { transform: translate(0.15px, -0.2px); }
-          50% { transform: translate(-0.1px, 0.15px); }
-          75% { transform: translate(0.1px, 0.1px); }
+          50% { transform: translate(0.03px, -0.04px); }
         }
         @keyframes subtle-bob-2 {
           0%, 100% { transform: translate(0, 0); }
-          33% { transform: translate(-0.12px, 0.18px); }
-          66% { transform: translate(0.18px, -0.1px); }
+          50% { transform: translate(-0.03px, 0.03px); }
         }
         @keyframes subtle-bob-3 {
           0%, 100% { transform: translate(0, 0); }
-          20% { transform: translate(0.1px, 0.15px); }
-          40% { transform: translate(-0.15px, -0.08px); }
-          60% { transform: translate(0.08px, -0.12px); }
-          80% { transform: translate(-0.1px, 0.1px); }
+          50% { transform: translate(0.02px, 0.03px); }
         }
         @keyframes subtle-bob-4 {
           0%, 100% { transform: translate(0, 0); }
-          50% { transform: translate(-0.1px, -0.15px); }
+          50% { transform: translate(-0.02px, -0.03px); }
         }
-        .animate-subtle-bob-1 { animation: subtle-bob-1 8s ease-in-out infinite; }
-        .animate-subtle-bob-2 { animation: subtle-bob-2 10s ease-in-out infinite; }
-        .animate-subtle-bob-3 { animation: subtle-bob-3 12s ease-in-out infinite; }
-        .animate-subtle-bob-4 { animation: subtle-bob-4 9s ease-in-out infinite; }
+        .animate-subtle-bob-1 { animation: subtle-bob-1 15s ease-in-out infinite; }
+        .animate-subtle-bob-2 { animation: subtle-bob-2 18s ease-in-out infinite; }
+        .animate-subtle-bob-3 { animation: subtle-bob-3 20s ease-in-out infinite; }
+        .animate-subtle-bob-4 { animation: subtle-bob-4 16s ease-in-out infinite; }
       `}</style>
     </Card>
   );
