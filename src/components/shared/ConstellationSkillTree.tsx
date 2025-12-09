@@ -654,17 +654,14 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
               ))}
 
               {/* Topic stars */}
-              {currentConstellation.topics.map((topic, topicIndex) => {
+              {currentConstellation.topics.map((topic) => {
                 const style = getStarStyle(topic);
                 const showMilestone = isMilestone(topic) && topic.mastery >= 90;
-                // Assign different subtle bobbing animations based on topic index
-                const bobClass = topic.isUnlocked ? `animate-subtle-bob-${(topicIndex % 4) + 1}` : '';
 
                 return (
                   <g
                     key={topic.id}
-                    className={`cursor-pointer ${bobClass}`}
-                    style={{ transformOrigin: `${topic.x}px ${topic.y}px` }}
+                    className="cursor-pointer"
                     onClick={() => topic.isUnlocked && setSelectedTopic(topic)}
                     onMouseEnter={() => setHoveredTopic(topic.id)}
                     onMouseLeave={() => setHoveredTopic(null)}
@@ -681,33 +678,37 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
                       />
                     )}
 
-                    {/* Orbiting satellite emoji for mastered stars */}
+                    {/* Orbiting satellite for mastered stars */}
                     {style.rays > 0 && (
                       <g>
                         {/* Orbit path (very faint) */}
                         <circle
                           cx={topic.x}
                           cy={topic.y}
-                          r={style.outerSize + 2.2}
+                          r={style.outerSize + 2.5}
                           fill="none"
                           stroke="#FFD700"
                           strokeWidth="0.05"
-                          strokeOpacity="0.15"
-                          strokeDasharray="0.2,0.5"
+                          strokeOpacity="0.12"
+                          strokeDasharray="0.3,0.6"
                         />
-                        {/* Satellite emoji */}
-                        <text
-                          fontSize="1.2"
-                          textAnchor="middle"
-                          dominantBaseline="middle"
-                        >
+                        {/* Satellite - small golden dot orbiting */}
+                        <circle r="0.35" fill="#FFD700">
                           <animateMotion
-                            dur="25s"
+                            dur="30s"
                             repeatCount="indefinite"
-                            path={`M${topic.x + style.outerSize + 2.2},${topic.y} A${style.outerSize + 2.2},${style.outerSize + 2.2} 0 1,1 ${topic.x + style.outerSize + 2.19},${topic.y} A${style.outerSize + 2.2},${style.outerSize + 2.2} 0 1,1 ${topic.x + style.outerSize + 2.2},${topic.y}`}
+                            path={`M${topic.x + style.outerSize + 2.5},${topic.y} A${style.outerSize + 2.5},${style.outerSize + 2.5} 0 1,1 ${topic.x - style.outerSize - 2.5},${topic.y} A${style.outerSize + 2.5},${style.outerSize + 2.5} 0 1,1 ${topic.x + style.outerSize + 2.5},${topic.y}`}
                           />
-                          🛰️
-                        </text>
+                        </circle>
+                        {/* Satellite trail */}
+                        <circle r="0.2" fill="#FFD700" opacity="0.4">
+                          <animateMotion
+                            dur="30s"
+                            repeatCount="indefinite"
+                            begin="-0.5s"
+                            path={`M${topic.x + style.outerSize + 2.5},${topic.y} A${style.outerSize + 2.5},${style.outerSize + 2.5} 0 1,1 ${topic.x - style.outerSize - 2.5},${topic.y} A${style.outerSize + 2.5},${style.outerSize + 2.5} 0 1,1 ${topic.x + style.outerSize + 2.5},${topic.y}`}
+                          />
+                        </circle>
                       </g>
                     )}
 
@@ -993,34 +994,12 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
         }
         .animate-comet-fade { animation: comet-fade 3s ease-in-out infinite; }
 
-        /* Sparkle particles - very subtle */
+        /* Sparkle particles - opacity only, no movement */
         @keyframes sparkle {
-          0%, 100% { opacity: 0.4; transform: scale(0.95); }
-          50% { opacity: 0.7; transform: scale(1.05); }
+          0%, 100% { opacity: 0.5; }
+          50% { opacity: 0.9; }
         }
-        .animate-sparkle { animation: sparkle 4s ease-in-out infinite; }
-
-        /* Very subtle bobbing - barely perceptible */
-        @keyframes subtle-bob-1 {
-          0%, 100% { transform: translate(0, 0); }
-          50% { transform: translate(0.03px, -0.04px); }
-        }
-        @keyframes subtle-bob-2 {
-          0%, 100% { transform: translate(0, 0); }
-          50% { transform: translate(-0.03px, 0.03px); }
-        }
-        @keyframes subtle-bob-3 {
-          0%, 100% { transform: translate(0, 0); }
-          50% { transform: translate(0.02px, 0.03px); }
-        }
-        @keyframes subtle-bob-4 {
-          0%, 100% { transform: translate(0, 0); }
-          50% { transform: translate(-0.02px, -0.03px); }
-        }
-        .animate-subtle-bob-1 { animation: subtle-bob-1 15s ease-in-out infinite; }
-        .animate-subtle-bob-2 { animation: subtle-bob-2 18s ease-in-out infinite; }
-        .animate-subtle-bob-3 { animation: subtle-bob-3 20s ease-in-out infinite; }
-        .animate-subtle-bob-4 { animation: subtle-bob-4 16s ease-in-out infinite; }
+        .animate-sparkle { animation: sparkle 5s ease-in-out infinite; }
       `}</style>
     </Card>
   );
