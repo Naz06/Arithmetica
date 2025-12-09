@@ -292,6 +292,7 @@ export const ParentDashboard: React.FC = () => {
                         borderRadius: '8px',
                         color: '#e5e5e5',
                       }}
+                      wrapperStyle={{ outline: 'none', border: 'none', boxShadow: 'none' }}
                       labelStyle={{ color: '#a3a3a3' }}
                       cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1 }}
                     />
@@ -378,6 +379,7 @@ export const ParentDashboard: React.FC = () => {
                         borderRadius: '8px',
                         color: '#e5e5e5',
                       }}
+                      wrapperStyle={{ outline: 'none', border: 'none', boxShadow: 'none' }}
                       itemStyle={{ color: '#e5e5e5' }}
                       formatter={(value: number, name: string) => [`${value}%`, name]}
                     />
@@ -422,8 +424,9 @@ export const ParentDashboard: React.FC = () => {
                           borderRadius: '8px',
                           color: '#e5e5e5',
                         }}
+                        wrapperStyle={{ outline: 'none', border: 'none', boxShadow: 'none' }}
                         labelStyle={{ color: '#a3a3a3' }}
-                        cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                        cursor={{ fill: 'transparent' }}
                       />
                       <Bar dataKey="score" fill="#0EA5E9" radius={[4, 4, 0, 0]} />
                     </BarChart>
