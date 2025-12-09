@@ -374,7 +374,7 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
     return { label: 'New', color: 'text-neutral-400', bgColor: 'bg-neutral-700' };
   };
 
-  // FFX-inspired node styling - gem-like spheres
+  // FFX-inspired node styling - gem-like stars
   const getNodeStyle = (topic: TopicNode) => {
     const isHovered = hoveredTopic === topic.id;
     const isSelected = selectedTopic?.id === topic.id;
@@ -533,7 +533,7 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
 
       <CardContent className="p-0">
         <div className="grid lg:grid-cols-3 gap-0">
-          {/* Sphere Grid Visualization */}
+          {/* Star Grid Visualization */}
           <div className="lg:col-span-2 relative bg-gradient-to-b from-[#0a0a1a] via-[#0f0f2a] to-[#0a0a1a] overflow-hidden">
             {/* Twinkling star background */}
             <div className="absolute inset-0 overflow-hidden">
@@ -574,7 +574,7 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
               <p className="text-xs text-neutral-500">{overallProgress}% traversed</p>
             </div>
 
-            {/* SVG Sphere Grid */}
+            {/* SVG Star Grid */}
             <svg viewBox="0 0 100 105" className="w-full h-[420px] lg:h-[520px]" preserveAspectRatio="xMidYMid meet">
               <defs>
                 {/* Glow filters for different levels */}
@@ -757,7 +757,7 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
                 });
               })()}
 
-              {/* Sphere nodes */}
+              {/* Star nodes */}
               {currentConstellation.topics.map((topic) => {
                 const style = getNodeStyle(topic);
                 const isSelected = selectedTopic?.id === topic.id;
@@ -766,15 +766,25 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
                 return (
                   <g
                     key={topic.id}
-                    className="cursor-pointer transition-transform"
-                    style={{
-                      transform: `translate(${topic.x}px, ${topic.y}px) scale(${style.scale})`,
-                      transformOrigin: `${topic.x}px ${topic.y}px`
+                    className="cursor-pointer"
+                    transform={`translate(${topic.x}, ${topic.y}) scale(${style.scale})`}
+                    onClick={() => {
+                      if (topic.isUnlocked) {
+                        setSelectedTopic(selectedTopic?.id === topic.id ? null : topic);
+                      }
                     }}
-                    onClick={() => topic.isUnlocked && setSelectedTopic(topic)}
                     onMouseEnter={() => setHoveredTopic(topic.id)}
                     onMouseLeave={() => setHoveredTopic(null)}
+                    style={{ pointerEvents: 'all' }}
                   >
+                    {/* Invisible larger hit area for easier clicking */}
+                    <circle
+                      cx={0}
+                      cy={0}
+                      r={style.radius + 2}
+                      fill="transparent"
+                      style={{ cursor: topic.isUnlocked ? 'pointer' : 'not-allowed' }}
+                    />
                     {/* Selection/hover pulse ring */}
                     {(isSelected || isHovered) && topic.isUnlocked && (
                       <circle
@@ -838,7 +848,7 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
                       opacity={0.6}
                     />
 
-                    {/* Main sphere/gem */}
+                    {/* Main star/gem */}
                     <circle
                       cx={0}
                       cy={0}
@@ -985,7 +995,7 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
                 </div>
                 <h4 className="font-medium text-neutral-100 mb-2">Select a Node</h4>
                 <p className="text-sm text-neutral-500 max-w-[200px]">
-                  Click on any sphere to view details and track your progress
+                  Click on any star to view details and track your progress
                 </p>
 
                 <div className="mt-6 space-y-2 text-left w-full">
