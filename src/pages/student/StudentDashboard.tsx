@@ -18,6 +18,7 @@ import { LessonPlans } from '../../components/shared/LessonPlans';
 import { StellarJourney } from '../../components/shared/StellarJourney';
 import { LeaderboardPreview, Leaderboard } from '../../components/shared/Leaderboard';
 import { CommandCenter } from '../../components/shared/CommandCenter';
+import { CelebrationEffect, useCelebration, CelebrationTrigger } from '../../components/shared/CelebrationEffect';
 import { SpaceItemCategory, getItemById, defaultEquippedItems, defaultInventory } from '../../data/spaceShopItems';
 import {
   Star,
@@ -97,6 +98,18 @@ export const StudentDashboard: React.FC = () => {
   const [quickMessageText, setQuickMessageText] = useState('');
   const [quickMessageSent, setQuickMessageSent] = useState(false);
 
+  // Celebration effect state
+  const { celebration, triggerCelebration, clearCelebration } = useCelebration();
+  const [previousLevel, setPreviousLevel] = useState(student?.level || 1);
+
+  // Track level ups
+  useEffect(() => {
+    if (student && student.level > previousLevel) {
+      triggerCelebration('level-up', `You reached Level ${student.level}!`);
+      setPreviousLevel(student.level);
+    }
+  }, [student?.level, previousLevel, triggerCelebration]);
+
   // Handle URL-based navigation for sidebar items
   useEffect(() => {
     const path = location.pathname;
@@ -172,11 +185,18 @@ export const StudentDashboard: React.FC = () => {
     const currentInventory = student.inventory || [...defaultInventory];
     if (currentInventory.includes(itemId)) return; // Already owned
 
+    const purchasedItem = getItemById(itemId);
+
     updateStudent({
       ...student,
       points: student.points - price,
       inventory: [...currentInventory, itemId],
     });
+
+    // Trigger celebration for purchase
+    if (purchasedItem) {
+      triggerCelebration('purchase', `${purchasedItem.name} acquired!`);
+    }
   };
 
   const handleEquipItem = (category: SpaceItemCategory, itemId: string | null) => {
@@ -1035,6 +1055,15 @@ export const StudentDashboard: React.FC = () => {
           onActivateBooster={handleActivateBooster}
         />
       </Modal>
+
+      {/* Celebration Effect Overlay */}
+      <CelebrationEffect
+        isActive={celebration.isActive}
+        celebrationId={student.equippedItems?.celebration || 'celebration-stars'}
+        trigger={celebration.trigger}
+        message={celebration.message}
+        onComplete={clearCelebration}
+      />
     </DashboardLayout>
   );
 };
