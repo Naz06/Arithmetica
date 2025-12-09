@@ -5,27 +5,6 @@ import { Badge } from '../ui/Badge';
 import { ProgressBar } from '../ui/ProgressBar';
 import { Sparkles, CheckCircle, Star, X, Zap, Target, BookOpen } from 'lucide-react';
 
-// Generate SVG path for multi-pointed star
-const generateStarPath = (cx: number, cy: number, outerR: number, innerR: number, points: number): string => {
-  const step = Math.PI / points;
-  const pathParts: string[] = [];
-
-  for (let i = 0; i < 2 * points; i++) {
-    const r = i % 2 === 0 ? outerR : innerR;
-    const angle = i * step - Math.PI / 2;
-    const x = cx + Math.cos(angle) * r;
-    const y = cy + Math.sin(angle) * r;
-    pathParts.push(`${i === 0 ? 'M' : 'L'} ${x} ${y}`);
-  }
-  pathParts.push('Z');
-  return pathParts.join(' ');
-};
-
-// Generate diamond/rhombus path for locked topics
-const generateDiamondPath = (cx: number, cy: number, size: number): string => {
-  return `M ${cx} ${cy - size} L ${cx + size} ${cy} L ${cx} ${cy + size} L ${cx - size} ${cy} Z`;
-};
-
 // Topic node in the constellation
 interface TopicNode {
   id: string;
@@ -293,156 +272,116 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
     return { label: 'New', color: 'text-neutral-400', bgColor: 'bg-neutral-700' };
   };
 
-  // Star styling based on mastery level - refined with smaller, sharper stars
-  const getStarStyle = (topic: TopicNode) => {
+  // FFX-inspired node styling - gem-like spheres
+  const getNodeStyle = (topic: TopicNode) => {
     const isHovered = hoveredTopic === topic.id;
     const isSelected = selectedTopic?.id === topic.id;
+    const hoverScale = isHovered || isSelected ? 1.15 : 1;
 
-    // Locked topics - very dim diamonds (will shine once complete)
+    // Locked nodes - dark metallic empty sockets
     if (!topic.isUnlocked) {
       return {
-        outerSize: isHovered ? 1.4 : 1.1,
-        innerSize: 0.4,
-        points: 4,
-        opacity: 0.15, // More dimmed
-        fill: '#2a2a2a',
-        stroke: '#3a3a3a',
-        strokeWidth: 0.08,
-        glow: false,
-        glowColor: '',
-        glowSize: 0,
-        animate: false,
-        pulseSpeed: 0,
-        rays: 0,
-        sparkles: 0,
-        isLocked: true,
-        gradientId: '',
+        radius: 2.2,
+        fillColor: '#1a1a2e',
+        strokeColor: '#2d2d44',
+        strokeWidth: 0.15,
+        glowColor: 'transparent',
+        glowRadius: 0,
+        innerGlow: false,
+        iconScale: 0.6,
+        opacity: 0.4,
+        scale: hoverScale,
       };
     }
 
-    const hoverBoost = isHovered || isSelected ? 0.5 : 0;
-
-    // Mastered - sharp golden 8-pointed star with rays and sparkles
+    // Mastered - golden/amber gem with bright glow
     if (topic.mastery >= 90) {
       return {
-        outerSize: 2.2 + hoverBoost,
-        innerSize: 0.75, // ~0.34 ratio for sharp points
-        points: 8,
+        radius: 2.8,
+        fillColor: '#FFD700',
+        strokeColor: '#FFA500',
+        strokeWidth: 0.2,
+        glowColor: 'rgba(255, 215, 0, 0.8)',
+        glowRadius: 4,
+        innerGlow: true,
+        iconScale: 1,
         opacity: 1,
-        fill: `url(#masteredStarGradient-${topic.id})`,
-        stroke: '#FFC107',
-        strokeWidth: 0.1,
-        glow: true,
-        glowColor: 'rgba(255, 215, 0, 0.4)',
-        glowSize: 2.5,
-        animate: true,
-        pulseSpeed: 2,
-        rays: 4,
-        sparkles: 4,
-        isLocked: false,
-        gradientId: `masteredStarGradient-${topic.id}`,
+        scale: hoverScale,
       };
     }
 
-    // Proficient - sharp 6-pointed star with subtle glow
+    // Proficient - bright colored gem
     if (topic.mastery >= 70) {
       return {
-        outerSize: 1.9 + hoverBoost,
-        innerSize: 0.65, // ~0.34 ratio
-        points: 6,
-        opacity: 1,
-        fill: `url(#proficientStarGradient-${topic.id})`,
-        stroke: currentConstellation.color,
-        strokeWidth: 0.08,
-        glow: true,
+        radius: 2.5,
+        fillColor: currentConstellation.color,
+        strokeColor: '#fff',
+        strokeWidth: 0.12,
         glowColor: currentConstellation.glowColor,
-        glowSize: 1.8,
-        animate: false,
-        pulseSpeed: 0,
-        rays: 0,
-        sparkles: 2,
-        isLocked: false,
-        gradientId: `proficientStarGradient-${topic.id}`,
+        glowRadius: 3,
+        innerGlow: true,
+        iconScale: 0.9,
+        opacity: 1,
+        scale: hoverScale,
       };
     }
 
-    // Learning - sharp 5-pointed star
+    // Learning - semi-bright gem
     if (topic.mastery >= 40) {
       return {
-        outerSize: 1.6 + hoverBoost,
-        innerSize: 0.55, // ~0.34 ratio
-        points: 5,
-        opacity: 0.9,
-        fill: `url(#learningStarGradient-${topic.id})`,
-        stroke: 'transparent',
-        strokeWidth: 0,
-        glow: true,
+        radius: 2.3,
+        fillColor: currentConstellation.color,
+        strokeColor: 'rgba(255,255,255,0.5)',
+        strokeWidth: 0.1,
         glowColor: currentConstellation.glowColor,
-        glowSize: 1.2,
-        animate: false,
-        pulseSpeed: 0,
-        rays: 0,
-        sparkles: 0,
-        isLocked: false,
-        gradientId: `learningStarGradient-${topic.id}`,
+        glowRadius: 2,
+        innerGlow: false,
+        iconScale: 0.85,
+        opacity: 0.85,
+        scale: hoverScale,
       };
     }
 
-    // Started - small sharp 4-pointed star
+    // Started - dim gem
     if (topic.mastery > 0) {
       return {
-        outerSize: 1.4 + hoverBoost,
-        innerSize: 0.45,
-        points: 4,
-        opacity: 0.75,
-        fill: currentConstellation.color,
-        stroke: 'transparent',
-        strokeWidth: 0,
-        glow: true,
+        radius: 2.1,
+        fillColor: currentConstellation.color,
+        strokeColor: 'rgba(255,255,255,0.3)',
+        strokeWidth: 0.08,
         glowColor: currentConstellation.glowColor,
-        glowSize: 0.8,
-        animate: true,
-        pulseSpeed: 3,
-        rays: 0,
-        sparkles: 0,
-        isLocked: false,
-        gradientId: '',
+        glowRadius: 1.5,
+        innerGlow: false,
+        iconScale: 0.8,
+        opacity: 0.7,
+        scale: hoverScale,
       };
     }
 
-    // Available but not started - hollow sharp star
+    // Available but not started - empty socket with faint color
     return {
-      outerSize: 1.3 + hoverBoost,
-      innerSize: 0.45,
-      points: 4,
-      opacity: 0.5,
-      fill: 'transparent',
-      stroke: currentConstellation.color,
+      radius: 2,
+      fillColor: '#2a2a4a',
+      strokeColor: currentConstellation.color,
       strokeWidth: 0.12,
-      glow: true,
-      glowColor: currentConstellation.glowColor,
-      glowSize: 0.5,
-      animate: true,
-      pulseSpeed: 2.5,
-      rays: 0,
-      sparkles: 0,
-      isLocked: false,
-      gradientId: '',
+      glowColor: 'transparent',
+      glowRadius: 0,
+      innerGlow: false,
+      iconScale: 0.75,
+      opacity: 0.6,
+      scale: hoverScale,
     };
   };
 
-  // Check if topic is a milestone (last in chain or major checkpoint)
-  const isMilestone = (topic: TopicNode) => {
-    const dependents = currentConstellation.topics.filter(t =>
-      t.prerequisites.includes(topic.id)
-    );
-    return dependents.length === 0 || dependents.length >= 2;
+  // Get icon for node based on mastery
+  const getNodeIcon = (topic: TopicNode) => {
+    if (!topic.isUnlocked) return '🔒';
+    if (topic.mastery >= 90) return '⭐';
+    if (topic.mastery >= 70) return '◆';
+    if (topic.mastery >= 40) return '●';
+    if (topic.mastery > 0) return '○';
+    return '◇';
   };
-
-  // Get recently completed topics for comet trails
-  const recentlyCompleted = currentConstellation.topics.filter(
-    t => t.isUnlocked && t.mastery >= 70 && t.mastery < 90
-  );
 
   const completedStars = currentConstellation.topics.filter((t) => t.mastery >= 70).length;
   const totalStars = currentConstellation.topics.length;
@@ -457,14 +396,14 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
           <div>
             <CardTitle className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-yellow-500" />
-              Constellation Map
+              Sphere Grid
             </CardTitle>
             <CardDescription>
-              {levelLabel} curriculum • Chart your path through knowledge
+              {levelLabel} curriculum • Navigate your path to mastery
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-neutral-400">{completedStars}/{totalStars} stars mastered</span>
+            <span className="text-sm text-neutral-400">{completedStars}/{totalStars} nodes activated</span>
           </div>
         </div>
 
@@ -492,92 +431,84 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
 
       <CardContent className="p-0">
         <div className="grid lg:grid-cols-3 gap-0">
-          {/* Constellation Visualization */}
-          <div className="lg:col-span-2 relative bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950 overflow-hidden">
-            {/* Star background */}
-            <div className="absolute inset-0 opacity-30">
-              {[...Array(50)].map((_, i) => (
-                <div
-                  key={i}
-                  className="absolute w-px h-px bg-white rounded-full animate-twinkle"
-                  style={{ left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%`, animationDelay: `${Math.random() * 3}s` }}
-                />
-              ))}
+          {/* Sphere Grid Visualization */}
+          <div className="lg:col-span-2 relative bg-gradient-to-b from-[#0a0a1a] via-[#0f0f2a] to-[#0a0a1a] overflow-hidden">
+            {/* Ancient texture overlay */}
+            <div className="absolute inset-0 opacity-20">
+              <svg width="100%" height="100%" className="absolute inset-0">
+                <defs>
+                  <pattern id="runicPattern" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+                    <circle cx="20" cy="20" r="18" fill="none" stroke="rgba(100,100,150,0.1)" strokeWidth="0.5" />
+                    <circle cx="20" cy="20" r="10" fill="none" stroke="rgba(100,100,150,0.08)" strokeWidth="0.3" />
+                  </pattern>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#runicPattern)" />
+              </svg>
             </div>
 
-            {/* Constellation name */}
+            {/* Grid name */}
             <div className="absolute top-4 left-4 z-10">
               <h3 className="text-lg font-bold" style={{ color: currentConstellation.color }}>
                 {currentConstellation.name}
               </h3>
-              <p className="text-xs text-neutral-500">{overallProgress}% explored</p>
+              <p className="text-xs text-neutral-500">{overallProgress}% traversed</p>
             </div>
 
-            {/* SVG Constellation */}
+            {/* SVG Sphere Grid */}
             <svg viewBox="0 0 100 100" className="w-full h-80 lg:h-96" preserveAspectRatio="xMidYMid meet">
               <defs>
-                {/* Glow filter - subtle */}
-                <filter id="starGlow" x="-50%" y="-50%" width="200%" height="200%">
-                  <feGaussianBlur stdDeviation="0.5" result="blur" />
-                  <feMerge>
-                    <feMergeNode in="blur" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
-                </filter>
-                {/* Glow for mastered stars - refined */}
-                <filter id="masteredGlow" x="-100%" y="-100%" width="300%" height="300%">
-                  <feGaussianBlur stdDeviation="0.8" result="blur" />
-                  <feFlood floodColor="#FFD700" floodOpacity="0.35" />
+                {/* Glow filters for different levels */}
+                <filter id="nodeGlowMastered" x="-100%" y="-100%" width="300%" height="300%">
+                  <feGaussianBlur stdDeviation="1" result="blur" />
+                  <feFlood floodColor="#FFD700" floodOpacity="0.6" />
                   <feComposite in2="blur" operator="in" />
                   <feMerge>
                     <feMergeNode />
                     <feMergeNode in="SourceGraphic" />
                   </feMerge>
                 </filter>
-                {/* Nebula gradients */}
-                <radialGradient id="nebulaGradient1" cx="30%" cy="40%" r="50%">
-                  <stop offset="0%" stopColor={currentConstellation.color} stopOpacity="0.12" />
-                  <stop offset="100%" stopColor={currentConstellation.color} stopOpacity="0" />
-                </radialGradient>
-                <radialGradient id="nebulaGradient2" cx="70%" cy="60%" r="40%">
-                  <stop offset="0%" stopColor={currentConstellation.color} stopOpacity="0.08" />
-                  <stop offset="100%" stopColor={currentConstellation.color} stopOpacity="0" />
-                </radialGradient>
-                <radialGradient id="nebulaGradient3" cx="50%" cy="25%" r="35%">
-                  <stop offset="0%" stopColor="#A855F7" stopOpacity="0.06" />
-                  <stop offset="100%" stopColor="#A855F7" stopOpacity="0" />
-                </radialGradient>
+                <filter id="nodeGlowActive" x="-100%" y="-100%" width="300%" height="300%">
+                  <feGaussianBlur stdDeviation="0.6" result="blur" />
+                  <feFlood floodColor={currentConstellation.color} floodOpacity="0.5" />
+                  <feComposite in2="blur" operator="in" />
+                  <feMerge>
+                    <feMergeNode />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+                <filter id="selectedPulse" x="-150%" y="-150%" width="400%" height="400%">
+                  <feGaussianBlur stdDeviation="1.5" result="blur" />
+                  <feFlood floodColor="#fff" floodOpacity="0.4" />
+                  <feComposite in2="blur" operator="in" />
+                  <feMerge>
+                    <feMergeNode />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
 
-                {/* Star gradients for depth - generated per topic */}
-                {currentConstellation.topics.map((topic) => (
-                  <React.Fragment key={`gradients-${topic.id}`}>
-                    {/* Mastered star gradient - gold to amber */}
-                    <radialGradient id={`masteredStarGradient-${topic.id}`} cx="30%" cy="30%" r="70%">
-                      <stop offset="0%" stopColor="#FFF7CC" />
-                      <stop offset="40%" stopColor="#FFD700" />
-                      <stop offset="100%" stopColor="#B8860B" />
-                    </radialGradient>
-                    {/* Proficient star gradient */}
-                    <radialGradient id={`proficientStarGradient-${topic.id}`} cx="30%" cy="30%" r="70%">
-                      <stop offset="0%" stopColor="white" stopOpacity="0.6" />
-                      <stop offset="30%" stopColor={currentConstellation.color} />
-                      <stop offset="100%" stopColor={currentConstellation.color} stopOpacity="0.7" />
-                    </radialGradient>
-                    {/* Learning star gradient */}
-                    <radialGradient id={`learningStarGradient-${topic.id}`} cx="30%" cy="30%" r="70%">
-                      <stop offset="0%" stopColor={currentConstellation.color} stopOpacity="0.9" />
-                      <stop offset="100%" stopColor={currentConstellation.color} stopOpacity="0.5" />
-                    </radialGradient>
-                  </React.Fragment>
-                ))}
+                {/* Gradients for gem-like nodes */}
+                <radialGradient id="masteredGem" cx="30%" cy="30%" r="70%">
+                  <stop offset="0%" stopColor="#FFFACD" />
+                  <stop offset="30%" stopColor="#FFD700" />
+                  <stop offset="70%" stopColor="#DAA520" />
+                  <stop offset="100%" stopColor="#B8860B" />
+                </radialGradient>
+                <radialGradient id="activeGem" cx="30%" cy="30%" r="70%">
+                  <stop offset="0%" stopColor="white" stopOpacity="0.8" />
+                  <stop offset="30%" stopColor={currentConstellation.color} />
+                  <stop offset="100%" stopColor={currentConstellation.color} stopOpacity="0.6" />
+                </radialGradient>
+                <radialGradient id="lockedSocket" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stopColor="#2a2a3a" />
+                  <stop offset="100%" stopColor="#1a1a2a" />
+                </radialGradient>
+                <radialGradient id="emptySocket" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stopColor="#3a3a5a" />
+                  <stop offset="100%" stopColor="#2a2a4a" />
+                </radialGradient>
               </defs>
 
-              {/* Nebula cluster backgrounds */}
-              <ellipse cx="30" cy="45" rx="25" ry="20" fill="url(#nebulaGradient1)" className="animate-nebula-drift" />
-              <ellipse cx="70" cy="55" rx="20" ry="25" fill="url(#nebulaGradient2)" className="animate-nebula-drift-reverse" />
-              <ellipse cx="50" cy="25" rx="22" ry="15" fill="url(#nebulaGradient3)" className="animate-nebula-pulse" />
-
-              {/* Animated energy connection lines */}
+              {/* Connection lines - FFX circuit-style tracks */}
               {currentConstellation.topics.map((topic) =>
                 topic.prerequisites.map((prereqId) => {
                   const prereq = currentConstellation.topics.find((t) => t.id === prereqId);
@@ -586,202 +517,156 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
                   const isBothMastered = prereq.mastery >= 70 && topic.mastery >= 70;
                   const lineId = `line-${prereqId}-${topic.id}`;
 
+                  // Calculate offset for parallel tracks
+                  const dx = topic.x - prereq.x;
+                  const dy = topic.y - prereq.y;
+                  const len = Math.sqrt(dx * dx + dy * dy);
+                  const nx = -dy / len * 0.3; // Normal offset
+                  const ny = dx / len * 0.3;
+
                   return (
                     <g key={lineId}>
-                      {/* Base connection line */}
+                      {/* Outer track line */}
+                      <line
+                        x1={prereq.x + nx}
+                        y1={prereq.y + ny}
+                        x2={topic.x + nx}
+                        y2={topic.y + ny}
+                        stroke={isActive ? currentConstellation.color : '#2a2a3a'}
+                        strokeWidth={0.25}
+                        strokeOpacity={isBothMastered ? 0.9 : isActive ? 0.5 : 0.2}
+                      />
+                      {/* Inner track line */}
+                      <line
+                        x1={prereq.x - nx}
+                        y1={prereq.y - ny}
+                        x2={topic.x - nx}
+                        y2={topic.y - ny}
+                        stroke={isActive ? currentConstellation.color : '#2a2a3a'}
+                        strokeWidth={0.25}
+                        strokeOpacity={isBothMastered ? 0.9 : isActive ? 0.5 : 0.2}
+                      />
+                      {/* Center energy line */}
                       <line
                         x1={prereq.x}
                         y1={prereq.y}
                         x2={topic.x}
                         y2={topic.y}
-                        stroke={isActive ? currentConstellation.color : '#333'}
-                        strokeWidth={isBothMastered ? 0.5 : isActive ? 0.3 : 0.15}
-                        strokeOpacity={isBothMastered ? 0.8 : isActive ? 0.5 : 0.2}
-                        strokeDasharray={isActive ? 'none' : '0.5,0.5'}
+                        stroke={isBothMastered ? '#00ffff' : isActive ? currentConstellation.color : '#1a1a2a'}
+                        strokeWidth={isBothMastered ? 0.4 : 0.2}
+                        strokeOpacity={isBothMastered ? 0.8 : isActive ? 0.4 : 0.15}
+                        className={isBothMastered ? 'animate-energy-flow' : ''}
                       />
-                      {/* Animated energy particles on active connections */}
-                      {isActive && (
-                        <>
-                          <circle r="0.4" fill={currentConstellation.color} opacity="0.8">
-                            <animateMotion
-                              dur={`${1.5 + Math.random()}s`}
-                              repeatCount="indefinite"
-                              path={`M${prereq.x},${prereq.y} L${topic.x},${topic.y}`}
-                            />
-                          </circle>
-                          {isBothMastered && (
-                            <circle r="0.3" fill="#FFD700" opacity="0.6">
-                              <animateMotion
-                                dur={`${2 + Math.random()}s`}
-                                repeatCount="indefinite"
-                                path={`M${prereq.x},${prereq.y} L${topic.x},${topic.y}`}
-                                begin="0.5s"
-                              />
-                            </circle>
-                          )}
-                        </>
+                      {/* Animated particle on active paths */}
+                      {isActive && isBothMastered && (
+                        <circle r="0.4" fill="#00ffff" opacity="0.9">
+                          <animateMotion
+                            dur={`${2 + Math.random()}s`}
+                            repeatCount="indefinite"
+                            path={`M${prereq.x},${prereq.y} L${topic.x},${topic.y}`}
+                          />
+                        </circle>
                       )}
                     </g>
                   );
                 })
               )}
 
-              {/* Comet trails for recently completed topics */}
-              {recentlyCompleted.slice(0, 3).map((topic, index) => (
-                <g key={`comet-${topic.id}`} className="animate-comet-fade">
-                  <ellipse
-                    cx={topic.x - 4}
-                    cy={topic.y}
-                    rx="3"
-                    ry="0.5"
-                    fill={currentConstellation.color}
-                    opacity={0.4 - index * 0.1}
-                    transform={`rotate(-30 ${topic.x} ${topic.y})`}
-                  >
-                    <animate attributeName="rx" values="3;2;3" dur="2s" repeatCount="indefinite" />
-                    <animate attributeName="opacity" values="0.4;0.2;0.4" dur="2s" repeatCount="indefinite" />
-                  </ellipse>
-                  <ellipse
-                    cx={topic.x - 6}
-                    cy={topic.y}
-                    rx="2"
-                    ry="0.3"
-                    fill={currentConstellation.color}
-                    opacity={0.2 - index * 0.05}
-                    transform={`rotate(-30 ${topic.x} ${topic.y})`}
-                  />
-                </g>
-              ))}
-
-              {/* Topic stars */}
+              {/* Sphere nodes */}
               {currentConstellation.topics.map((topic) => {
-                const style = getStarStyle(topic);
-                const showMilestone = isMilestone(topic) && topic.mastery >= 90;
+                const style = getNodeStyle(topic);
+                const isSelected = selectedTopic?.id === topic.id;
+                const isHovered = hoveredTopic === topic.id;
 
                 return (
                   <g
                     key={topic.id}
-                    className="cursor-pointer"
+                    className="cursor-pointer transition-transform"
+                    style={{
+                      transform: `translate(${topic.x}px, ${topic.y}px) scale(${style.scale})`,
+                      transformOrigin: `${topic.x}px ${topic.y}px`
+                    }}
                     onClick={() => topic.isUnlocked && setSelectedTopic(topic)}
                     onMouseEnter={() => setHoveredTopic(topic.id)}
                     onMouseLeave={() => setHoveredTopic(null)}
                   >
-                    {/* Outer glow effect */}
-                    {style.glow && (
+                    {/* Selection/hover pulse ring */}
+                    {(isSelected || isHovered) && topic.isUnlocked && (
                       <circle
-                        cx={topic.x}
-                        cy={topic.y}
-                        r={style.outerSize + style.glowSize}
-                        fill={style.glowColor}
-                        opacity={0.3}
-                        className={style.animate ? `animate-glow-pulse-${style.pulseSpeed}` : ''}
+                        cx={0}
+                        cy={0}
+                        r={style.radius + 1}
+                        fill="none"
+                        stroke="#fff"
+                        strokeWidth="0.15"
+                        opacity="0.6"
+                        className="animate-pulse-ring"
                       />
                     )}
 
-                    {/* Orbiting satellite for mastered stars */}
-                    {style.rays > 0 && (
-                      <g>
-                        {/* Orbit path (very faint) */}
-                        <circle
-                          cx={topic.x}
-                          cy={topic.y}
-                          r={style.outerSize + 2.5}
-                          fill="none"
-                          stroke="#FFD700"
-                          strokeWidth="0.05"
-                          strokeOpacity="0.12"
-                          strokeDasharray="0.3,0.6"
-                        />
-                        {/* Satellite - small golden dot orbiting */}
-                        <circle r="0.35" fill="#FFD700">
-                          <animateMotion
-                            dur="30s"
-                            repeatCount="indefinite"
-                            path={`M${topic.x + style.outerSize + 2.5},${topic.y} A${style.outerSize + 2.5},${style.outerSize + 2.5} 0 1,1 ${topic.x - style.outerSize - 2.5},${topic.y} A${style.outerSize + 2.5},${style.outerSize + 2.5} 0 1,1 ${topic.x + style.outerSize + 2.5},${topic.y}`}
-                          />
-                        </circle>
-                        {/* Satellite trail */}
-                        <circle r="0.2" fill="#FFD700" opacity="0.4">
-                          <animateMotion
-                            dur="30s"
-                            repeatCount="indefinite"
-                            begin="-0.5s"
-                            path={`M${topic.x + style.outerSize + 2.5},${topic.y} A${style.outerSize + 2.5},${style.outerSize + 2.5} 0 1,1 ${topic.x - style.outerSize - 2.5},${topic.y} A${style.outerSize + 2.5},${style.outerSize + 2.5} 0 1,1 ${topic.x + style.outerSize + 2.5},${topic.y}`}
-                          />
-                        </circle>
-                      </g>
+                    {/* Outer glow */}
+                    {style.glowRadius > 0 && (
+                      <circle
+                        cx={0}
+                        cy={0}
+                        r={style.radius + style.glowRadius * 0.3}
+                        fill={style.glowColor}
+                        opacity={0.4}
+                        filter={topic.mastery >= 90 ? 'url(#nodeGlowMastered)' : 'url(#nodeGlowActive)'}
+                      />
                     )}
 
-                    {/* Planet ring for milestones */}
-                    {showMilestone && (
-                      <ellipse
-                        cx={topic.x}
-                        cy={topic.y}
-                        rx={style.outerSize + 1.2}
-                        ry={style.outerSize * 0.35}
-                        fill="none"
-                        stroke="#FFD700"
-                        strokeWidth="0.15"
-                        strokeOpacity="0.4"
-                        transform={`rotate(-20 ${topic.x} ${topic.y})`}
-                      >
-                        <animate attributeName="stroke-opacity" values="0.4;0.7;0.4" dur="3s" repeatCount="indefinite" />
-                      </ellipse>
-                    )}
-
-                    {/* The star shape */}
-                    <path
-                      d={style.isLocked
-                        ? generateDiamondPath(topic.x, topic.y, style.outerSize)
-                        : generateStarPath(topic.x, topic.y, style.outerSize, style.innerSize, style.points)
-                      }
-                      fill={style.fill}
-                      stroke={style.stroke}
-                      strokeWidth={style.strokeWidth}
-                      opacity={style.opacity}
-                      filter={style.glow ? (topic.mastery >= 90 ? 'url(#masteredGlow)' : 'url(#starGlow)') : 'none'}
-                      className={`transition-all duration-200 ${style.animate ? `animate-star-pulse-${style.pulseSpeed}` : ''}`}
+                    {/* Socket ring (outer metallic border) */}
+                    <circle
+                      cx={0}
+                      cy={0}
+                      r={style.radius + 0.3}
+                      fill="none"
+                      stroke="#4a4a6a"
+                      strokeWidth="0.3"
+                      opacity={0.6}
                     />
 
-                    {/* Inner sparkle for high mastery */}
-                    {topic.mastery >= 70 && topic.isUnlocked && (
-                      <circle
-                        cx={topic.x}
-                        cy={topic.y}
-                        r={style.innerSize * 0.25}
+                    {/* Main sphere/gem */}
+                    <circle
+                      cx={0}
+                      cy={0}
+                      r={style.radius}
+                      fill={
+                        topic.mastery >= 90 ? 'url(#masteredGem)' :
+                        topic.mastery >= 40 ? 'url(#activeGem)' :
+                        topic.isUnlocked ? 'url(#emptySocket)' : 'url(#lockedSocket)'
+                      }
+                      stroke={style.strokeColor}
+                      strokeWidth={style.strokeWidth}
+                      opacity={style.opacity}
+                      filter={isSelected ? 'url(#selectedPulse)' : undefined}
+                    />
+
+                    {/* Inner highlight (gem shine) */}
+                    {style.innerGlow && (
+                      <ellipse
+                        cx={-style.radius * 0.3}
+                        cy={-style.radius * 0.3}
+                        rx={style.radius * 0.35}
+                        ry={style.radius * 0.25}
                         fill="white"
-                        opacity={topic.mastery >= 90 ? 0.95 : 0.7}
-                      >
-                        {topic.mastery >= 90 && (
-                          <animate attributeName="opacity" values="0.95;0.5;0.95" dur="1.5s" repeatCount="indefinite" />
-                        )}
-                      </circle>
+                        opacity={0.5}
+                      />
                     )}
 
-                    {/* Sparkle particles around completed stars */}
-                    {style.sparkles > 0 && topic.isUnlocked && (
-                      <g>
-                        {[...Array(style.sparkles)].map((_, i) => {
-                          const angle = (i * 360) / style.sparkles + 45;
-                          const distance = style.outerSize + 0.8 + (i % 2) * 0.4;
-                          const sparkleX = topic.x + Math.cos((angle * Math.PI) / 180) * distance;
-                          const sparkleY = topic.y + Math.sin((angle * Math.PI) / 180) * distance;
-                          const sparkleSize = 0.15 + (i % 2) * 0.08;
-                          return (
-                            <circle
-                              key={`sparkle-${topic.id}-${i}`}
-                              cx={sparkleX}
-                              cy={sparkleY}
-                              r={sparkleSize}
-                              fill={topic.mastery >= 90 ? '#FFF7CC' : 'white'}
-                              opacity={0.8}
-                              className="animate-sparkle"
-                              style={{ animationDelay: `${i * 0.3}s` }}
-                            />
-                          );
-                        })}
-                      </g>
-                    )}
+                    {/* Center icon */}
+                    <text
+                      x={0}
+                      y={0}
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                      fontSize={style.radius * 0.8}
+                      fill={topic.mastery >= 90 ? '#fff' : topic.isUnlocked ? '#fff' : '#666'}
+                      opacity={style.opacity}
+                    >
+                      {getNodeIcon(topic)}
+                    </text>
                   </g>
                 );
               })}
@@ -789,7 +674,7 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
 
             {/* Hover tooltip */}
             {hoveredTopic && !selectedTopic && (
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-neutral-900/95 border border-neutral-700 rounded-lg px-4 py-2 z-20">
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-[#1a1a2e]/95 border border-[#3a3a5a] rounded-lg px-4 py-2 z-20 backdrop-blur-sm">
                 <p className="text-sm font-medium text-neutral-100">
                   {currentConstellation.topics.find((t) => t.id === hoveredTopic)?.name}
                 </p>
@@ -799,7 +684,7 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
           </div>
 
           {/* Topic Details Panel */}
-          <div className="bg-neutral-900/50 border-l border-neutral-800 p-4">
+          <div className="bg-[#0f0f2a]/80 border-l border-[#2a2a4a] p-4">
             {selectedTopic ? (
               <div className="space-y-4">
                 <div className="flex items-start justify-between">
@@ -846,11 +731,11 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
                   </div>
                 )}
 
-                <div className="pt-4 border-t border-neutral-800">
+                <div className="pt-4 border-t border-[#2a2a4a]">
                   {selectedTopic.mastery >= 90 ? (
                     <div className="flex items-center gap-2 text-yellow-400">
                       <Sparkles className="w-4 h-4" />
-                      <span className="text-sm">You've mastered this topic!</span>
+                      <span className="text-sm">Node fully activated!</span>
                     </div>
                   ) : selectedTopic.mastery >= 70 ? (
                     <div className="flex items-center gap-2 text-green-400">
@@ -858,59 +743,46 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
                       <span className="text-sm">Great progress! Almost mastered.</span>
                     </div>
                   ) : selectedTopic.mastery >= 40 ? (
-                    <p className="text-sm text-neutral-400">Keep practicing to reach mastery!</p>
+                    <p className="text-sm text-neutral-400">Keep practicing to fully activate!</p>
                   ) : (
-                    <p className="text-sm text-neutral-500">Begin your journey with this topic.</p>
+                    <p className="text-sm text-neutral-500">Begin your journey with this node.</p>
                   )}
                 </div>
               </div>
             ) : (
               <div className="h-full flex flex-col items-center justify-center text-center py-8">
-                <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${currentConstellation.color}20` }}>
+                <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: `${currentConstellation.color}20`, border: `2px solid ${currentConstellation.color}40` }}>
                   <Star className="w-8 h-8" style={{ color: currentConstellation.color }} />
                 </div>
-                <h4 className="font-medium text-neutral-100 mb-2">Select a Star</h4>
+                <h4 className="font-medium text-neutral-100 mb-2">Select a Node</h4>
                 <p className="text-sm text-neutral-500 max-w-[200px]">
-                  Click on any star to view topic details and track your progress
+                  Click on any sphere to view details and track your progress
                 </p>
 
                 <div className="mt-6 space-y-2 text-left w-full">
                   <p className="text-xs text-neutral-600 uppercase tracking-wide">Legend</p>
                   <div className="flex items-center gap-2">
-                    <svg width="16" height="16" viewBox="0 0 16 16">
-                      <defs>
-                        <radialGradient id="legendMasteredGrad" cx="30%" cy="30%" r="70%">
-                          <stop offset="0%" stopColor="#FFF7CC" />
-                          <stop offset="40%" stopColor="#FFD700" />
-                          <stop offset="100%" stopColor="#B8860B" />
-                        </radialGradient>
-                      </defs>
-                      <path d={generateStarPath(8, 8, 5, 1.7, 8)} fill="url(#legendMasteredGrad)" />
-                    </svg>
+                    <div className="w-4 h-4 rounded-full bg-gradient-to-br from-yellow-200 via-yellow-400 to-yellow-700 border border-yellow-500" />
                     <span className="text-xs text-neutral-400">Mastered (90%+)</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <svg width="16" height="16" viewBox="0 0 16 16">
-                      <path d={generateStarPath(8, 8, 4.5, 1.5, 6)} fill={currentConstellation.color} />
-                    </svg>
+                    <div className="w-4 h-4 rounded-full border-2" style={{ backgroundColor: currentConstellation.color, borderColor: 'white' }} />
                     <span className="text-xs text-neutral-400">Proficient (70%+)</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <svg width="16" height="16" viewBox="0 0 16 16">
-                      <path d={generateStarPath(8, 8, 4, 1.4, 5)} fill={currentConstellation.color} opacity="0.85" />
-                    </svg>
+                    <div className="w-4 h-4 rounded-full opacity-80" style={{ backgroundColor: currentConstellation.color }} />
                     <span className="text-xs text-neutral-400">Learning (40%+)</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <svg width="16" height="16" viewBox="0 0 16 16">
-                      <path d={generateStarPath(8, 8, 3.5, 1.2, 4)} fill={currentConstellation.color} opacity="0.6" />
-                    </svg>
+                    <div className="w-4 h-4 rounded-full opacity-60" style={{ backgroundColor: currentConstellation.color }} />
                     <span className="text-xs text-neutral-400">Started</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <svg width="16" height="16" viewBox="0 0 16 16">
-                      <path d={generateDiamondPath(8, 8, 2.5)} fill="#2a2a2a" stroke="#3a3a3a" strokeWidth="0.5" opacity="0.4" />
-                    </svg>
+                    <div className="w-4 h-4 rounded-full bg-[#2a2a4a] border border-[#4a4a6a]" />
+                    <span className="text-xs text-neutral-400">Available</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded-full bg-[#1a1a2e] border border-[#2d2d44] opacity-50" />
                     <span className="text-xs text-neutral-400">Locked</span>
                   </div>
                 </div>
@@ -921,85 +793,19 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
       </CardContent>
 
       <style>{`
-        @keyframes twinkle {
-          0%, 100% { opacity: 0.2; }
-          50% { opacity: 0.8; }
+        /* Energy flow animation on mastered paths */
+        @keyframes energy-flow {
+          0%, 100% { stroke-opacity: 0.6; }
+          50% { stroke-opacity: 1; }
         }
-        .animate-twinkle {
-          animation: twinkle 2s ease-in-out infinite;
-        }
+        .animate-energy-flow { animation: energy-flow 2s ease-in-out infinite; }
 
-        /* Nebula animations */
-        @keyframes nebula-drift {
-          0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.8; }
-          50% { transform: translate(2px, -1px) scale(1.05); opacity: 1; }
-        }
-        @keyframes nebula-drift-reverse {
-          0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.8; }
-          50% { transform: translate(-2px, 1px) scale(1.03); opacity: 1; }
-        }
-        @keyframes nebula-pulse {
+        /* Pulse ring for selected/hovered nodes */
+        @keyframes pulse-ring {
           0%, 100% { opacity: 0.6; transform: scale(1); }
-          50% { opacity: 1; transform: scale(1.1); }
+          50% { opacity: 0.3; transform: scale(1.1); }
         }
-        .animate-nebula-drift { animation: nebula-drift 8s ease-in-out infinite; }
-        .animate-nebula-drift-reverse { animation: nebula-drift-reverse 10s ease-in-out infinite; }
-        .animate-nebula-pulse { animation: nebula-pulse 6s ease-in-out infinite; }
-
-        /* Star glow pulse animations - very subtle */
-        @keyframes glow-pulse-2 {
-          0%, 100% { opacity: 0.25; transform: scale(1); }
-          50% { opacity: 0.35; transform: scale(1.02); }
-        }
-        @keyframes glow-pulse-2-5 {
-          0%, 100% { opacity: 0.2; transform: scale(1); }
-          50% { opacity: 0.3; transform: scale(1.02); }
-        }
-        @keyframes glow-pulse-3 {
-          0%, 100% { opacity: 0.15; transform: scale(1); }
-          50% { opacity: 0.25; transform: scale(1.01); }
-        }
-        .animate-glow-pulse-2 { animation: glow-pulse-2 5s ease-in-out infinite; }
-        .animate-glow-pulse-2\\.5 { animation: glow-pulse-2-5 6s ease-in-out infinite; }
-        .animate-glow-pulse-3 { animation: glow-pulse-3 7s ease-in-out infinite; }
-
-        /* Star shape pulse animations - very subtle */
-        @keyframes star-pulse-2 {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.02); }
-        }
-        @keyframes star-pulse-2-5 {
-          0%, 100% { transform: scale(1); opacity: 0.5; }
-          50% { transform: scale(1.02); opacity: 0.55; }
-        }
-        @keyframes star-pulse-3 {
-          0%, 100% { transform: scale(1); opacity: 0.7; }
-          50% { transform: scale(1.01); opacity: 0.75; }
-        }
-        .animate-star-pulse-2 { animation: star-pulse-2 6s ease-in-out infinite; }
-        .animate-star-pulse-2\\.5 { animation: star-pulse-2-5 7s ease-in-out infinite; }
-        .animate-star-pulse-3 { animation: star-pulse-3 8s ease-in-out infinite; }
-
-        /* Slow spin for mastered star rays */
-        @keyframes spin-slow {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        .animate-spin-slow { animation: spin-slow 20s linear infinite; transform-origin: center; }
-
-        /* Comet trail fade */
-        @keyframes comet-fade {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.7; }
-        }
-        .animate-comet-fade { animation: comet-fade 3s ease-in-out infinite; }
-
-        /* Sparkle particles - opacity only, no movement */
-        @keyframes sparkle {
-          0%, 100% { opacity: 0.5; }
-          50% { opacity: 0.9; }
-        }
-        .animate-sparkle { animation: sparkle 5s ease-in-out infinite; }
+        .animate-pulse-ring { animation: pulse-ring 1.5s ease-in-out infinite; }
       `}</style>
     </Card>
   );
