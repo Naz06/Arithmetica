@@ -298,16 +298,16 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
     const isHovered = hoveredTopic === topic.id;
     const isSelected = selectedTopic?.id === topic.id;
 
-    // Locked topics - small dim diamonds
+    // Locked topics - very dim diamonds (will shine once complete)
     if (!topic.isUnlocked) {
       return {
-        outerSize: isHovered ? 1.6 : 1.3,
-        innerSize: 0.5,
+        outerSize: isHovered ? 1.4 : 1.1,
+        innerSize: 0.4,
         points: 4,
-        opacity: 0.25,
-        fill: '#404040',
-        stroke: '#525252',
-        strokeWidth: 0.1,
+        opacity: 0.15, // More dimmed
+        fill: '#2a2a2a',
+        stroke: '#3a3a3a',
+        strokeWidth: 0.08,
         glow: false,
         glowColor: '',
         glowSize: 0,
@@ -654,14 +654,17 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
               ))}
 
               {/* Topic stars */}
-              {currentConstellation.topics.map((topic) => {
+              {currentConstellation.topics.map((topic, topicIndex) => {
                 const style = getStarStyle(topic);
                 const showMilestone = isMilestone(topic) && topic.mastery >= 90;
+                // Assign different subtle bobbing animations based on topic index
+                const bobClass = topic.isUnlocked ? `animate-subtle-bob-${(topicIndex % 4) + 1}` : '';
 
                 return (
                   <g
                     key={topic.id}
-                    className="cursor-pointer"
+                    className={`cursor-pointer ${bobClass}`}
+                    style={{ transformOrigin: `${topic.x}px ${topic.y}px` }}
                     onClick={() => topic.isUnlocked && setSelectedTopic(topic)}
                     onMouseEnter={() => setHoveredTopic(topic.id)}
                     onMouseLeave={() => setHoveredTopic(null)}
@@ -678,25 +681,44 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
                       />
                     )}
 
-                    {/* Radiating rays for mastered stars */}
+                    {/* Orbiting satellite for mastered stars */}
                     {style.rays > 0 && (
-                      <g className="animate-spin-slow">
-                        {[...Array(style.rays)].map((_, i) => {
-                          const angle = (i * 360) / style.rays;
-                          return (
-                            <line
-                              key={i}
-                              x1={topic.x}
-                              y1={topic.y}
-                              x2={topic.x + Math.cos((angle * Math.PI) / 180) * (style.outerSize + 1.5)}
-                              y2={topic.y + Math.sin((angle * Math.PI) / 180) * (style.outerSize + 1.5)}
-                              stroke="#FFD700"
-                              strokeWidth="0.15"
-                              strokeOpacity="0.5"
-                              strokeLinecap="round"
-                            />
-                          );
-                        })}
+                      <g>
+                        {/* Orbit path (faint) */}
+                        <circle
+                          cx={topic.x}
+                          cy={topic.y}
+                          r={style.outerSize + 1.8}
+                          fill="none"
+                          stroke="#FFD700"
+                          strokeWidth="0.08"
+                          strokeOpacity="0.2"
+                          strokeDasharray="0.3,0.6"
+                        />
+                        {/* Satellite */}
+                        <circle
+                          r="0.35"
+                          fill="#FFD700"
+                        >
+                          <animateMotion
+                            dur="12s"
+                            repeatCount="indefinite"
+                            path={`M${topic.x + style.outerSize + 1.8},${topic.y} A${style.outerSize + 1.8},${style.outerSize + 1.8} 0 1,1 ${topic.x + style.outerSize + 1.79},${topic.y} A${style.outerSize + 1.8},${style.outerSize + 1.8} 0 1,1 ${topic.x + style.outerSize + 1.8},${topic.y}`}
+                          />
+                        </circle>
+                        {/* Satellite trail */}
+                        <circle
+                          r="0.2"
+                          fill="#FFD700"
+                          opacity="0.4"
+                        >
+                          <animateMotion
+                            dur="12s"
+                            repeatCount="indefinite"
+                            begin="-0.3s"
+                            path={`M${topic.x + style.outerSize + 1.8},${topic.y} A${style.outerSize + 1.8},${style.outerSize + 1.8} 0 1,1 ${topic.x + style.outerSize + 1.79},${topic.y} A${style.outerSize + 1.8},${style.outerSize + 1.8} 0 1,1 ${topic.x + style.outerSize + 1.8},${topic.y}`}
+                          />
+                        </circle>
                       </g>
                     )}
 
@@ -897,7 +919,7 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
                   </div>
                   <div className="flex items-center gap-2">
                     <svg width="16" height="16" viewBox="0 0 16 16">
-                      <path d={generateDiamondPath(8, 8, 3)} fill="#404040" stroke="#525252" strokeWidth="0.5" />
+                      <path d={generateDiamondPath(8, 8, 2.5)} fill="#2a2a2a" stroke="#3a3a3a" strokeWidth="0.5" opacity="0.4" />
                     </svg>
                     <span className="text-xs text-neutral-400">Locked</span>
                   </div>
@@ -988,6 +1010,34 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
           50% { opacity: 1; transform: scale(1.2); }
         }
         .animate-sparkle { animation: sparkle 1.5s ease-in-out infinite; }
+
+        /* Subtle random bobbing animations - 4 variants for variety */
+        @keyframes subtle-bob-1 {
+          0%, 100% { transform: translate(0, 0); }
+          25% { transform: translate(0.15px, -0.2px); }
+          50% { transform: translate(-0.1px, 0.15px); }
+          75% { transform: translate(0.1px, 0.1px); }
+        }
+        @keyframes subtle-bob-2 {
+          0%, 100% { transform: translate(0, 0); }
+          33% { transform: translate(-0.12px, 0.18px); }
+          66% { transform: translate(0.18px, -0.1px); }
+        }
+        @keyframes subtle-bob-3 {
+          0%, 100% { transform: translate(0, 0); }
+          20% { transform: translate(0.1px, 0.15px); }
+          40% { transform: translate(-0.15px, -0.08px); }
+          60% { transform: translate(0.08px, -0.12px); }
+          80% { transform: translate(-0.1px, 0.1px); }
+        }
+        @keyframes subtle-bob-4 {
+          0%, 100% { transform: translate(0, 0); }
+          50% { transform: translate(-0.1px, -0.15px); }
+        }
+        .animate-subtle-bob-1 { animation: subtle-bob-1 8s ease-in-out infinite; }
+        .animate-subtle-bob-2 { animation: subtle-bob-2 10s ease-in-out infinite; }
+        .animate-subtle-bob-3 { animation: subtle-bob-3 12s ease-in-out infinite; }
+        .animate-subtle-bob-4 { animation: subtle-bob-4 9s ease-in-out infinite; }
       `}</style>
     </Card>
   );
