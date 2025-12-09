@@ -772,17 +772,20 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
                 };
 
                 return (
-                  <g key={topic.id}>
+                  <g
+                    key={topic.id}
+                    onClick={handleClick}
+                    onMouseEnter={() => setHoveredTopic(topic.id)}
+                    onMouseLeave={() => setHoveredTopic(null)}
+                    style={{ cursor: topic.isUnlocked ? 'pointer' : 'not-allowed' }}
+                  >
                     {/* Clickable hit area - larger invisible circle */}
                     <circle
                       cx={topic.x}
                       cy={topic.y}
-                      r={scaledRadius + 3}
-                      fill="rgba(0,0,0,0.01)"
-                      onClick={handleClick}
-                      onMouseEnter={() => setHoveredTopic(topic.id)}
-                      onMouseLeave={() => setHoveredTopic(null)}
-                      style={{ cursor: topic.isUnlocked ? 'pointer' : 'not-allowed' }}
+                      r={scaledRadius + 5}
+                      fill="transparent"
+                      pointerEvents="all"
                     />
                     {/* Selection/hover pulse ring */}
                     {(isSelected || isHovered) && topic.isUnlocked && (
