@@ -177,11 +177,16 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         tutorId: a.tutor_id,
         subject: a.subject,
         title: a.title,
+        type: a.type || 'test',
+        topic: a.topic || '',
         score: a.score,
         maxScore: a.max_score,
-        date: a.date,
+        grade: a.grade,
+        classAverage: a.class_average,
+        dateTaken: a.date_taken || a.created_at,
         feedback: a.feedback || '',
         createdAt: a.created_at,
+        gradedAt: a.graded_at,
       }));
       setAssessments(mappedAssessments);
     }
@@ -349,10 +354,16 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         student_id: assessment.studentId,
         subject: assessment.subject,
         title: assessment.title,
+        type: assessment.type || 'test',
+        topic: assessment.topic,
         score: assessment.score,
         max_score: assessment.maxScore,
-        date: assessment.date,
+        grade: assessment.grade,
+        class_average: assessment.classAverage,
+        date_taken: assessment.dateTaken || assessment.createdAt,
         feedback: assessment.feedback,
+        created_at: assessment.createdAt,
+        graded_at: assessment.gradedAt,
       });
 
       if (error) {
@@ -364,7 +375,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         student_id: assessment.studentId,
         subject: assessment.subject,
         score: Math.round((assessment.score / assessment.maxScore) * 100),
-        date: assessment.date,
+        date: assessment.dateTaken || assessment.createdAt,
       });
 
       // Award constellation points based on assessment score
@@ -387,9 +398,16 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const { error } = await supabase
         .from('assessments')
         .update({
+          title: assessment.title,
+          type: assessment.type,
+          topic: assessment.topic,
           score: assessment.score,
           max_score: assessment.maxScore,
+          grade: assessment.grade,
+          class_average: assessment.classAverage,
+          date_taken: assessment.dateTaken,
           feedback: assessment.feedback,
+          graded_at: assessment.gradedAt,
         })
         .eq('id', assessment.id);
 
