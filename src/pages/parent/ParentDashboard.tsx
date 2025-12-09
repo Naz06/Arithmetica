@@ -293,6 +293,7 @@ export const ParentDashboard: React.FC = () => {
                         color: '#e5e5e5',
                       }}
                       labelStyle={{ color: '#a3a3a3' }}
+                      cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1 }}
                     />
                     <Area
                       type="monotone"
@@ -321,7 +322,10 @@ export const ParentDashboard: React.FC = () => {
                       fillOpacity={0.3}
                       activeDot={{ r: 6, fill: '#22C55E', stroke: '#22C55E', strokeWidth: 3, strokeOpacity: 0.3, style: { filter: 'drop-shadow(0 0 6px #22C55E)' } }}
                     />
-                    <Legend wrapperStyle={{ color: '#a3a3a3' }} />
+                    <Legend
+                      wrapperStyle={{ color: '#a3a3a3' }}
+                      formatter={(value) => <span style={{ color: '#a3a3a3' }}>{value}</span>}
+                    />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -374,9 +378,13 @@ export const ParentDashboard: React.FC = () => {
                         borderRadius: '8px',
                         color: '#e5e5e5',
                       }}
+                      itemStyle={{ color: '#e5e5e5' }}
                       formatter={(value: number, name: string) => [`${value}%`, name]}
                     />
-                    <Legend wrapperStyle={{ color: '#a3a3a3' }} />
+                    <Legend
+                      wrapperStyle={{ color: '#a3a3a3' }}
+                      formatter={(value) => <span style={{ color: '#a3a3a3' }}>{value}</span>}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -415,6 +423,7 @@ export const ParentDashboard: React.FC = () => {
                           color: '#e5e5e5',
                         }}
                         labelStyle={{ color: '#a3a3a3' }}
+                        cursor={{ fill: 'rgba(255,255,255,0.05)' }}
                       />
                       <Bar dataKey="score" fill="#0EA5E9" radius={[4, 4, 0, 0]} />
                     </BarChart>

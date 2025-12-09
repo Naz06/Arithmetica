@@ -207,11 +207,8 @@
   }
 }
 
-/* Recharts custom styles */
-.recharts-tooltip-wrapper {
-  outline: none !important;
-}
-
+/* Recharts custom styles - Remove all focus outlines and white boxes */
+.recharts-tooltip-wrapper,
 .recharts-wrapper,
 .recharts-surface,
 .recharts-legend-wrapper,
@@ -220,23 +217,50 @@
 .recharts-sector,
 .recharts-bar-rectangle,
 .recharts-area,
-.recharts-dot {
+.recharts-dot,
+.recharts-active-dot,
+.recharts-reference-line,
+.recharts-cursor,
+.recharts-tooltip-cursor {
   outline: none !important;
   box-shadow: none !important;
+  border: none !important;
 }
 
-.recharts-wrapper:focus,
-.recharts-surface:focus,
-.recharts-legend-wrapper:focus,
-.recharts-legend-item:focus,
-.recharts-pie-sector:focus,
-.recharts-sector:focus {
+.recharts-wrapper *:focus,
+.recharts-wrapper *:focus-visible,
+.recharts-surface *:focus,
+.recharts-surface *:focus-visible {
   outline: none !important;
   box-shadow: none !important;
+  border: none !important;
+}
+
+/* SVG elements inside charts */
+.recharts-wrapper svg,
+.recharts-wrapper svg *,
+.recharts-surface svg,
+.recharts-surface svg * {
+  outline: none !important;
+}
+
+/* Cursor styling - transparent instead of white */
+.recharts-tooltip-cursor {
+  fill: transparent !important;
+  stroke: rgba(255, 255, 255, 0.1) !important;
+}
+
+.recharts-rectangle.recharts-tooltip-cursor {
+  fill: rgba(255, 255, 255, 0.05) !important;
+  stroke: none !important;
 }
 
 /* Legend text color for dark theme */
 .recharts-legend-item-text {
+  color: #a3a3a3 !important;
+}
+
+.recharts-legend-wrapper {
   color: #a3a3a3 !important;
 }
 
