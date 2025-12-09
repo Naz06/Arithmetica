@@ -641,10 +641,10 @@ export const TutorDashboard: React.FC = () => {
   // Assessment editing handlers
   const handleEditAssessment = (student: StudentProfile) => {
     setAssessmentStudent(student);
-    setEditAverageScore(student.stats.averageScore);
-    setEditCompletedAssignments(student.stats.completedAssignments);
-    setEditTotalSessions(student.stats.totalSessions);
-    setEditAttendanceRate(student.stats.attendanceRate);
+    setEditAverageScore(student.stats?.averageScore || 0);
+    setEditCompletedAssignments(student.stats?.completedAssignments || 0);
+    setEditTotalSessions(student.stats?.totalSessions || 0);
+    setEditAttendanceRate(student.stats?.attendanceRate || 100);
     setAssessmentSaveSuccess(false);
   };
 
@@ -974,7 +974,7 @@ export const TutorDashboard: React.FC = () => {
                           <div className="text-right hidden sm:block">
                             <div className="flex items-center gap-2 text-sm text-neutral-400">
                               <Target className="w-4 h-4" />
-                              <span>{student.stats.overallProgress}% progress</span>
+                              <span>{student.stats?.overallProgress || 0}% progress</span>
                             </div>
                             <div className="flex items-center gap-2 text-sm text-neutral-400 mt-1">
                               <Award className="w-4 h-4" />
@@ -2215,21 +2215,21 @@ export const TutorDashboard: React.FC = () => {
                         </div>
                       </div>
                       <Badge variant="info" size="sm">
-                        {student.stats.averageScore}%
+                        {student.stats?.averageScore || 0}%
                       </Badge>
                     </div>
                     <div className="grid grid-cols-3 gap-2 text-xs">
                       <div className="text-center">
                         <p className="text-neutral-500">Assignments</p>
-                        <p className="font-semibold text-neutral-300">{student.stats.completedAssignments}</p>
+                        <p className="font-semibold text-neutral-300">{student.stats?.completedAssignments || 0}</p>
                       </div>
                       <div className="text-center">
                         <p className="text-neutral-500">Sessions</p>
-                        <p className="font-semibold text-neutral-300">{student.stats.totalSessions}</p>
+                        <p className="font-semibold text-neutral-300">{student.stats?.totalSessions || 0}</p>
                       </div>
                       <div className="text-center">
                         <p className="text-neutral-500">Attendance</p>
-                        <p className="font-semibold text-neutral-300">{student.stats.attendanceRate}%</p>
+                        <p className="font-semibold text-neutral-300">{student.stats?.attendanceRate || 100}%</p>
                       </div>
                     </div>
                   </button>
