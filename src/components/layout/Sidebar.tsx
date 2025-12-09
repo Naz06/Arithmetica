@@ -47,7 +47,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen = false, onMobile
     { icon: <Calendar className="w-5 h-5" />, label: 'Schedule', path: '/tutor/schedule' },
     { icon: <MessageCircle className="w-5 h-5" />, label: 'Messages', path: '/tutor/messages' },
     { icon: <BarChart3 className="w-5 h-5" />, label: 'Analytics', path: '/tutor/analytics' },
-    { icon: <Shield className="w-5 h-5" />, label: 'Admin', path: '/tutor/admin' },
+    { icon: <Shield className="w-5 h-5" />, label: 'User Management', path: '/tutor/admin' },
     { icon: <Settings className="w-5 h-5" />, label: 'Settings', path: '/tutor/settings' },
   ];
 

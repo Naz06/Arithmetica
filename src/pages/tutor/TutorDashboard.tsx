@@ -880,12 +880,6 @@ export const TutorDashboard: React.FC = () => {
             >
               Penalties
             </Button>
-            <Button variant="secondary" onClick={() => setShowEventModal(true)} icon={<CalendarIcon className="w-4 h-4" />}>
-              Schedule Session
-            </Button>
-            <Button variant="primary" onClick={() => setShowResourceModal(true)} icon={<Plus className="w-4 h-4" />}>
-              Add Resource
-            </Button>
           </div>
         </div>
 
