@@ -37,118 +37,200 @@ interface TopicTemplate {
   y: number;
 }
 
-// ============ CURRICULUM DATA ============
+// ============ UK NATIONAL CURRICULUM DATA ============
 const curriculumTopics: Record<string, Record<Subject, TopicTemplate[]>> = {
-  // Year 5-6 Topics
+  // Year 5-6 Topics (Key Stage 2 National Curriculum)
   'year5-6': {
     mathematics: [
-      { id: 'm1', name: 'Place Value', description: 'Numbers up to millions and decimals', prerequisites: [], x: 50, y: 88 },
-      { id: 'm2', name: 'Addition & Subtraction', description: 'Multi-digit mental and written methods', prerequisites: ['m1'], x: 25, y: 68 },
-      { id: 'm3', name: 'Multiplication', description: 'Times tables and long multiplication', prerequisites: ['m1'], x: 75, y: 68 },
-      { id: 'm4', name: 'Division', description: 'Short and long division methods', prerequisites: ['m3'], x: 85, y: 48 },
-      { id: 'm5', name: 'Fractions', description: 'Add, subtract, multiply fractions', prerequisites: ['m2', 'm3'], x: 50, y: 48 },
-      { id: 'm6', name: 'Decimals & Percentages', description: 'Converting and calculating', prerequisites: ['m5'], x: 30, y: 28 },
-      { id: 'm7', name: 'Ratio', description: 'Understanding proportional relationships', prerequisites: ['m5', 'm4'], x: 70, y: 28 },
-      { id: 'm8', name: 'Geometry Basics', description: 'Shapes, angles, and properties', prerequisites: ['m6', 'm7'], x: 50, y: 10 },
+      // Number - Place Value & Operations
+      { id: 'm1', name: 'Place Value', description: 'Read, write, order numbers to 10 million; round; negative numbers', prerequisites: [], x: 50, y: 92 },
+      { id: 'm2', name: 'Four Operations', description: 'Mental & written methods; multi-step problems; order of operations', prerequisites: ['m1'], x: 30, y: 78 },
+      { id: 'm3', name: 'Factors & Multiples', description: 'Identify factors, multiples, primes; squares & cubes', prerequisites: ['m1'], x: 70, y: 78 },
+      // Fractions, Decimals, Percentages
+      { id: 'm4', name: 'Fractions', description: 'Equivalent fractions; add, subtract, multiply, divide fractions', prerequisites: ['m2'], x: 20, y: 62 },
+      { id: 'm5', name: 'Decimals', description: 'Decimal place value; multiply/divide by 10, 100, 1000', prerequisites: ['m2', 'm3'], x: 50, y: 62 },
+      { id: 'm6', name: 'Percentages', description: 'Percentage of amounts; equivalence with fractions & decimals', prerequisites: ['m4', 'm5'], x: 80, y: 62 },
+      // Ratio & Proportion
+      { id: 'm7', name: 'Ratio', description: 'Relative sizes; scale factors; unequal sharing', prerequisites: ['m5', 'm6'], x: 35, y: 46 },
+      // Algebra
+      { id: 'm8', name: 'Algebra', description: 'Simple formulae; linear sequences; unknowns', prerequisites: ['m3'], x: 65, y: 46 },
+      // Measurement
+      { id: 'm9', name: 'Measurement', description: 'Convert units; perimeter, area, volume; time problems', prerequisites: ['m5'], x: 20, y: 30 },
+      // Geometry
+      { id: 'm10', name: 'Properties of Shapes', description: 'Angles; 2D & 3D shapes; circles; nets', prerequisites: ['m9'], x: 50, y: 30 },
+      { id: 'm11', name: 'Position & Direction', description: 'Coordinates; reflection; translation', prerequisites: ['m10'], x: 80, y: 30 },
+      // Statistics
+      { id: 'm12', name: 'Statistics', description: 'Tables, line graphs, pie charts; calculate mean', prerequisites: ['m6', 'm7'], x: 50, y: 12 },
     ],
     physics: [
-      { id: 'p1', name: 'Forces', description: 'Pushes, pulls, and gravity', prerequisites: [], x: 50, y: 88 },
-      { id: 'p2', name: 'Light', description: 'How light travels and shadows', prerequisites: ['p1'], x: 30, y: 65 },
-      { id: 'p3', name: 'Sound', description: 'Vibrations and hearing', prerequisites: ['p1'], x: 70, y: 65 },
-      { id: 'p4', name: 'Electricity Basics', description: 'Simple circuits and components', prerequisites: ['p2'], x: 20, y: 42 },
-      { id: 'p5', name: 'Magnets', description: 'Magnetic forces and poles', prerequisites: ['p3'], x: 80, y: 42 },
-      { id: 'p6', name: 'Earth & Space', description: 'Day, night, and seasons', prerequisites: ['p4', 'p5'], x: 50, y: 22 },
-      { id: 'p7', name: 'Materials', description: 'Properties and changes', prerequisites: ['p6'], x: 50, y: 8 },
+      // KS2 Science - Physics topics (called "Science" at this level)
+      { id: 'p1', name: 'Forces & Motion', description: 'Gravity, air resistance, friction; mechanisms (levers, pulleys, gears)', prerequisites: [], x: 50, y: 92 },
+      { id: 'p2', name: 'Earth & Space', description: 'Solar system; Earth rotation (day/night); Moon phases', prerequisites: ['p1'], x: 25, y: 75 },
+      { id: 'p3', name: 'Light', description: 'Light travels in straight lines; shadows; reflection; how we see', prerequisites: ['p1'], x: 75, y: 75 },
+      { id: 'p4', name: 'Sound', description: 'Vibrations; how sounds travel; pitch and volume', prerequisites: ['p1'], x: 50, y: 58 },
+      { id: 'p5', name: 'Electricity', description: 'Series circuits; circuit symbols; voltage variation effects', prerequisites: ['p4'], x: 25, y: 42 },
+      { id: 'p6', name: 'Magnets', description: 'Magnetic poles; attraction/repulsion; magnetic fields', prerequisites: ['p5'], x: 75, y: 42 },
+      { id: 'p7', name: 'States of Matter', description: 'Solids, liquids, gases; changes of state; water cycle', prerequisites: ['p2'], x: 35, y: 25 },
+      { id: 'p8', name: 'Properties of Materials', description: 'Comparing materials; dissolving; separating mixtures; reversible changes', prerequisites: ['p7'], x: 65, y: 25 },
+      { id: 'p9', name: 'Living Things', description: 'Life cycles; reproduction; classification of organisms', prerequisites: ['p8'], x: 50, y: 10 },
     ],
     economics: [
-      { id: 'e1', name: 'Needs vs Wants', description: 'Understanding basic needs', prerequisites: [], x: 50, y: 88 },
-      { id: 'e2', name: 'Money Basics', description: 'Coins, notes, and value', prerequisites: ['e1'], x: 30, y: 65 },
-      { id: 'e3', name: 'Saving', description: 'Why and how to save', prerequisites: ['e1'], x: 70, y: 65 },
-      { id: 'e4', name: 'Earning Money', description: 'Jobs and income', prerequisites: ['e2'], x: 25, y: 42 },
-      { id: 'e5', name: 'Spending Wisely', description: 'Making good choices', prerequisites: ['e2', 'e3'], x: 50, y: 42 },
-      { id: 'e6', name: 'Budgeting', description: 'Planning your money', prerequisites: ['e4', 'e5'], x: 75, y: 42 },
-      { id: 'e7', name: 'Trading', description: 'Buying, selling, exchange', prerequisites: ['e5', 'e6'], x: 50, y: 20 },
+      // Financial Literacy / PSHE Money Topics (no formal economics at KS2)
+      { id: 'e1', name: 'Needs vs Wants', description: 'Distinguishing essential needs from desires', prerequisites: [], x: 50, y: 92 },
+      { id: 'e2', name: 'Money & Value', description: 'Understanding coins, notes, and value of money', prerequisites: ['e1'], x: 30, y: 75 },
+      { id: 'e3', name: 'Earning Money', description: 'Jobs, wages, and different ways people earn income', prerequisites: ['e1'], x: 70, y: 75 },
+      { id: 'e4', name: 'Saving & Goals', description: 'Why save; setting financial goals; interest basics', prerequisites: ['e2'], x: 20, y: 55 },
+      { id: 'e5', name: 'Spending Choices', description: 'Value for money; comparing prices; making decisions', prerequisites: ['e2', 'e3'], x: 50, y: 55 },
+      { id: 'e6', name: 'Budgeting Basics', description: 'Planning income and expenses; keeping track of money', prerequisites: ['e4', 'e5'], x: 80, y: 55 },
+      { id: 'e7', name: 'Banks & Accounts', description: 'What banks do; types of accounts; keeping money safe', prerequisites: ['e4'], x: 30, y: 35 },
+      { id: 'e8', name: 'Borrowing & Debt', description: 'What is borrowing; interest on loans; responsible borrowing', prerequisites: ['e6', 'e7'], x: 70, y: 35 },
+      { id: 'e9', name: 'Enterprise', description: 'Starting a business; profit and loss; being an entrepreneur', prerequisites: ['e5', 'e6'], x: 50, y: 18 },
+      { id: 'e10', name: 'Giving & Charity', description: 'Philanthropy; helping others; community responsibility', prerequisites: ['e9'], x: 50, y: 6 },
     ],
   },
-  // GCSE Topics
+  // GCSE Topics (Key Stage 4 - based on AQA/Edexcel specifications)
   gcse: {
     mathematics: [
-      { id: 'm1', name: 'Number', description: 'Indices, surds, and standard form', prerequisites: [], x: 50, y: 88 },
-      { id: 'm2', name: 'Algebra Fundamentals', description: 'Expressions and simplifying', prerequisites: ['m1'], x: 25, y: 70 },
-      { id: 'm3', name: 'Fractions & Percentages', description: 'Complex calculations', prerequisites: ['m1'], x: 75, y: 70 },
-      { id: 'm4', name: 'Linear Equations', description: 'Solving and graphing', prerequisites: ['m2'], x: 15, y: 52 },
-      { id: 'm5', name: 'Quadratics', description: 'Factorising and solving', prerequisites: ['m2'], x: 40, y: 52 },
-      { id: 'm6', name: 'Ratio & Proportion', description: 'Direct and inverse', prerequisites: ['m3'], x: 65, y: 52 },
-      { id: 'm7', name: 'Geometry', description: 'Angles, circles, and proofs', prerequisites: ['m4'], x: 20, y: 32 },
-      { id: 'm8', name: 'Trigonometry', description: 'Sin, cos, tan applications', prerequisites: ['m5', 'm7'], x: 45, y: 32 },
-      { id: 'm9', name: 'Statistics', description: 'Averages and probability', prerequisites: ['m6'], x: 75, y: 32 },
-      { id: 'm10', name: 'Further Algebra', description: 'Simultaneous equations', prerequisites: ['m8'], x: 35, y: 12 },
-      { id: 'm11', name: 'Vectors & Transformations', description: 'Movement and change', prerequisites: ['m8', 'm9'], x: 65, y: 12 },
+      // Number
+      { id: 'm1', name: 'Structure of Number', description: 'Integers, decimals, place value; ordering & rounding', prerequisites: [], x: 50, y: 94 },
+      { id: 'm2', name: 'Fractions & Percentages', description: 'Operations with fractions; percentage change; reverse percentages', prerequisites: ['m1'], x: 25, y: 82 },
+      { id: 'm3', name: 'Indices & Roots', description: 'Laws of indices; surds; standard form', prerequisites: ['m1'], x: 75, y: 82 },
+      // Algebra
+      { id: 'm4', name: 'Algebraic Expressions', description: 'Simplifying; expanding brackets; factorising', prerequisites: ['m2'], x: 15, y: 68 },
+      { id: 'm5', name: 'Linear Equations', description: 'Solving equations; rearranging formulae', prerequisites: ['m4'], x: 40, y: 68 },
+      { id: 'm6', name: 'Linear Graphs', description: 'Plotting; gradient; y = mx + c; parallel/perpendicular lines', prerequisites: ['m5'], x: 65, y: 68 },
+      { id: 'm7', name: 'Quadratics', description: 'Factorising; quadratic formula; completing the square', prerequisites: ['m4', 'm3'], x: 85, y: 68 },
+      { id: 'm8', name: 'Simultaneous Equations', description: 'Linear & quadratic; graphical solutions', prerequisites: ['m5', 'm7'], x: 25, y: 52 },
+      { id: 'm9', name: 'Inequalities', description: 'Solving; representing on number line & graphs', prerequisites: ['m5', 'm6'], x: 50, y: 52 },
+      { id: 'm10', name: 'Sequences', description: 'nth term; arithmetic & geometric; quadratic sequences', prerequisites: ['m7'], x: 75, y: 52 },
+      // Ratio & Proportion
+      { id: 'm11', name: 'Ratio & Proportion', description: 'Sharing in ratio; direct & inverse proportion; compound measures', prerequisites: ['m2'], x: 15, y: 38 },
+      // Geometry
+      { id: 'm12', name: 'Angles & Polygons', description: 'Angle rules; interior/exterior angles; bearings', prerequisites: ['m6'], x: 40, y: 38 },
+      { id: 'm13', name: 'Congruence & Similarity', description: 'Congruent shapes; similar triangles; scale factors', prerequisites: ['m11', 'm12'], x: 65, y: 38 },
+      { id: 'm14', name: 'Trigonometry', description: 'SOHCAHTOA; sine/cosine rules; 3D trigonometry', prerequisites: ['m12', 'm7'], x: 85, y: 38 },
+      { id: 'm15', name: 'Circle Theorems', description: 'Arc, sector, segment; circle theorems', prerequisites: ['m12'], x: 25, y: 22 },
+      { id: 'm16', name: 'Transformations', description: 'Rotation, reflection, translation, enlargement; vectors', prerequisites: ['m13'], x: 50, y: 22 },
+      { id: 'm17', name: 'Area & Volume', description: 'Compound shapes; prisms, pyramids, cones, spheres', prerequisites: ['m14', 'm15'], x: 75, y: 22 },
+      // Statistics & Probability
+      { id: 'm18', name: 'Probability', description: 'Single/combined events; tree diagrams; conditional probability', prerequisites: ['m2'], x: 35, y: 8 },
+      { id: 'm19', name: 'Statistics', description: 'Averages; cumulative frequency; histograms; scatter graphs', prerequisites: ['m18'], x: 65, y: 8 },
     ],
     physics: [
-      { id: 'p1', name: 'Energy', description: 'Stores and transfers', prerequisites: [], x: 50, y: 88 },
-      { id: 'p2', name: 'Electricity', description: 'Circuits and calculations', prerequisites: ['p1'], x: 25, y: 68 },
-      { id: 'p3', name: 'Particle Model', description: 'Density and pressure', prerequisites: ['p1'], x: 75, y: 68 },
-      { id: 'p4', name: 'Atomic Structure', description: 'Atoms and radiation', prerequisites: ['p3'], x: 85, y: 48 },
-      { id: 'p5', name: 'Forces', description: 'Newton\'s laws and motion', prerequisites: ['p1'], x: 50, y: 48 },
-      { id: 'p6', name: 'Waves', description: 'Properties and EM spectrum', prerequisites: ['p5'], x: 25, y: 28 },
-      { id: 'p7', name: 'Magnetism', description: 'Fields and electromagnets', prerequisites: ['p2', 'p5'], x: 50, y: 28 },
-      { id: 'p8', name: 'Space Physics', description: 'Stars and the universe', prerequisites: ['p4', 'p6'], x: 75, y: 28 },
-      { id: 'p9', name: 'Combined Topics', description: 'Integration and applications', prerequisites: ['p7', 'p8'], x: 50, y: 10 },
+      // AQA GCSE Physics specification
+      { id: 'p1', name: 'Energy Stores', description: 'Kinetic, gravitational, elastic, thermal energy; conservation', prerequisites: [], x: 50, y: 94 },
+      { id: 'p2', name: 'Energy Transfers', description: 'Work done; power; efficiency; reducing dissipation', prerequisites: ['p1'], x: 25, y: 80 },
+      { id: 'p3', name: 'Energy Resources', description: 'Renewable vs non-renewable; environmental impact', prerequisites: ['p1'], x: 75, y: 80 },
+      { id: 'p4', name: 'Electric Circuits', description: 'Current, voltage, resistance; series & parallel; V=IR', prerequisites: ['p2'], x: 20, y: 66 },
+      { id: 'p5', name: 'Domestic Electricity', description: 'AC/DC; mains electricity; power & energy transfer; safety', prerequisites: ['p4'], x: 45, y: 66 },
+      { id: 'p6', name: 'Particle Model', description: 'Density; states of matter; internal energy; specific heat', prerequisites: ['p1'], x: 75, y: 66 },
+      { id: 'p7', name: 'Atomic Structure', description: 'Atoms & isotopes; radioactive decay; half-life', prerequisites: ['p6'], x: 90, y: 52 },
+      { id: 'p8', name: 'Forces in Balance', description: 'Scalars & vectors; resultant forces; equilibrium', prerequisites: ['p2'], x: 15, y: 52 },
+      { id: 'p9', name: 'Motion', description: 'Distance-time; velocity-time graphs; acceleration equations', prerequisites: ['p8'], x: 40, y: 52 },
+      { id: 'p10', name: "Newton's Laws", description: 'Inertia; F=ma; action-reaction pairs', prerequisites: ['p9'], x: 65, y: 52 },
+      { id: 'p11', name: 'Forces & Pressure', description: 'Moments; levers; gears; pressure in fluids', prerequisites: ['p8', 'p6'], x: 25, y: 38 },
+      { id: 'p12', name: 'Wave Properties', description: 'Transverse & longitudinal; frequency; wavelength; wave speed', prerequisites: ['p9'], x: 50, y: 38 },
+      { id: 'p13', name: 'EM Spectrum', description: 'Radio to gamma; uses and hazards of each type', prerequisites: ['p12'], x: 75, y: 38 },
+      { id: 'p14', name: 'Magnetism', description: 'Magnetic fields; electromagnets; Fleming\'s left hand rule', prerequisites: ['p4'], x: 20, y: 22 },
+      { id: 'p15', name: 'Electromagnetism', description: 'Motor effect; generators; transformers', prerequisites: ['p14', 'p5'], x: 45, y: 22 },
+      { id: 'p16', name: 'Space Physics', description: 'Solar system; life cycle of stars; red shift; Big Bang', prerequisites: ['p7', 'p13'], x: 75, y: 22 },
+      { id: 'p17', name: 'Nuclear Radiation', description: 'Uses of radiation; nuclear fission & fusion', prerequisites: ['p7'], x: 50, y: 8 },
     ],
     economics: [
-      { id: 'e1', name: 'Economic Problem', description: 'Scarcity and choice', prerequisites: [], x: 50, y: 88 },
-      { id: 'e2', name: 'Supply & Demand', description: 'Market fundamentals', prerequisites: ['e1'], x: 30, y: 68 },
-      { id: 'e3', name: 'Price Mechanism', description: 'How markets work', prerequisites: ['e1'], x: 70, y: 68 },
-      { id: 'e4', name: 'Elasticity', description: 'PED and YED', prerequisites: ['e2', 'e3'], x: 50, y: 50 },
-      { id: 'e5', name: 'Market Structures', description: 'Competition types', prerequisites: ['e2'], x: 20, y: 50 },
-      { id: 'e6', name: 'Market Failure', description: 'Externalities & public goods', prerequisites: ['e3'], x: 80, y: 50 },
-      { id: 'e7', name: 'Government Intervention', description: 'Taxes and subsidies', prerequisites: ['e4', 'e6'], x: 65, y: 30 },
-      { id: 'e8', name: 'Labour Markets', description: 'Wages and employment', prerequisites: ['e4', 'e5'], x: 35, y: 30 },
-      { id: 'e9', name: 'Macro Introduction', description: 'GDP and growth', prerequisites: ['e7', 'e8'], x: 50, y: 10 },
+      // GCSE Economics (Edexcel/AQA specification)
+      { id: 'e1', name: 'Economic Problem', description: 'Scarcity, choice, opportunity cost; economic agents', prerequisites: [], x: 50, y: 94 },
+      { id: 'e2', name: 'Demand', description: 'Law of demand; demand curves; factors affecting demand', prerequisites: ['e1'], x: 25, y: 80 },
+      { id: 'e3', name: 'Supply', description: 'Law of supply; supply curves; factors affecting supply', prerequisites: ['e1'], x: 75, y: 80 },
+      { id: 'e4', name: 'Price Determination', description: 'Market equilibrium; price mechanism; shifts in D&S', prerequisites: ['e2', 'e3'], x: 50, y: 66 },
+      { id: 'e5', name: 'Price Elasticity', description: 'PED calculation; elastic vs inelastic; factors affecting', prerequisites: ['e4'], x: 20, y: 52 },
+      { id: 'e6', name: 'Market Failure', description: 'Externalities; public goods; merit/demerit goods', prerequisites: ['e4'], x: 50, y: 52 },
+      { id: 'e7', name: 'Government Intervention', description: 'Indirect taxes; subsidies; price controls; regulation', prerequisites: ['e5', 'e6'], x: 80, y: 52 },
+      { id: 'e8', name: 'Market Structures', description: 'Competition; monopoly; oligopoly; barriers to entry', prerequisites: ['e4'], x: 25, y: 38 },
+      { id: 'e9', name: 'Labour Market', description: 'Wage determination; minimum wage; trade unions', prerequisites: ['e5', 'e8'], x: 55, y: 38 },
+      { id: 'e10', name: 'Economic Objectives', description: 'Growth, inflation, unemployment, balance of payments', prerequisites: ['e6'], x: 85, y: 38 },
+      { id: 'e11', name: 'Fiscal Policy', description: 'Government spending; taxation; budget deficit/surplus', prerequisites: ['e7', 'e10'], x: 30, y: 22 },
+      { id: 'e12', name: 'Monetary Policy', description: 'Interest rates; money supply; Bank of England', prerequisites: ['e10'], x: 60, y: 22 },
+      { id: 'e13', name: 'International Trade', description: 'Exports & imports; exchange rates; globalisation', prerequisites: ['e10'], x: 85, y: 22 },
+      { id: 'e14', name: 'Economic Growth', description: 'GDP; living standards; sustainability', prerequisites: ['e11', 'e12', 'e13'], x: 50, y: 8 },
     ],
   },
-  // A-Level Topics
+  // A-Level Topics (based on Edexcel/AQA specifications)
   alevel: {
     mathematics: [
-      { id: 'm1', name: 'Pure: Algebra', description: 'Advanced algebraic manipulation', prerequisites: [], x: 50, y: 90 },
-      { id: 'm2', name: 'Pure: Functions', description: 'Transformations and composition', prerequisites: ['m1'], x: 25, y: 72 },
-      { id: 'm3', name: 'Pure: Coordinate Geometry', description: 'Circles and parametric', prerequisites: ['m1'], x: 75, y: 72 },
-      { id: 'm4', name: 'Pure: Sequences', description: 'Series and binomial expansion', prerequisites: ['m2'], x: 15, y: 54 },
-      { id: 'm5', name: 'Pure: Trigonometry', description: 'Identities and equations', prerequisites: ['m2', 'm3'], x: 45, y: 54 },
-      { id: 'm6', name: 'Pure: Exponentials', description: 'Logs and natural functions', prerequisites: ['m3'], x: 75, y: 54 },
-      { id: 'm7', name: 'Calculus: Differentiation', description: 'Rules and applications', prerequisites: ['m4', 'm5'], x: 25, y: 36 },
-      { id: 'm8', name: 'Calculus: Integration', description: 'Techniques and areas', prerequisites: ['m7'], x: 50, y: 36 },
-      { id: 'm9', name: 'Statistics', description: 'Distributions and hypothesis testing', prerequisites: ['m6'], x: 80, y: 36 },
-      { id: 'm10', name: 'Mechanics', description: 'Kinematics and forces', prerequisites: ['m7'], x: 25, y: 18 },
-      { id: 'm11', name: 'Differential Equations', description: 'First and second order', prerequisites: ['m8'], x: 50, y: 18 },
-      { id: 'm12', name: 'Vectors 3D', description: 'Lines, planes, and applications', prerequisites: ['m9', 'm10'], x: 75, y: 18 },
+      // Pure Mathematics
+      { id: 'm1', name: 'Proof', description: 'Proof by deduction, exhaustion, contradiction', prerequisites: [], x: 50, y: 95 },
+      { id: 'm2', name: 'Algebra & Functions', description: 'Indices; surds; quadratics; simultaneous equations; inequalities', prerequisites: ['m1'], x: 25, y: 84 },
+      { id: 'm3', name: 'Coordinate Geometry', description: 'Straight lines; circles; parametric equations', prerequisites: ['m1'], x: 75, y: 84 },
+      { id: 'm4', name: 'Sequences & Series', description: 'Arithmetic & geometric; sigma notation; binomial expansion', prerequisites: ['m2'], x: 12, y: 72 },
+      { id: 'm5', name: 'Trigonometry', description: 'Identities; equations; radians; small angle approximations', prerequisites: ['m2', 'm3'], x: 38, y: 72 },
+      { id: 'm6', name: 'Exponentials & Logs', description: 'Laws of logarithms; natural log; exponential modelling', prerequisites: ['m2'], x: 62, y: 72 },
+      { id: 'm7', name: 'Functions', description: 'Domain, range, inverse; modulus; transformations; composite', prerequisites: ['m3', 'm6'], x: 88, y: 72 },
+      { id: 'm8', name: 'Differentiation', description: 'First principles; chain, product, quotient rules; applications', prerequisites: ['m4', 'm5'], x: 20, y: 58 },
+      { id: 'm9', name: 'Integration', description: 'Definite & indefinite; by substitution; by parts; areas', prerequisites: ['m8'], x: 45, y: 58 },
+      { id: 'm10', name: 'Numerical Methods', description: 'Iteration; Newton-Raphson; trapezium rule', prerequisites: ['m8', 'm9'], x: 70, y: 58 },
+      { id: 'm11', name: 'Vectors', description: '2D & 3D vectors; position vectors; scalar product', prerequisites: ['m3'], x: 90, y: 58 },
+      { id: 'm12', name: 'Differential Equations', description: 'Forming & solving; separation of variables', prerequisites: ['m9'], x: 35, y: 44 },
+      // Statistics
+      { id: 'm13', name: 'Statistical Sampling', description: 'Types of sampling; large data set interpretation', prerequisites: ['m6'], x: 65, y: 44 },
+      { id: 'm14', name: 'Probability', description: 'Conditional probability; Venn diagrams; tree diagrams', prerequisites: ['m13'], x: 88, y: 44 },
+      { id: 'm15', name: 'Statistical Distributions', description: 'Binomial; Normal distribution; hypothesis testing', prerequisites: ['m14'], x: 75, y: 28 },
+      { id: 'm16', name: 'Statistical Hypothesis Testing', description: 'One & two tailed tests; correlation', prerequisites: ['m15'], x: 55, y: 28 },
+      // Mechanics
+      { id: 'm17', name: 'Kinematics', description: 'SUVAT; velocity-time graphs; variable acceleration', prerequisites: ['m8'], x: 12, y: 28 },
+      { id: 'm18', name: 'Forces & Newton\'s Laws', description: 'Equilibrium; F=ma; connected particles', prerequisites: ['m17', 'm11'], x: 32, y: 28 },
+      { id: 'm19', name: 'Moments', description: 'Moments; equilibrium of rigid bodies', prerequisites: ['m18'], x: 22, y: 12 },
+      { id: 'm20', name: 'Projectiles', description: 'Motion under gravity in 2D', prerequisites: ['m17', 'm5'], x: 45, y: 12 },
+      { id: 'm21', name: 'Application of Forces', description: 'Friction; inclined planes; pulleys', prerequisites: ['m18', 'm19'], x: 70, y: 12 },
     ],
     physics: [
-      { id: 'p1', name: 'Measurements', description: 'Units and uncertainties', prerequisites: [], x: 50, y: 90 },
-      { id: 'p2', name: 'Particles & Radiation', description: 'Quantum phenomena', prerequisites: ['p1'], x: 25, y: 72 },
-      { id: 'p3', name: 'Waves & Optics', description: 'Interference and diffraction', prerequisites: ['p1'], x: 75, y: 72 },
-      { id: 'p4', name: 'Mechanics', description: 'Momentum and energy', prerequisites: ['p1'], x: 50, y: 72 },
-      { id: 'p5', name: 'Materials', description: 'Stress, strain, Young\'s modulus', prerequisites: ['p4'], x: 35, y: 52 },
-      { id: 'p6', name: 'Electricity', description: 'EMF and internal resistance', prerequisites: ['p3'], x: 65, y: 52 },
-      { id: 'p7', name: 'Further Mechanics', description: 'Circular motion and SHM', prerequisites: ['p4', 'p5'], x: 20, y: 32 },
-      { id: 'p8', name: 'Thermal Physics', description: 'Ideal gases and thermodynamics', prerequisites: ['p5'], x: 45, y: 32 },
-      { id: 'p9', name: 'Fields', description: 'Gravitational and electric', prerequisites: ['p6'], x: 70, y: 32 },
-      { id: 'p10', name: 'Nuclear Physics', description: 'Radioactivity and energy', prerequisites: ['p2', 'p8'], x: 35, y: 12 },
-      { id: 'p11', name: 'Astrophysics', description: 'Stars and cosmology', prerequisites: ['p9', 'p10'], x: 65, y: 12 },
+      // AQA A-Level Physics specification
+      { id: 'p1', name: 'Measurements & Errors', description: 'SI units; uncertainty; significant figures', prerequisites: [], x: 50, y: 95 },
+      { id: 'p2', name: 'Particles & Antiparticles', description: 'Quarks, leptons; particle interactions; conservation laws', prerequisites: ['p1'], x: 20, y: 82 },
+      { id: 'p3', name: 'Electromagnetic Radiation', description: 'Photoelectric effect; photon energy; wave-particle duality', prerequisites: ['p1'], x: 50, y: 82 },
+      { id: 'p4', name: 'Waves', description: 'Progressive waves; superposition; stationary waves; diffraction', prerequisites: ['p1'], x: 80, y: 82 },
+      { id: 'p5', name: 'Optics', description: 'Refraction; total internal reflection; interference; diffraction gratings', prerequisites: ['p4'], x: 90, y: 68 },
+      { id: 'p6', name: 'Materials', description: 'Bulk properties; Young\'s modulus; stress-strain curves', prerequisites: ['p1'], x: 15, y: 68 },
+      { id: 'p7', name: 'Mechanics', description: 'Vectors; moments; projectiles; Newton\'s laws', prerequisites: ['p6'], x: 38, y: 68 },
+      { id: 'p8', name: 'Energy & Power', description: 'Work, energy, power; conservation of energy; efficiency', prerequisites: ['p7'], x: 62, y: 68 },
+      { id: 'p9', name: 'Electricity Fundamentals', description: 'Charge; current; resistance; Ohm\'s law; resistivity', prerequisites: ['p3'], x: 25, y: 52 },
+      { id: 'p10', name: 'DC Circuits', description: 'Kirchhoff\'s laws; potential dividers; EMF & internal resistance', prerequisites: ['p9'], x: 50, y: 52 },
+      { id: 'p11', name: 'Circular Motion', description: 'Angular velocity; centripetal force; banked tracks', prerequisites: ['p7', 'p8'], x: 75, y: 52 },
+      { id: 'p12', name: 'Simple Harmonic Motion', description: 'Oscillations; resonance; damping', prerequisites: ['p11'], x: 90, y: 38 },
+      { id: 'p13', name: 'Thermal Physics', description: 'Thermal energy; ideal gases; molecular kinetic theory', prerequisites: ['p8'], x: 15, y: 38 },
+      { id: 'p14', name: 'Gravitational Fields', description: 'Newton\'s law of gravitation; orbits; satellites', prerequisites: ['p11'], x: 38, y: 38 },
+      { id: 'p15', name: 'Electric Fields', description: 'Coulomb\'s law; field strength; potential; capacitors', prerequisites: ['p10', 'p14'], x: 62, y: 38 },
+      { id: 'p16', name: 'Capacitance', description: 'Capacitors; charging/discharging; time constant', prerequisites: ['p15'], x: 75, y: 22 },
+      { id: 'p17', name: 'Magnetic Fields', description: 'Magnetic flux; motor effect; electromagnetic induction', prerequisites: ['p10'], x: 25, y: 22 },
+      { id: 'p18', name: 'Nuclear Physics', description: 'Radioactivity; decay equations; binding energy; fission & fusion', prerequisites: ['p2', 'p3'], x: 50, y: 22 },
+      { id: 'p19', name: 'Astrophysics', description: 'Telescopes; stellar classification; Hertzsprung-Russell; cosmology', prerequisites: ['p14', 'p18'], x: 38, y: 8 },
+      { id: 'p20', name: 'Medical Physics', description: 'X-rays; CAT scans; ultrasound; PET scans', prerequisites: ['p4', 'p18'], x: 62, y: 8 },
     ],
     economics: [
-      { id: 'e1', name: 'Micro: Markets', description: 'Supply, demand, and equilibrium', prerequisites: [], x: 50, y: 90 },
-      { id: 'e2', name: 'Elasticity', description: 'PED, XED, YED, PES', prerequisites: ['e1'], x: 25, y: 72 },
-      { id: 'e3', name: 'Market Failure', description: 'Externalities and intervention', prerequisites: ['e1'], x: 75, y: 72 },
-      { id: 'e4', name: 'Business Economics', description: 'Costs, revenue, and profit', prerequisites: ['e2'], x: 15, y: 52 },
-      { id: 'e5', name: 'Market Structures', description: 'Perfect to monopoly', prerequisites: ['e2', 'e3'], x: 45, y: 52 },
-      { id: 'e6', name: 'Labour Market', description: 'Wages and discrimination', prerequisites: ['e3'], x: 75, y: 52 },
-      { id: 'e7', name: 'Macro: Indicators', description: 'GDP, inflation, unemployment', prerequisites: ['e4', 'e5'], x: 25, y: 32 },
-      { id: 'e8', name: 'Aggregate Demand/Supply', description: 'AD/AS model', prerequisites: ['e5', 'e6'], x: 55, y: 32 },
-      { id: 'e9', name: 'Policy', description: 'Fiscal and monetary', prerequisites: ['e7', 'e8'], x: 75, y: 32 },
-      { id: 'e10', name: 'International Trade', description: 'Globalisation and trade', prerequisites: ['e8'], x: 35, y: 12 },
-      { id: 'e11', name: 'Development', description: 'Economic growth strategies', prerequisites: ['e9', 'e10'], x: 65, y: 12 },
+      // A-Level Economics (Edexcel specification - Theme 1-4)
+      // Theme 1: Markets & Market Failure
+      { id: 'e1', name: 'Nature of Economics', description: 'Scarcity, opportunity cost, PPF, specialisation', prerequisites: [], x: 50, y: 95 },
+      { id: 'e2', name: 'Demand & Supply', description: 'Market equilibrium; consumer & producer surplus; price mechanism', prerequisites: ['e1'], x: 25, y: 82 },
+      { id: 'e3', name: 'Elasticity', description: 'PED, YED, XED, PES; calculations and applications', prerequisites: ['e2'], x: 75, y: 82 },
+      { id: 'e4', name: 'Market Failure', description: 'Externalities; public goods; information gaps; inequality', prerequisites: ['e2'], x: 50, y: 68 },
+      { id: 'e5', name: 'Government Intervention', description: 'Taxes, subsidies, regulation; government failure', prerequisites: ['e3', 'e4'], x: 25, y: 68 },
+      // Theme 2: The UK Economy
+      { id: 'e6', name: 'Economic Growth', description: 'GDP; real vs nominal; PPP; limitations of GDP', prerequisites: ['e1'], x: 75, y: 68 },
+      { id: 'e7', name: 'Inflation & Deflation', description: 'CPI, RPI; causes; costs; expectations', prerequisites: ['e6'], x: 15, y: 52 },
+      { id: 'e8', name: 'Employment & Unemployment', description: 'Types of unemployment; natural rate; Phillips curve', prerequisites: ['e6'], x: 42, y: 52 },
+      { id: 'e9', name: 'Balance of Payments', description: 'Current account; capital flows; exchange rate impacts', prerequisites: ['e6'], x: 68, y: 52 },
+      { id: 'e10', name: 'Fiscal Policy', description: 'Government budget; national debt; automatic stabilisers', prerequisites: ['e7', 'e8'], x: 88, y: 52 },
+      { id: 'e11', name: 'Monetary Policy', description: 'Interest rates; quantitative easing; MPC; inflation targeting', prerequisites: ['e7'], x: 28, y: 36 },
+      { id: 'e12', name: 'Supply-Side Policies', description: 'Labour market flexibility; infrastructure; deregulation', prerequisites: ['e8', 'e11'], x: 55, y: 36 },
+      // Theme 3: Business Behaviour
+      { id: 'e13', name: 'Business Objectives', description: 'Profit max; revenue max; sales max; satisficing', prerequisites: ['e3'], x: 82, y: 36 },
+      { id: 'e14', name: 'Costs & Revenue', description: 'Fixed, variable, marginal; economies of scale; MR, AR', prerequisites: ['e13'], x: 15, y: 22 },
+      { id: 'e15', name: 'Market Structures', description: 'Perfect competition; monopoly; oligopoly; contestability', prerequisites: ['e14'], x: 40, y: 22 },
+      { id: 'e16', name: 'Labour Market', description: 'MRP theory; wage differentials; discrimination; trade unions', prerequisites: ['e8', 'e14'], x: 65, y: 22 },
+      // Theme 4: Global Economy
+      { id: 'e17', name: 'International Trade', description: 'Comparative advantage; terms of trade; protectionism', prerequisites: ['e9'], x: 88, y: 22 },
+      { id: 'e18', name: 'Exchange Rates', description: 'Floating, fixed, managed; competitiveness; hot money', prerequisites: ['e9', 'e17'], x: 30, y: 8 },
+      { id: 'e19', name: 'Globalisation', description: 'TNCs; FDI; global inequality; emerging economies', prerequisites: ['e17'], x: 55, y: 8 },
+      { id: 'e20', name: 'Development Economics', description: 'HDI; barriers to development; aid; debt relief', prerequisites: ['e18', 'e19'], x: 80, y: 8 },
     ],
   },
 };
@@ -156,19 +238,19 @@ const curriculumTopics: Record<string, Record<Subject, TopicTemplate[]>> = {
 // Constellation names by level
 const constellationNames: Record<string, Record<Subject, string>> = {
   'year5-6': {
-    mathematics: 'Numerica Minor',
-    physics: 'Scientia Nova',
-    economics: 'Oeconomia Prima',
+    mathematics: 'KS2 Mathematics',
+    physics: 'KS2 Science',
+    economics: 'Financial Literacy',
   },
   gcse: {
-    mathematics: 'Numerica Major',
-    physics: 'Physica Nebula',
-    economics: 'Economia Cluster',
+    mathematics: 'GCSE Mathematics',
+    physics: 'GCSE Physics',
+    economics: 'GCSE Economics',
   },
   alevel: {
-    mathematics: 'Numerica Suprema',
-    physics: 'Cosmos Infinitus',
-    economics: 'Economia Maxima',
+    mathematics: 'A-Level Mathematics',
+    physics: 'A-Level Physics',
+    economics: 'A-Level Economics',
   },
 };
 
@@ -433,6 +515,24 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
         <div className="grid lg:grid-cols-3 gap-0">
           {/* Sphere Grid Visualization */}
           <div className="lg:col-span-2 relative bg-gradient-to-b from-[#0a0a1a] via-[#0f0f2a] to-[#0a0a1a] overflow-hidden">
+            {/* Twinkling star background */}
+            <div className="absolute inset-0 overflow-hidden">
+              {Array.from({ length: 50 }, (_, i) => (
+                <div
+                  key={i}
+                  className="absolute rounded-full bg-white animate-twinkle-star"
+                  style={{
+                    left: `${Math.random() * 100}%`,
+                    top: `${Math.random() * 100}%`,
+                    width: `${1 + Math.random() * 2}px`,
+                    height: `${1 + Math.random() * 2}px`,
+                    animationDelay: `${Math.random() * 3}s`,
+                    animationDuration: `${2 + Math.random() * 2}s`,
+                  }}
+                />
+              ))}
+            </div>
+
             {/* Ancient texture overlay */}
             <div className="absolute inset-0 opacity-20">
               <svg width="100%" height="100%" className="absolute inset-0">
@@ -455,7 +555,7 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
             </div>
 
             {/* SVG Sphere Grid */}
-            <svg viewBox="0 0 100 100" className="w-full h-80 lg:h-96" preserveAspectRatio="xMidYMid meet">
+            <svg viewBox="0 0 100 105" className="w-full h-[420px] lg:h-[520px]" preserveAspectRatio="xMidYMid meet">
               <defs>
                 {/* Glow filters for different levels */}
                 <filter id="nodeGlowMastered" x="-100%" y="-100%" width="300%" height="300%">
@@ -572,6 +672,71 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
                 })
               )}
 
+              {/* Expansion sockets - blank slots for tutor-added custom topics */}
+              {(() => {
+                // Generate expansion socket positions around the edges of the grid
+                const expansionSockets = [
+                  { x: 10, y: 35, connectTo: currentConstellation.topics[1]?.id },
+                  { x: 90, y: 35, connectTo: currentConstellation.topics[2]?.id },
+                  { x: 8, y: 60, connectTo: currentConstellation.topics[3]?.id },
+                  { x: 92, y: 60, connectTo: currentConstellation.topics[4]?.id },
+                  { x: 12, y: 85, connectTo: currentConstellation.topics[0]?.id },
+                  { x: 88, y: 85, connectTo: currentConstellation.topics[0]?.id },
+                ];
+
+                return expansionSockets.map((socket, idx) => {
+                  const targetTopic = currentConstellation.topics.find(t => t.id === socket.connectTo);
+
+                  return (
+                    <g key={`expansion-${idx}`} opacity={0.3}>
+                      {/* Faint connection line to nearest topic */}
+                      {targetTopic && (
+                        <line
+                          x1={socket.x}
+                          y1={socket.y}
+                          x2={targetTopic.x}
+                          y2={targetTopic.y}
+                          stroke="#3a3a5a"
+                          strokeWidth={0.15}
+                          strokeDasharray="0.5 0.5"
+                          opacity={0.4}
+                        />
+                      )}
+                      {/* Empty socket ring */}
+                      <circle
+                        cx={socket.x}
+                        cy={socket.y}
+                        r={2}
+                        fill="none"
+                        stroke="#3a3a5a"
+                        strokeWidth={0.2}
+                        strokeDasharray="0.8 0.4"
+                      />
+                      {/* Inner empty socket */}
+                      <circle
+                        cx={socket.x}
+                        cy={socket.y}
+                        r={1.2}
+                        fill="#1a1a2a"
+                        stroke="#2a2a4a"
+                        strokeWidth={0.1}
+                      />
+                      {/* Plus indicator */}
+                      <text
+                        x={socket.x}
+                        y={socket.y}
+                        textAnchor="middle"
+                        dominantBaseline="central"
+                        fontSize={1.2}
+                        fill="#4a4a6a"
+                      >
+                        +
+                      </text>
+                    </g>
+                  );
+                });
+              })()}
+
               {/* Sphere nodes */}
               {currentConstellation.topics.map((topic) => {
                 const style = getNodeStyle(topic);
@@ -666,6 +831,24 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
                       opacity={style.opacity}
                     >
                       {getNodeIcon(topic)}
+                    </text>
+
+                    {/* Topic name label */}
+                    <text
+                      x={0}
+                      y={style.radius + 2.2}
+                      textAnchor="middle"
+                      dominantBaseline="hanging"
+                      fontSize={1.4}
+                      fill={topic.mastery >= 90 ? '#FFD700' : topic.isUnlocked ? '#e5e5e5' : '#666'}
+                      opacity={topic.isUnlocked ? 0.9 : 0.5}
+                      className="pointer-events-none"
+                      style={{
+                        textShadow: '0 0 3px rgba(0,0,0,0.8), 0 0 6px rgba(0,0,0,0.5)',
+                        fontWeight: topic.mastery >= 70 ? 600 : 400,
+                      }}
+                    >
+                      {topic.name.length > 14 ? topic.name.slice(0, 12) + '…' : topic.name}
                     </text>
                   </g>
                 );
@@ -785,6 +968,10 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
                     <div className="w-4 h-4 rounded-full bg-[#1a1a2e] border border-[#2d2d44] opacity-50" />
                     <span className="text-xs text-neutral-400">Locked</span>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded-full bg-[#1a1a2a] border border-dashed border-[#3a3a5a] opacity-40 flex items-center justify-center text-[8px] text-[#4a4a6a]">+</div>
+                    <span className="text-xs text-neutral-500">Custom Topic Slot</span>
+                  </div>
                 </div>
               </div>
             )}
@@ -793,6 +980,13 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
       </CardContent>
 
       <style>{`
+        /* Twinkling star background animation */
+        @keyframes twinkle-star {
+          0%, 100% { opacity: 0.2; }
+          50% { opacity: 0.9; }
+        }
+        .animate-twinkle-star { animation: twinkle-star 3s ease-in-out infinite; }
+
         /* Energy flow animation on mastered paths */
         @keyframes energy-flow {
           0%, 100% { stroke-opacity: 0.6; }
