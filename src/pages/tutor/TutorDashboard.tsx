@@ -143,8 +143,6 @@ export const TutorDashboard: React.FC = () => {
       setShowStudentModal(true);
     } else if (path.includes('/resources')) {
       setShowResourceModal(true);
-    } else if (path.includes('/schedule') || path.includes('/calendar')) {
-      setShowEventModal(true);
     } else if (path.includes('/messages')) {
       setShowChatModal(true);
     } else if (path.includes('/analytics')) {
@@ -817,9 +815,9 @@ export const TutorDashboard: React.FC = () => {
 
         {/* Inline Schedule View - shown when on /tutor/schedule */}
         {isSchedulePage ? (
-          <div className="grid lg:grid-cols-3 gap-6">
-            {/* Calendar View - spans 2 columns */}
-            <div className="lg:col-span-2">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Calendar View - spans 2 columns on large screens */}
+            <div className="lg:col-span-2 order-2 lg:order-1">
               <Calendar
                 events={tutorSchedule}
                 editable={true}
@@ -841,7 +839,7 @@ export const TutorDashboard: React.FC = () => {
             </div>
 
             {/* Side Panel - Upcoming Events + Quick Add */}
-            <div className="space-y-6">
+            <div className="space-y-6 order-1 lg:order-2">
               {/* Quick Add Button */}
               <Card>
                 <CardContent className="p-4">
