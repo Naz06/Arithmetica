@@ -107,6 +107,15 @@ export const TutorDashboard: React.FC = () => {
   const [newWeakness, setNewWeakness] = useState('');
   const [isSavingSkills, setIsSavingSkills] = useState(false);
 
+  // Assessment editing state
+  const [assessmentStudent, setAssessmentStudent] = useState<StudentProfile | null>(null);
+  const [editAverageScore, setEditAverageScore] = useState(0);
+  const [editCompletedAssignments, setEditCompletedAssignments] = useState(0);
+  const [editTotalSessions, setEditTotalSessions] = useState(0);
+  const [editAttendanceRate, setEditAttendanceRate] = useState(0);
+  const [isSavingAssessment, setIsSavingAssessment] = useState(false);
+  const [assessmentSaveSuccess, setAssessmentSaveSuccess] = useState(false);
+
   // Admin states
   const [adminUsers, setAdminUsers] = useState<UserRecord[]>([]);
   const [isLoadingAdmin, setIsLoadingAdmin] = useState(false);
@@ -627,6 +636,42 @@ export const TutorDashboard: React.FC = () => {
       console.error('Failed to save skills:', error);
     } finally {
       setIsSavingSkills(false);
+    }
+  };
+
+  // Assessment editing handlers
+  const handleEditAssessment = (student: StudentProfile) => {
+    setAssessmentStudent(student);
+    setEditAverageScore(student.stats.averageScore);
+    setEditCompletedAssignments(student.stats.completedAssignments);
+    setEditTotalSessions(student.stats.totalSessions);
+    setEditAttendanceRate(student.stats.attendanceRate);
+    setAssessmentSaveSuccess(false);
+  };
+
+  const handleCancelAssessmentEdit = () => {
+    setAssessmentStudent(null);
+    setAssessmentSaveSuccess(false);
+  };
+
+  const handleSaveAssessment = async () => {
+    if (!assessmentStudent) return;
+    setIsSavingAssessment(true);
+    setAssessmentSaveSuccess(false);
+    try {
+      await updateStudent(assessmentStudent.id, {
+        average_score: editAverageScore,
+        completed_assignments: editCompletedAssignments,
+        total_sessions: editTotalSessions,
+        attendance_rate: editAttendanceRate,
+      });
+      setAssessmentSaveSuccess(true);
+      // Clear success message after 2 seconds
+      setTimeout(() => setAssessmentSaveSuccess(false), 2000);
+    } catch (error) {
+      console.error('Failed to save assessment:', error);
+    } finally {
+      setIsSavingAssessment(false);
     }
   };
 
@@ -1811,43 +1856,224 @@ export const TutorDashboard: React.FC = () => {
       {/* Assessments Modal */}
       <Modal
         isOpen={showAssessmentsModal}
-        onClose={() => setShowAssessmentsModal(false)}
+        onClose={() => {
+          setShowAssessmentsModal(false);
+          setAssessmentStudent(null);
+        }}
         title="Assessments"
-        size="lg"
+        size="xl"
       >
-        <div className="space-y-4">
-          <p className="text-neutral-400 text-sm">View and manage student assessments</p>
+        <div className="grid lg:grid-cols-2 gap-6">
+          {/* Student List */}
           <div className="space-y-3">
-            {students.map(student => (
-              <div key={student.id} className="p-4 bg-neutral-800/50 rounded-xl">
-                <div className="flex items-center justify-between mb-3">
+            <p className="text-neutral-400 text-sm font-medium">Select a student to edit their stats</p>
+            <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2">
+              {students.map(student => {
+                const isSelected = assessmentStudent?.id === student.id;
+                return (
+                  <button
+                    key={student.id}
+                    onClick={() => handleEditAssessment(student)}
+                    className={`w-full p-4 rounded-xl text-left transition-all ${
+                      isSelected
+                        ? 'bg-primary-500/20 border-2 border-primary-500'
+                        : 'bg-neutral-800/50 border-2 border-transparent hover:bg-neutral-800'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-3">
+                        <Avatar name={student.name} size="sm" />
+                        <div>
+                          <p className="font-medium text-neutral-100">{student.name}</p>
+                          <p className="text-xs text-neutral-500">{getYearGroupLabel(student.yearGroup)}</p>
+                        </div>
+                      </div>
+                      <Badge variant="info" size="sm">
+                        {student.stats.averageScore}%
+                      </Badge>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-xs">
+                      <div className="text-center">
+                        <p className="text-neutral-500">Assignments</p>
+                        <p className="font-semibold text-neutral-300">{student.stats.completedAssignments}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-neutral-500">Sessions</p>
+                        <p className="font-semibold text-neutral-300">{student.stats.totalSessions}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-neutral-500">Attendance</p>
+                        <p className="font-semibold text-neutral-300">{student.stats.attendanceRate}%</p>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Edit Panel */}
+          <div className="bg-neutral-800/30 rounded-xl p-6">
+            {assessmentStudent ? (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Avatar name={student.name} size="sm" />
+                    <Avatar name={assessmentStudent.name} size="md" />
                     <div>
-                      <p className="font-medium text-neutral-100">{student.name}</p>
-                      <p className="text-xs text-neutral-500">{getYearGroupLabel(student.yearGroup)}</p>
+                      <h3 className="font-semibold text-neutral-100">{assessmentStudent.name}</h3>
+                      <p className="text-sm text-neutral-400">Edit Assessment Stats</p>
                     </div>
                   </div>
-                  <Badge variant="info" size="sm">
-                    Avg: {student.stats.averageScore}%
-                  </Badge>
+                  {assessmentSaveSuccess && (
+                    <Badge variant="success" size="sm" className="flex items-center gap-1">
+                      <CheckCircle className="w-3 h-3" /> Saved!
+                    </Badge>
+                  )}
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
-                  <div className="p-2 bg-neutral-900/50 rounded-lg text-center">
-                    <p className="text-neutral-500">Completed</p>
-                    <p className="font-semibold text-neutral-100">{student.stats.completedAssignments}</p>
+
+                <div className="space-y-4">
+                  {/* Average Score */}
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-400 mb-2">
+                      Average Score (%)
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={editAverageScore}
+                        onChange={(e) => setEditAverageScore(Number(e.target.value))}
+                        className="flex-1 h-2 bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-primary-500"
+                      />
+                      <Input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={editAverageScore}
+                        onChange={(e) => setEditAverageScore(Math.min(100, Math.max(0, Number(e.target.value))))}
+                        className="w-20 text-center"
+                      />
+                    </div>
                   </div>
-                  <div className="p-2 bg-neutral-900/50 rounded-lg text-center">
-                    <p className="text-neutral-500">Sessions</p>
-                    <p className="font-semibold text-neutral-100">{student.stats.totalSessions}</p>
+
+                  {/* Completed Assignments */}
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-400 mb-2">
+                      Completed Assignments
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setEditCompletedAssignments(Math.max(0, editCompletedAssignments - 1))}
+                      >
+                        -
+                      </Button>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={editCompletedAssignments}
+                        onChange={(e) => setEditCompletedAssignments(Math.max(0, Number(e.target.value)))}
+                        className="w-24 text-center"
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setEditCompletedAssignments(editCompletedAssignments + 1)}
+                      >
+                        +
+                      </Button>
+                    </div>
                   </div>
-                  <div className="p-2 bg-neutral-900/50 rounded-lg text-center">
-                    <p className="text-neutral-500">Attendance</p>
-                    <p className="font-semibold text-neutral-100">{student.stats.attendanceRate}%</p>
+
+                  {/* Total Sessions */}
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-400 mb-2">
+                      Total Sessions
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setEditTotalSessions(Math.max(0, editTotalSessions - 1))}
+                      >
+                        -
+                      </Button>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={editTotalSessions}
+                        onChange={(e) => setEditTotalSessions(Math.max(0, Number(e.target.value)))}
+                        className="w-24 text-center"
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setEditTotalSessions(editTotalSessions + 1)}
+                      >
+                        +
+                      </Button>
+                    </div>
                   </div>
+
+                  {/* Attendance Rate */}
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-400 mb-2">
+                      Attendance Rate (%)
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={editAttendanceRate}
+                        onChange={(e) => setEditAttendanceRate(Number(e.target.value))}
+                        className="flex-1 h-2 bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-green-500"
+                      />
+                      <Input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={editAttendanceRate}
+                        onChange={(e) => setEditAttendanceRate(Math.min(100, Math.max(0, Number(e.target.value))))}
+                        className="w-20 text-center"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-4 border-t border-neutral-700">
+                  <Button
+                    variant="ghost"
+                    onClick={handleCancelAssessmentEdit}
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="primary"
+                    onClick={handleSaveAssessment}
+                    disabled={isSavingAssessment}
+                    className="flex-1"
+                  >
+                    {isSavingAssessment ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      'Save to Database'
+                    )}
+                  </Button>
                 </div>
               </div>
-            ))}
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center text-center py-12">
+                <FileText className="w-12 h-12 text-neutral-600 mb-4" />
+                <h4 className="font-medium text-neutral-300 mb-2">Select a Student</h4>
+                <p className="text-sm text-neutral-500 max-w-[200px]">
+                  Click on a student from the list to view and edit their assessment stats
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </Modal>
