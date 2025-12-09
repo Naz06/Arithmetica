@@ -900,7 +900,7 @@ export const TutorDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="p-4 bg-neutral-800/50 rounded-xl text-center">
                     <p className="text-2xl font-bold text-primary-500">{selectedStudent.points}</p>
                     <p className="text-sm text-neutral-400">Points</p>
@@ -1658,7 +1658,7 @@ export const TutorDashboard: React.FC = () => {
                     Avg: {student.stats.averageScore}%
                   </Badge>
                 </div>
-                <div className="grid grid-cols-3 gap-2 text-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
                   <div className="p-2 bg-neutral-900/50 rounded-lg text-center">
                     <p className="text-neutral-500">Completed</p>
                     <p className="font-semibold text-neutral-100">{student.stats.completedAssignments}</p>
@@ -1999,7 +1999,7 @@ export const TutorDashboard: React.FC = () => {
                 />
                 <div>
                   <label className="block text-sm font-medium text-neutral-400 mb-2">Subjects</label>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     {(['mathematics', 'economics', 'physics'] as Subject[]).map((subject) => (
                       <label
                         key={subject}
@@ -2122,7 +2122,7 @@ export const TutorDashboard: React.FC = () => {
             <label className="block text-sm font-medium text-neutral-400 mb-2">
               Student Performance
             </label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               {(['excellent', 'good', 'needs-improvement'] as const).map((performance) => (
                 <button
                   key={performance}

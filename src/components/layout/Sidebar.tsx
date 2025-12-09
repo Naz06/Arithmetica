@@ -19,6 +19,7 @@ import {
   Bell,
   Shield,
   Send,
+  X,
 } from 'lucide-react';
 
 interface SidebarItem {
@@ -27,7 +28,12 @@ interface SidebarItem {
   path: string;
 }
 
-export const Sidebar: React.FC = () => {
+interface SidebarProps {
+  isMobileOpen?: boolean;
+  onMobileClose?: () => void;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen = false, onMobileClose }) => {
   const { user } = useAuth();
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -82,13 +88,32 @@ export const Sidebar: React.FC = () => {
 
   const menuItems = getMenuItems();
 
+  const handleLinkClick = () => {
+    // Close mobile sidebar when a link is clicked
+    if (onMobileClose) {
+      onMobileClose();
+    }
+  };
+
   return (
     <aside
-      className={`fixed left-0 top-16 h-[calc(100vh-4rem)] bg-neutral-900 border-r border-neutral-800 transition-all duration-300 z-40 ${
-        isCollapsed ? 'w-16' : 'w-64'
-      }`}
+      className={`fixed left-0 top-16 h-[calc(100vh-4rem)] bg-neutral-900 border-r border-neutral-800 transition-all duration-300 z-50
+        ${isCollapsed ? 'w-16' : 'w-64'}
+        ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+      `}
     >
       <div className="flex flex-col h-full">
+        {/* Mobile Close Button */}
+        <div className="lg:hidden flex items-center justify-between p-4 border-b border-neutral-800">
+          <span className="text-sm font-medium text-neutral-300">Menu</span>
+          <button
+            onClick={onMobileClose}
+            className="p-2 text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800 rounded-lg transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
         {/* Menu Items */}
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
           {menuItems.map((item) => {
@@ -97,6 +122,7 @@ export const Sidebar: React.FC = () => {
               <Link
                 key={item.path}
                 to={item.path}
+                onClick={handleLinkClick}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group ${
                   isActive
                     ? 'bg-primary-500/20 text-primary-500'
@@ -118,8 +144,8 @@ export const Sidebar: React.FC = () => {
           })}
         </nav>
 
-        {/* Collapse Button */}
-        <div className="p-4 border-t border-neutral-800">
+        {/* Collapse Button - Hidden on mobile */}
+        <div className="hidden lg:block p-4 border-t border-neutral-800">
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
             className="w-full flex items-center justify-center gap-2 px-3 py-2 text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800 rounded-xl transition-colors"
