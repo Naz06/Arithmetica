@@ -810,7 +810,7 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
                         fill={style.glowColor}
                         opacity={0.4}
                         filter={topic.mastery >= 90 ? 'url(#nodeGlowMastered)' : 'url(#nodeGlowActive)'}
-                        className="pointer-events-none"
+                        pointerEvents="none"
                       />
                     )}
 
@@ -849,7 +849,7 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
                       stroke="#4a4a6a"
                       strokeWidth="0.3"
                       opacity={0.6}
-                      className="pointer-events-none"
+                      pointerEvents="none"
                     />
 
                     {/* Main star/gem */}
@@ -866,7 +866,7 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
                       strokeWidth={style.strokeWidth}
                       opacity={style.opacity}
                       filter={isSelected ? 'url(#selectedPulse)' : undefined}
-                      className="pointer-events-none"
+                      pointerEvents="none"
                     />
 
                     {/* Inner highlight (gem shine) */}
@@ -878,7 +878,7 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
                         ry={scaledRadius * 0.25}
                         fill="white"
                         opacity={0.5}
-                        className="pointer-events-none"
+                        pointerEvents="none"
                       />
                     )}
 
@@ -891,7 +891,7 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
                       fontSize={scaledRadius * 0.8}
                       fill={topic.mastery >= 90 ? '#fff' : topic.isUnlocked ? '#fff' : '#666'}
                       opacity={style.opacity}
-                      className="pointer-events-none"
+                      pointerEvents="none"
                     >
                       {getNodeIcon(topic)}
                     </text>
@@ -905,7 +905,7 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
                       fontSize={1.4}
                       fill={topic.mastery >= 90 ? '#FFD700' : topic.isUnlocked ? '#e5e5e5' : '#666'}
                       opacity={topic.isUnlocked ? 0.9 : 0.5}
-                      className="pointer-events-none"
+                      pointerEvents="none"
                       style={{
                         textShadow: '0 0 3px rgba(0,0,0,0.8), 0 0 6px rgba(0,0,0,0.5)',
                         fontWeight: topic.mastery >= 70 ? 600 : 400,
