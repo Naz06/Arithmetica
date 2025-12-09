@@ -762,35 +762,34 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
                 const style = getNodeStyle(topic);
                 const isSelected = selectedTopic?.id === topic.id;
                 const isHovered = hoveredTopic === topic.id;
+                const scaledRadius = style.radius * style.scale;
+
+                const handleClick = (e: React.MouseEvent) => {
+                  e.stopPropagation();
+                  if (topic.isUnlocked) {
+                    setSelectedTopic(selectedTopic?.id === topic.id ? null : topic);
+                  }
+                };
 
                 return (
-                  <g
-                    key={topic.id}
-                    className="cursor-pointer"
-                    transform={`translate(${topic.x}, ${topic.y}) scale(${style.scale})`}
-                    onClick={() => {
-                      if (topic.isUnlocked) {
-                        setSelectedTopic(selectedTopic?.id === topic.id ? null : topic);
-                      }
-                    }}
-                    onMouseEnter={() => setHoveredTopic(topic.id)}
-                    onMouseLeave={() => setHoveredTopic(null)}
-                    style={{ pointerEvents: 'all' }}
-                  >
-                    {/* Invisible larger hit area for easier clicking */}
+                  <g key={topic.id}>
+                    {/* Clickable hit area - larger invisible circle */}
                     <circle
-                      cx={0}
-                      cy={0}
-                      r={style.radius + 2}
-                      fill="transparent"
+                      cx={topic.x}
+                      cy={topic.y}
+                      r={scaledRadius + 3}
+                      fill="rgba(0,0,0,0.01)"
+                      onClick={handleClick}
+                      onMouseEnter={() => setHoveredTopic(topic.id)}
+                      onMouseLeave={() => setHoveredTopic(null)}
                       style={{ cursor: topic.isUnlocked ? 'pointer' : 'not-allowed' }}
                     />
                     {/* Selection/hover pulse ring */}
                     {(isSelected || isHovered) && topic.isUnlocked && (
                       <circle
-                        cx={0}
-                        cy={0}
-                        r={style.radius + 1}
+                        cx={topic.x}
+                        cy={topic.y}
+                        r={scaledRadius + 1}
                         fill="none"
                         stroke="#fff"
                         strokeWidth="0.15"
@@ -802,12 +801,13 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
                     {/* Outer glow */}
                     {style.glowRadius > 0 && (
                       <circle
-                        cx={0}
-                        cy={0}
-                        r={style.radius + style.glowRadius * 0.3}
+                        cx={topic.x}
+                        cy={topic.y}
+                        r={scaledRadius + style.glowRadius * 0.3}
                         fill={style.glowColor}
                         opacity={0.4}
                         filter={topic.mastery >= 90 ? 'url(#nodeGlowMastered)' : 'url(#nodeGlowActive)'}
+                        className="pointer-events-none"
                       />
                     )}
 
@@ -815,44 +815,45 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
                     {topic.mastery >= 90 && (
                       <>
                         <circle
-                          cx={0}
-                          cy={0}
-                          r={style.radius + 1}
+                          cx={topic.x}
+                          cy={topic.y}
+                          r={scaledRadius + 1}
                           fill="none"
                           stroke="#FFD700"
                           strokeWidth={0.4}
                           opacity={0.8}
-                          className="animate-mastered-pulse"
+                          className="animate-mastered-pulse pointer-events-none"
                         />
                         <circle
-                          cx={0}
-                          cy={0}
-                          r={style.radius + 1.8}
+                          cx={topic.x}
+                          cy={topic.y}
+                          r={scaledRadius + 1.8}
                           fill="none"
                           stroke="#FFD700"
                           strokeWidth={0.2}
                           opacity={0.4}
-                          className="animate-mastered-pulse-outer"
+                          className="animate-mastered-pulse-outer pointer-events-none"
                         />
                       </>
                     )}
 
                     {/* Socket ring (outer metallic border) */}
                     <circle
-                      cx={0}
-                      cy={0}
-                      r={style.radius + 0.3}
+                      cx={topic.x}
+                      cy={topic.y}
+                      r={scaledRadius + 0.3}
                       fill="none"
                       stroke="#4a4a6a"
                       strokeWidth="0.3"
                       opacity={0.6}
+                      className="pointer-events-none"
                     />
 
                     {/* Main star/gem */}
                     <circle
-                      cx={0}
-                      cy={0}
-                      r={style.radius}
+                      cx={topic.x}
+                      cy={topic.y}
+                      r={scaledRadius}
                       fill={
                         topic.mastery >= 90 ? 'url(#masteredGem)' :
                         topic.mastery >= 40 ? 'url(#activeGem)' :
@@ -862,37 +863,40 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
                       strokeWidth={style.strokeWidth}
                       opacity={style.opacity}
                       filter={isSelected ? 'url(#selectedPulse)' : undefined}
+                      className="pointer-events-none"
                     />
 
                     {/* Inner highlight (gem shine) */}
                     {style.innerGlow && (
                       <ellipse
-                        cx={-style.radius * 0.3}
-                        cy={-style.radius * 0.3}
-                        rx={style.radius * 0.35}
-                        ry={style.radius * 0.25}
+                        cx={topic.x - scaledRadius * 0.3}
+                        cy={topic.y - scaledRadius * 0.3}
+                        rx={scaledRadius * 0.35}
+                        ry={scaledRadius * 0.25}
                         fill="white"
                         opacity={0.5}
+                        className="pointer-events-none"
                       />
                     )}
 
                     {/* Center icon */}
                     <text
-                      x={0}
-                      y={0}
+                      x={topic.x}
+                      y={topic.y}
                       textAnchor="middle"
                       dominantBaseline="central"
-                      fontSize={style.radius * 0.8}
+                      fontSize={scaledRadius * 0.8}
                       fill={topic.mastery >= 90 ? '#fff' : topic.isUnlocked ? '#fff' : '#666'}
                       opacity={style.opacity}
+                      className="pointer-events-none"
                     >
                       {getNodeIcon(topic)}
                     </text>
 
                     {/* Topic name label */}
                     <text
-                      x={0}
-                      y={style.radius + 2.2}
+                      x={topic.x}
+                      y={topic.y + scaledRadius + 2.2}
                       textAnchor="middle"
                       dominantBaseline="hanging"
                       fontSize={1.4}
