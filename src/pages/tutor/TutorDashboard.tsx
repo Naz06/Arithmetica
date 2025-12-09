@@ -696,6 +696,9 @@ export const TutorDashboard: React.FC = () => {
     return labels[yg];
   };
 
+  // Check if we're on the schedule page
+  const isSchedulePage = location.pathname.includes('/schedule');
+
   return (
     <DashboardLayout>
       <div className="space-y-8">
@@ -703,9 +706,11 @@ export const TutorDashboard: React.FC = () => {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-neutral-100 font-['Space_Grotesk']">
-              Tutor Dashboard
+              {isSchedulePage ? 'Schedule' : 'Tutor Dashboard'}
             </h1>
-            <p className="text-neutral-400 mt-1">Manage your students and track their progress</p>
+            <p className="text-neutral-400 mt-1">
+              {isSchedulePage ? 'Manage your tutoring sessions' : 'Manage your students and track their progress'}
+            </p>
           </div>
           <div className="flex gap-3 items-center">
             {/* Notification Bell */}
@@ -810,38 +815,120 @@ export const TutorDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatCard
-            title="Total Students"
-            value={students.length}
-            icon={<Users className="w-6 h-6" />}
-            change={12}
-            changeLabel="this month"
-          />
-          <StatCard
-            title="Sessions This Week"
-            value={tutorSchedule.filter(e => e.status === 'scheduled').length}
-            icon={<Calendar className="w-6 h-6" />}
-          />
-          <StatCard
-            title="Resources Shared"
-            value={resources.length}
-            icon={<BookOpen className="w-6 h-6" />}
-            change={8}
-            changeLabel="this week"
-          />
-          <StatCard
-            title="Avg. Student Progress"
-            value="78%"
-            icon={<TrendingUp className="w-6 h-6" />}
-            change={5}
-            changeLabel="vs last month"
-            variant="gradient"
-          />
-        </div>
+        {/* Inline Schedule View - shown when on /tutor/schedule */}
+        {isSchedulePage ? (
+          <div className="grid lg:grid-cols-3 gap-6">
+            {/* Calendar View - spans 2 columns */}
+            <div className="lg:col-span-2">
+              <Calendar
+                events={tutorSchedule}
+                editable={true}
+                onAddEvent={(date) => {
+                  setNewEvent({ ...newEvent, date });
+                  setShowAddEventForm(true);
+                  setSelectedEvent(null);
+                  setShowEventModal(true);
+                }}
+                onEventClick={(event) => {
+                  setSelectedEvent(event);
+                  setShowAddEventForm(false);
+                  setShowEventModal(true);
+                }}
+              />
+              <p className="text-xs text-neutral-500 mt-2 text-center">
+                Click on a date to add a session, or click on an event to view details
+              </p>
+            </div>
 
-        {/* Main Content Grid */}
+            {/* Side Panel - Upcoming Events + Quick Add */}
+            <div className="space-y-6">
+              {/* Quick Add Button */}
+              <Card>
+                <CardContent className="p-4">
+                  <Button
+                    variant="primary"
+                    className="w-full"
+                    onClick={() => {
+                      const today = new Date().toISOString().split('T')[0];
+                      setNewEvent({ ...newEvent, date: today });
+                      setShowAddEventForm(true);
+                      setSelectedEvent(null);
+                      setShowEventModal(true);
+                    }}
+                    icon={<Plus className="w-4 h-4" />}
+                  >
+                    Add New Session
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Upcoming Sessions */}
+              <UpcomingEvents
+                events={tutorSchedule}
+                limit={8}
+                onEventClick={(event) => {
+                  setSelectedEvent(event);
+                  setShowAddEventForm(false);
+                  setShowEventModal(true);
+                }}
+              />
+
+              {/* Session Stats */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">Session Overview</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-neutral-400">Scheduled</span>
+                    <Badge variant="info">{tutorSchedule.filter(e => e.status === 'scheduled').length}</Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-neutral-400">Completed</span>
+                    <Badge variant="success">{tutorSchedule.filter(e => e.status === 'completed').length}</Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-neutral-400">Cancelled</span>
+                    <Badge variant="error">{tutorSchedule.filter(e => e.status === 'cancelled').length}</Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <StatCard
+                title="Total Students"
+                value={students.length}
+                icon={<Users className="w-6 h-6" />}
+                change={12}
+                changeLabel="this month"
+              />
+              <StatCard
+                title="Sessions This Week"
+                value={tutorSchedule.filter(e => e.status === 'scheduled').length}
+                icon={<Calendar className="w-6 h-6" />}
+              />
+              <StatCard
+                title="Resources Shared"
+                value={resources.length}
+                icon={<BookOpen className="w-6 h-6" />}
+                change={8}
+                changeLabel="this week"
+              />
+              <StatCard
+                title="Avg. Student Progress"
+                value="78%"
+                icon={<TrendingUp className="w-6 h-6" />}
+                change={5}
+                changeLabel="vs last month"
+                variant="gradient"
+              />
+            </div>
+
+            {/* Main Content Grid */}
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Students List */}
           <div className="lg:col-span-2">
@@ -956,6 +1043,8 @@ export const TutorDashboard: React.FC = () => {
             </Card>
           </div>
         </div>
+          </>
+        )}
       </div>
 
       {/* Student Details Modal - Two Panel Layout */}
