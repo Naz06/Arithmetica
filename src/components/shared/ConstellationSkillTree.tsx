@@ -293,129 +293,141 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
     return { label: 'New', color: 'text-neutral-400', bgColor: 'bg-neutral-700' };
   };
 
-  // Star styling based on mastery level
+  // Star styling based on mastery level - refined with smaller, sharper stars
   const getStarStyle = (topic: TopicNode) => {
     const isHovered = hoveredTopic === topic.id;
     const isSelected = selectedTopic?.id === topic.id;
 
-    // Locked topics - dim diamonds
+    // Locked topics - small dim diamonds
     if (!topic.isUnlocked) {
       return {
-        outerSize: isHovered ? 2.5 : 2,
-        innerSize: 1,
+        outerSize: isHovered ? 1.6 : 1.3,
+        innerSize: 0.5,
         points: 4,
         opacity: 0.25,
         fill: '#404040',
         stroke: '#525252',
-        strokeWidth: 0.15,
+        strokeWidth: 0.1,
         glow: false,
         glowColor: '',
         glowSize: 0,
         animate: false,
         pulseSpeed: 0,
         rays: 0,
+        sparkles: 0,
         isLocked: true,
+        gradientId: '',
       };
     }
 
-    const hoverBoost = isHovered || isSelected ? 0.8 : 0;
+    const hoverBoost = isHovered || isSelected ? 0.5 : 0;
 
-    // Mastered - large golden 8-pointed star with radiating rays
+    // Mastered - sharp golden 8-pointed star with rays and sparkles
     if (topic.mastery >= 90) {
       return {
-        outerSize: 3.5 + hoverBoost,
-        innerSize: 1.8,
+        outerSize: 2.2 + hoverBoost,
+        innerSize: 0.75, // ~0.34 ratio for sharp points
         points: 8,
         opacity: 1,
-        fill: '#FFD700',
+        fill: `url(#masteredStarGradient-${topic.id})`,
         stroke: '#FFC107',
-        strokeWidth: 0.2,
+        strokeWidth: 0.1,
         glow: true,
-        glowColor: 'rgba(255, 215, 0, 0.6)',
-        glowSize: 6,
+        glowColor: 'rgba(255, 215, 0, 0.4)',
+        glowSize: 2.5,
         animate: true,
         pulseSpeed: 2,
         rays: 4,
+        sparkles: 4,
         isLocked: false,
+        gradientId: `masteredStarGradient-${topic.id}`,
       };
     }
 
-    // Proficient - bright 6-pointed star with glow
+    // Proficient - sharp 6-pointed star with subtle glow
     if (topic.mastery >= 70) {
       return {
-        outerSize: 3 + hoverBoost,
-        innerSize: 1.5,
+        outerSize: 1.9 + hoverBoost,
+        innerSize: 0.65, // ~0.34 ratio
         points: 6,
         opacity: 1,
-        fill: currentConstellation.color,
+        fill: `url(#proficientStarGradient-${topic.id})`,
         stroke: currentConstellation.color,
-        strokeWidth: 0.15,
+        strokeWidth: 0.08,
         glow: true,
         glowColor: currentConstellation.glowColor,
-        glowSize: 4,
+        glowSize: 1.8,
         animate: false,
         pulseSpeed: 0,
         rays: 0,
+        sparkles: 2,
         isLocked: false,
+        gradientId: `proficientStarGradient-${topic.id}`,
       };
     }
 
-    // Learning - medium 5-pointed star
+    // Learning - sharp 5-pointed star
     if (topic.mastery >= 40) {
       return {
-        outerSize: 2.5 + hoverBoost,
-        innerSize: 1.2,
+        outerSize: 1.6 + hoverBoost,
+        innerSize: 0.55, // ~0.34 ratio
         points: 5,
         opacity: 0.9,
-        fill: currentConstellation.color,
+        fill: `url(#learningStarGradient-${topic.id})`,
         stroke: 'transparent',
         strokeWidth: 0,
         glow: true,
         glowColor: currentConstellation.glowColor,
-        glowSize: 2.5,
+        glowSize: 1.2,
         animate: false,
         pulseSpeed: 0,
         rays: 0,
+        sparkles: 0,
         isLocked: false,
+        gradientId: `learningStarGradient-${topic.id}`,
       };
     }
 
-    // Started - small 4-pointed star with slow pulse
+    // Started - small sharp 4-pointed star
     if (topic.mastery > 0) {
       return {
-        outerSize: 2.2 + hoverBoost,
-        innerSize: 1,
+        outerSize: 1.4 + hoverBoost,
+        innerSize: 0.45,
         points: 4,
-        opacity: 0.7,
+        opacity: 0.75,
         fill: currentConstellation.color,
         stroke: 'transparent',
         strokeWidth: 0,
         glow: true,
         glowColor: currentConstellation.glowColor,
-        glowSize: 1.5,
+        glowSize: 0.8,
         animate: true,
         pulseSpeed: 3,
         rays: 0,
+        sparkles: 0,
         isLocked: false,
+        gradientId: '',
       };
     }
 
-    // Available but not started - hollow 4-pointed star with pulsing invitation
+    // Available but not started - hollow sharp star
     return {
-      outerSize: 2 + hoverBoost,
-      innerSize: 0.9,
+      outerSize: 1.3 + hoverBoost,
+      innerSize: 0.45,
       points: 4,
       opacity: 0.5,
       fill: 'transparent',
       stroke: currentConstellation.color,
-      strokeWidth: 0.2,
+      strokeWidth: 0.12,
       glow: true,
       glowColor: currentConstellation.glowColor,
-      glowSize: 1,
+      glowSize: 0.5,
       animate: true,
       pulseSpeed: 2.5,
       rays: 0,
+      sparkles: 0,
       isLocked: false,
+      gradientId: '',
     };
   };
 
@@ -504,37 +516,60 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
             {/* SVG Constellation */}
             <svg viewBox="0 0 100 100" className="w-full h-80 lg:h-96" preserveAspectRatio="xMidYMid meet">
               <defs>
-                {/* Glow filter */}
+                {/* Glow filter - subtle */}
                 <filter id="starGlow" x="-50%" y="-50%" width="200%" height="200%">
-                  <feGaussianBlur stdDeviation="1" result="blur" />
+                  <feGaussianBlur stdDeviation="0.5" result="blur" />
                   <feMerge>
                     <feMergeNode in="blur" />
                     <feMergeNode in="SourceGraphic" />
                   </feMerge>
                 </filter>
-                {/* Strong glow for mastered stars */}
+                {/* Glow for mastered stars - refined */}
                 <filter id="masteredGlow" x="-100%" y="-100%" width="300%" height="300%">
-                  <feGaussianBlur stdDeviation="1.5" result="blur" />
-                  <feFlood floodColor="#FFD700" floodOpacity="0.5" />
+                  <feGaussianBlur stdDeviation="0.8" result="blur" />
+                  <feFlood floodColor="#FFD700" floodOpacity="0.35" />
                   <feComposite in2="blur" operator="in" />
                   <feMerge>
                     <feMergeNode />
                     <feMergeNode in="SourceGraphic" />
                   </feMerge>
                 </filter>
-                {/* Nebula gradient */}
+                {/* Nebula gradients */}
                 <radialGradient id="nebulaGradient1" cx="30%" cy="40%" r="50%">
-                  <stop offset="0%" stopColor={currentConstellation.color} stopOpacity="0.15" />
+                  <stop offset="0%" stopColor={currentConstellation.color} stopOpacity="0.12" />
                   <stop offset="100%" stopColor={currentConstellation.color} stopOpacity="0" />
                 </radialGradient>
                 <radialGradient id="nebulaGradient2" cx="70%" cy="60%" r="40%">
-                  <stop offset="0%" stopColor={currentConstellation.color} stopOpacity="0.1" />
+                  <stop offset="0%" stopColor={currentConstellation.color} stopOpacity="0.08" />
                   <stop offset="100%" stopColor={currentConstellation.color} stopOpacity="0" />
                 </radialGradient>
                 <radialGradient id="nebulaGradient3" cx="50%" cy="25%" r="35%">
-                  <stop offset="0%" stopColor="#A855F7" stopOpacity="0.08" />
+                  <stop offset="0%" stopColor="#A855F7" stopOpacity="0.06" />
                   <stop offset="100%" stopColor="#A855F7" stopOpacity="0" />
                 </radialGradient>
+
+                {/* Star gradients for depth - generated per topic */}
+                {currentConstellation.topics.map((topic) => (
+                  <React.Fragment key={`gradients-${topic.id}`}>
+                    {/* Mastered star gradient - gold to amber */}
+                    <radialGradient id={`masteredStarGradient-${topic.id}`} cx="30%" cy="30%" r="70%">
+                      <stop offset="0%" stopColor="#FFF7CC" />
+                      <stop offset="40%" stopColor="#FFD700" />
+                      <stop offset="100%" stopColor="#B8860B" />
+                    </radialGradient>
+                    {/* Proficient star gradient */}
+                    <radialGradient id={`proficientStarGradient-${topic.id}`} cx="30%" cy="30%" r="70%">
+                      <stop offset="0%" stopColor="white" stopOpacity="0.6" />
+                      <stop offset="30%" stopColor={currentConstellation.color} />
+                      <stop offset="100%" stopColor={currentConstellation.color} stopOpacity="0.7" />
+                    </radialGradient>
+                    {/* Learning star gradient */}
+                    <radialGradient id={`learningStarGradient-${topic.id}`} cx="30%" cy="30%" r="70%">
+                      <stop offset="0%" stopColor={currentConstellation.color} stopOpacity="0.9" />
+                      <stop offset="100%" stopColor={currentConstellation.color} stopOpacity="0.5" />
+                    </radialGradient>
+                  </React.Fragment>
+                ))}
               </defs>
 
               {/* Nebula cluster backgrounds */}
@@ -653,11 +688,11 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
                               key={i}
                               x1={topic.x}
                               y1={topic.y}
-                              x2={topic.x + Math.cos((angle * Math.PI) / 180) * (style.outerSize + 3)}
-                              y2={topic.y + Math.sin((angle * Math.PI) / 180) * (style.outerSize + 3)}
+                              x2={topic.x + Math.cos((angle * Math.PI) / 180) * (style.outerSize + 1.5)}
+                              y2={topic.y + Math.sin((angle * Math.PI) / 180) * (style.outerSize + 1.5)}
                               stroke="#FFD700"
-                              strokeWidth="0.3"
-                              strokeOpacity="0.6"
+                              strokeWidth="0.15"
+                              strokeOpacity="0.5"
                               strokeLinecap="round"
                             />
                           );
@@ -670,15 +705,15 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
                       <ellipse
                         cx={topic.x}
                         cy={topic.y}
-                        rx={style.outerSize + 2}
-                        ry={style.outerSize * 0.4}
+                        rx={style.outerSize + 1.2}
+                        ry={style.outerSize * 0.35}
                         fill="none"
                         stroke="#FFD700"
-                        strokeWidth="0.3"
-                        strokeOpacity="0.5"
+                        strokeWidth="0.15"
+                        strokeOpacity="0.4"
                         transform={`rotate(-20 ${topic.x} ${topic.y})`}
                       >
-                        <animate attributeName="stroke-opacity" values="0.5;0.8;0.5" dur="3s" repeatCount="indefinite" />
+                        <animate attributeName="stroke-opacity" values="0.4;0.7;0.4" dur="3s" repeatCount="indefinite" />
                       </ellipse>
                     )}
 
@@ -701,14 +736,39 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
                       <circle
                         cx={topic.x}
                         cy={topic.y}
-                        r={style.innerSize * 0.4}
+                        r={style.innerSize * 0.25}
                         fill="white"
-                        opacity={topic.mastery >= 90 ? 0.9 : 0.6}
+                        opacity={topic.mastery >= 90 ? 0.95 : 0.7}
                       >
                         {topic.mastery >= 90 && (
-                          <animate attributeName="opacity" values="0.9;0.5;0.9" dur="1.5s" repeatCount="indefinite" />
+                          <animate attributeName="opacity" values="0.95;0.5;0.95" dur="1.5s" repeatCount="indefinite" />
                         )}
                       </circle>
+                    )}
+
+                    {/* Sparkle particles around completed stars */}
+                    {style.sparkles > 0 && topic.isUnlocked && (
+                      <g>
+                        {[...Array(style.sparkles)].map((_, i) => {
+                          const angle = (i * 360) / style.sparkles + 45;
+                          const distance = style.outerSize + 0.8 + (i % 2) * 0.4;
+                          const sparkleX = topic.x + Math.cos((angle * Math.PI) / 180) * distance;
+                          const sparkleY = topic.y + Math.sin((angle * Math.PI) / 180) * distance;
+                          const sparkleSize = 0.15 + (i % 2) * 0.08;
+                          return (
+                            <circle
+                              key={`sparkle-${topic.id}-${i}`}
+                              cx={sparkleX}
+                              cy={sparkleY}
+                              r={sparkleSize}
+                              fill={topic.mastery >= 90 ? '#FFF7CC' : 'white'}
+                              opacity={0.8}
+                              className="animate-sparkle"
+                              style={{ animationDelay: `${i * 0.3}s` }}
+                            />
+                          );
+                        })}
+                      </g>
                     )}
                   </g>
                 );
@@ -806,31 +866,38 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
                   <p className="text-xs text-neutral-600 uppercase tracking-wide">Legend</p>
                   <div className="flex items-center gap-2">
                     <svg width="16" height="16" viewBox="0 0 16 16">
-                      <path d={generateStarPath(8, 8, 6, 3, 8)} fill="#FFD700" />
+                      <defs>
+                        <radialGradient id="legendMasteredGrad" cx="30%" cy="30%" r="70%">
+                          <stop offset="0%" stopColor="#FFF7CC" />
+                          <stop offset="40%" stopColor="#FFD700" />
+                          <stop offset="100%" stopColor="#B8860B" />
+                        </radialGradient>
+                      </defs>
+                      <path d={generateStarPath(8, 8, 5, 1.7, 8)} fill="url(#legendMasteredGrad)" />
                     </svg>
                     <span className="text-xs text-neutral-400">Mastered (90%+)</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <svg width="16" height="16" viewBox="0 0 16 16">
-                      <path d={generateStarPath(8, 8, 5, 2.5, 6)} fill={currentConstellation.color} />
+                      <path d={generateStarPath(8, 8, 4.5, 1.5, 6)} fill={currentConstellation.color} />
                     </svg>
                     <span className="text-xs text-neutral-400">Proficient (70%+)</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <svg width="16" height="16" viewBox="0 0 16 16">
-                      <path d={generateStarPath(8, 8, 4.5, 2, 5)} fill={currentConstellation.color} opacity="0.8" />
+                      <path d={generateStarPath(8, 8, 4, 1.4, 5)} fill={currentConstellation.color} opacity="0.85" />
                     </svg>
                     <span className="text-xs text-neutral-400">Learning (40%+)</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <svg width="16" height="16" viewBox="0 0 16 16">
-                      <path d={generateStarPath(8, 8, 4, 1.8, 4)} fill={currentConstellation.color} opacity="0.5" />
+                      <path d={generateStarPath(8, 8, 3.5, 1.2, 4)} fill={currentConstellation.color} opacity="0.6" />
                     </svg>
                     <span className="text-xs text-neutral-400">Started</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <svg width="16" height="16" viewBox="0 0 16 16">
-                      <path d={generateDiamondPath(8, 8, 4)} fill="#404040" stroke="#525252" strokeWidth="0.5" />
+                      <path d={generateDiamondPath(8, 8, 3)} fill="#404040" stroke="#525252" strokeWidth="0.5" />
                     </svg>
                     <span className="text-xs text-neutral-400">Locked</span>
                   </div>
@@ -914,6 +981,13 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
           50% { opacity: 0.7; }
         }
         .animate-comet-fade { animation: comet-fade 3s ease-in-out infinite; }
+
+        /* Sparkle particles */
+        @keyframes sparkle {
+          0%, 100% { opacity: 0.3; transform: scale(0.8); }
+          50% { opacity: 1; transform: scale(1.2); }
+        }
+        .animate-sparkle { animation: sparkle 1.5s ease-in-out infinite; }
       `}</style>
     </Card>
   );
