@@ -478,7 +478,7 @@ export const ConstellationSkillTree: React.FC<ConstellationSkillTreeProps> = ({
           <div>
             <CardTitle className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-yellow-500" />
-              Sphere Grid
+              Constellation Skill Tree
             </CardTitle>
             <CardDescription>
               {levelLabel} curriculum • Navigate your path to mastery
