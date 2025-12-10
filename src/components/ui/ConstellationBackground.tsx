@@ -9,6 +9,7 @@ interface Star {
   speed: number;
   twinklePhase: number;
   twinkleSpeed: number;
+  isBright: boolean; // ~20-25% of stars twinkle brighter
 }
 
 interface ConstellationBackgroundProps {
@@ -42,16 +43,20 @@ export const ConstellationBackground: React.FC<ConstellationBackgroundProps> = (
     const initStars = () => {
       starsRef.current = [];
       for (let i = 0; i < starCount; i++) {
-        const baseOpacity = Math.random() * 0.6 + 0.4;
+        const isBright = Math.random() < 0.25; // ~25% of stars are brighter
+        const baseOpacity = isBright
+          ? Math.random() * 0.3 + 0.7  // Bright stars: 0.7-1.0
+          : Math.random() * 0.5 + 0.3; // Normal stars: 0.3-0.8
         starsRef.current.push({
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
-          size: Math.random() * 2 + 0.5,
+          size: isBright ? Math.random() * 2.5 + 1 : Math.random() * 2 + 0.5,
           baseOpacity,
           opacity: baseOpacity,
           speed: Math.random() * 0.5 + 0.1,
           twinklePhase: Math.random() * Math.PI * 2,
-          twinkleSpeed: Math.random() * 2 + 0.5,
+          twinkleSpeed: isBright ? Math.random() * 3 + 1 : Math.random() * 2 + 0.5,
+          isBright,
         });
       }
     };
@@ -86,8 +91,14 @@ export const ConstellationBackground: React.FC<ConstellationBackgroundProps> = (
           const time = Date.now() * 0.001;
           // Create a noticeable twinkling effect using sine wave
           const twinkle = Math.sin(time * star.twinkleSpeed + star.twinklePhase);
-          // Vary opacity between 0.2 and full brightness for visible twinkling
-          star.opacity = star.baseOpacity * (0.4 + (twinkle + 1) * 0.3);
+
+          if (star.isBright) {
+            // Bright stars: more dramatic twinkle, higher peak brightness
+            star.opacity = star.baseOpacity * (0.5 + (twinkle + 1) * 0.35);
+          } else {
+            // Normal stars: subtler twinkle
+            star.opacity = star.baseOpacity * (0.4 + (twinkle + 1) * 0.3);
+          }
         }
       });
     };
