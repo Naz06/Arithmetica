@@ -11,7 +11,7 @@ import {
   BarChart3,
   Settings,
   Star,
-  ShoppingBag,
+
   Trophy,
   TrendingUp,
   ChevronLeft,
@@ -57,7 +57,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen = false, onMobile
     { icon: <Trophy className="w-5 h-5" />, label: 'Achievements', path: '/student/achievements' },
     { icon: <BookOpen className="w-5 h-5" />, label: 'Resources', path: '/student/resources' },
     { icon: <Send className="w-5 h-5" />, label: 'Quick Message', path: '/student/quick-message' },
-    { icon: <ShoppingBag className="w-5 h-5" />, label: 'Shop', path: '/student/shop' },
     { icon: <Calendar className="w-5 h-5" />, label: 'Schedule', path: '/student/schedule' },
     { icon: <MessageCircle className="w-5 h-5" />, label: 'Messages', path: '/student/messages' },
     { icon: <Settings className="w-5 h-5" />, label: 'Settings', path: '/student/settings' },
