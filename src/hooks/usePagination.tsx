@@ -43,37 +43,38 @@ export function usePagination<T>(
     return items.slice(startIndex, endIndex);
   }, [items, currentPage, itemsPerPage]);
 
-  const canGoNext = useMemo(() => {
-    return currentPage < totalPages;
-  }, [currentPage, totalPages]);
+  const canGoNext = useMemo(() => currentPage < totalPages, [currentPage, totalPages]);
 
-  const canGoPrevious = useMemo(() => {
-    return currentPage > 1;
-  }, [currentPage]);
+  const canGoPrevious = useMemo(() => currentPage > 1, [currentPage, totalPages]);
 
-  const nextPage = useMemo(() => {
-    return Math.min(currentPage + 1, totalPages);
-  }, [currentPage, totalPages]);
+  const nextPage = useMemo(() => Math.min(currentPage + 1, totalPages), [currentPage, totalPages]);
 
-  const previousPage = useMemo(() => {
-    return Math.max(currentPage - 1, 1);
-  }, [currentPage, totalPages]);
+  const previousPage = useMemo(() => Math.max(currentPage - 1, 1), [currentPage, totalPages]);
 
   const pageNumbers = useMemo(() => {
     const showAll = totalPages <= maxPageButtons;
-    const half = Math.floor(maxPageButtons / 2);
-    const startPage = Math.max(1, currentPage - half);
-    const endPage = Math.min(totalPages, currentPage + half);
-    const pages: number[] = [];
+    const pages = number[] = [];
 
     if (showAll) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
       }
     } else {
+      const half = Math.floor(maxPageButtons / 2);
+      const startPage = Math.max(1, currentPage - half);
+      const endPage = Math.min(totalPages, currentPage + half);
+
       for (let i = startPage; i <= endPage; i++) {
         pages.push(i);
       }
+
+      if (totalPages - pages[pages.length - 1] > endPage) {
+        pages.push(totalPages);
+      }
+    }
+
+    if (!pages.includes(currentPage)) {
+      pages.push(currentPage);
     }
 
     return pages.sort((a, b) => a - b);
@@ -82,15 +83,15 @@ export function usePagination<T>(
   const goToPage = useCallback((page: number) => {
     setCurrentPage(Math.max(1, Math.min(totalPages, page)));
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [totalPages]);
+  }, [totalPages, setCurrentPage]);
 
   const goToNextPage = useCallback(() => {
     goToPage(nextPage);
-  }, [goToPage, nextPage]);
+  }, [goToPage, totalPages]);
 
   const goToPreviousPage = useCallback(() => {
     goToPage(previousPage);
-  }, [goToPage, previousPage]);
+  }, [goToPage, totalPages]);
 
   return {
     currentPage,
